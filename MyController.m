@@ -35,7 +35,7 @@
 		[SHELL retain];
 		taskRunning = 0;
 		//NSMutableArray *argumentList = [NSMutableArray arrayWithArray:[[inputBox stringValue] componentsSeparatedByString:@" "]];
-		NSString *path = @"/bin/bash";
+		NSString *path = @"/usr/bin/ls";
 		//[argumentList removeObjectAtIndex:0];
 		NSLog(@"Trying to run: %@", path);
 		[SHELL launchWithPath:path
@@ -85,7 +85,7 @@
         return;
 	else
 	{
-		NSString* taskText = [[NSString stringWithFormat:@"%s", buf] retain];
+		NSString* taskText = [NSString stringWithFormat:@"%s", buf];
 		NSLog(@"taskText= %@", taskText);
 		[[TermApplication getOutputBox] setText: taskText];
 	}
