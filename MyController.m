@@ -85,7 +85,7 @@
         return;
 	else
 	{
-		NSString* taskText = [NSString stringWithFormat:@"%s", buf];
+		NSString* taskText = [[NSString stringWithFormat:@"%s", buf] retain];
 		NSLog(@"taskText= %@", taskText);
 		[[TermApplication getOutputBox] setText: taskText];
 	}
