@@ -7,6 +7,7 @@
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UIWindow.h>
 #import <UIKit/UIHardware.h>
+#import <UIKit/UITextTraits.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIKeyboard.h>
 
@@ -30,7 +31,6 @@ UITextView* input;
 
 - (void)heartbeatCallback:(id)ignored
 {
-  NSLog(@"startcapture");
   char buf[255];
   int nread;
   while (1) {
@@ -46,18 +46,13 @@ UITextView* input;
     NSString* out = [[NSString stringWithCString:buf
         encoding:[NSString defaultCStringEncoding]] retain];
     NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
-    NSLog(@"A");
     text = [[text stringByAppendingString: out] retain];
-    NSLog(@"B");
     NSLog(text);
     [view setText:text];
-    NSLog(@"Set text=");
     NSLog([view text]);
   }
 
-  NSLog(@"Checking input");
   NSString* cmd = [[input text] retain];
-  NSLog(@"got cmd");
   NSLog(cmd);
   unsigned int i;
   unsigned int newline = -1;
@@ -68,8 +63,8 @@ UITextView* input;
       break;
     }
   }
-  NSLog(@"got range");
   if (newline == -1) {
+    // no newline, dont do anything yet
     NSLog(@"no return");
   } else {
     NSLog(@"got cmd:");
@@ -83,7 +78,6 @@ UITextView* input;
       exit(1);
     }
   }
-  NSLog(@"endcap");
 }
 
 @end
@@ -137,6 +131,11 @@ UITextView* input;
     [keyboard hideSuggestionBar];
     [keyboard setTapDelegate:input];
     [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
+
+    // TODO: Turn off auto caps?
+//    UITextTraits* textTraits = [[UITextTraits alloc] init];
+//    [textTraits setAutoCapsType:0];
+//    [keyboard setDefaultTextTraits:textTraits];
 
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
     rect.origin.x = rect.origin.y = 0.0f;
