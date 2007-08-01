@@ -22,13 +22,13 @@ int fd;
 UITextView* view;
 UITextView* input;
 
-@interface F : UIKeyboard {
+// This keyboard is currently just used to receive a heartbeat callback.
+@interface ShellKeyboard : UIKeyboard {
 }
 @end
+@implementation ShellKeyboard
 
-@implementation F
-
-- (void)hb:(id)foo
+- (void)heartbeatCallback:(id)ignored
 {
   NSLog(@"startcapture");
   char buf[255];
@@ -132,13 +132,7 @@ UITextView* input;
       exit(1);
     }
 
-    const char* cmd = "ls -l \n";
-    if (write(fd, cmd, strlen(cmd)) == -1) {
-      perror("write");
-      exit(1);
-    }
- 
-    F* keyboard = [[F alloc]
+    ShellKeyboard* keyboard = [[ShellKeyboard alloc]
         initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
     [keyboard setTapDelegate:self];
     [keyboard startHeartbeat:@selector(hb:) inRunLoopMode:nil];
