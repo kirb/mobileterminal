@@ -5,7 +5,7 @@ CFLAGS=-Wall
 
 all:	mobileTerm
 
-mobileTerm:		term.o TermApplication.o MyController.o PTYTask.o
+mobileTerm:		term.o TermApplication.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
