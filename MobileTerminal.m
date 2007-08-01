@@ -8,6 +8,7 @@
 #import <UIKit/UIWindow.h>
 #import <UIKit/UIHardware.h>
 //#import <UIKit/UITextTraits.h>
+#import <UIKit/UIView-Rendering.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIKeyboard.h>
 
@@ -74,7 +75,7 @@ UITextView* input;
     //NSLog(@"no return");
   } else {
     //NSLog(@"got cmd:");
-    NSString* cmdpart = [cmd substringToIndex:newline];
+    //NSString* cmdpart = [cmd substringToIndex:newline];
     //NSLog(cmdpart);
     [input setText:@""];
 
