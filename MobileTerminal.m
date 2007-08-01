@@ -7,7 +7,7 @@
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UIWindow.h>
 #import <UIKit/UIHardware.h>
-//#import <UIKit/UITextTraits.h>
+#import "UITextTraits.h"
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIKeyboard.h>
@@ -122,7 +122,9 @@ UITextView* input;
         initWithFrame: CGRectMake(0.0f, 210.0f, 320.0f, 240.0f)];
     [input setText:@""];
     [input setTextSize:14];
+    [input setTextColor:  CGColorCreate( colorSpace, textcomponents)];
     [input setTextFont:@"Courier"];
+	[input setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
 // TODO: Make it obvious this is an input box. TextField instead?
 //    [input placeholderTextForFieldEditor:@"< shell command >"];
 //    [input setDrawBorderText:@""];
@@ -164,10 +166,13 @@ UITextView* input;
     [keyboard setTapDelegate:input];
     [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
 
+	
     // TODO: Turn off auto caps?
-//    UITextTraits* textTraits = [[UITextTraits alloc] init];
-//    [textTraits setAutoCapsType:0];
-//    [keyboard setDefaultTextTraits:textTraits];
+	// DxQ: This code doesn't work. I think setAutoCapsType is going to be something crazy (not 1 or 0)
+//	UITextTraits* textTraits = [[UITextTraits alloc] init];
+//	[textTraits setCaretColor:CGColorCreate( colorSpace, textcomponents)];
+//	[textTraits setAutoCapsType:0];
+//	[input takeTraitsFrom:textTraits];
 
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
     rect.origin.x = rect.origin.y = 0.0f;
