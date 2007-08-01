@@ -134,8 +134,9 @@ UITextView* input;
 
     ShellKeyboard* keyboard = [[ShellKeyboard alloc]
         initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
-    [keyboard setTapDelegate:self];
-    [keyboard startHeartbeat:@selector(hb:) inRunLoopMode:nil];
+    [keyboard hideSuggestionBar];
+    [keyboard setTapDelegate:input];
+    [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
 
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
     rect.origin.x = rect.origin.y = 0.0f;
