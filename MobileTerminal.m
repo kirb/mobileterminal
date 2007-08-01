@@ -57,6 +57,7 @@ UITextView* input;
   unsigned int i;
   unsigned int newline = -1;
   for (i = 0; i < [cmd length]; ++i) {
+	[self hideSuggestionBar];		// slow hack. removes suggestion bar. fix?
     unichar c = [cmd characterAtIndex:i];
     if (c == '\n') {
       newline = i + 1;
@@ -147,6 +148,8 @@ UITextView* input;
     [mainView addSubview: input]; 
     [mainView addSubview: keyboard];
 
+	[input becomeFirstResponder];
+	
     [window setContentView: mainView];
 }
 
