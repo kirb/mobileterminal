@@ -12,7 +12,7 @@ MobileTerminal:	main.o MobileTerminal.o
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-package:
+package: MobileTerminal
 	mkdir -p MobileTerminal.app
 	cp MobileTerminal MobileTerminal.app/
 	cp Info.plist MobileTerminal.app/

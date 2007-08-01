@@ -1,4 +1,4 @@
-#import "TermApplication.h"
+#import "MobileTerminal.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/CDStructures.h>
@@ -88,7 +88,7 @@ UITextView* input;
 
 @end
 
-@implementation TermApplication
+@implementation MobileTerminal
 
 - (void) applicationDidFinishLaunching: (id) unused
 {
