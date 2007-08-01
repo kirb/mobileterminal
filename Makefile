@@ -13,10 +13,11 @@ MobileTerminal:	main.o MobileTerminal.o
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 package: MobileTerminal
-	mkdir -p MobileTerminal.app
-	cp MobileTerminal MobileTerminal.app/
-	cp Info.plist MobileTerminal.app/
-	cp icon.png MobileTerminal.app/icon.png
+	rm -fr Terminal.app
+	mkdir -p Terminal.app
+	cp MobileTerminal Terminal.app/Terminal
+	cp Info.plist Terminal.app/
+	cp icon.png Terminal.app/icon.png
 
 clean:	
-	rm -fr *.o MobileTerminal MobileTerminal.app
+	rm -fr *.o MobileTerminal Terminal.app
