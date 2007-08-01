@@ -59,7 +59,7 @@ UITextView* input;
   }
 
   NSString* cmd = [[input text] retain];
-  NSLog(cmd);
+  //NSLog(cmd);
   unsigned int i;
   unsigned int newline = -1;
   for (i = 0; i < [cmd length]; ++i) {
@@ -71,11 +71,11 @@ UITextView* input;
   }
   if (newline == -1) {
     // no newline, dont do anything yet
-    NSLog(@"no return");
+    //NSLog(@"no return");
   } else {
-    NSLog(@"got cmd:");
+    //NSLog(@"got cmd:");
     NSString* cmdpart = [cmd substringToIndex:newline];
-    NSLog(cmdpart);
+    //NSLog(cmdpart);
     [input setText:@""];
 
     const char* cmd_cstr =
@@ -99,7 +99,7 @@ UITextView* input;
     [window makeKey: self];
     [window _setHidden: NO];
 //make colors	
-	float backcomponents[4] = {0, 0, 0, 1.0/1.0};
+	float backcomponents[4] = {0, 0, 0, 0.0/0.0};
 	float textcomponents[4] = {1, 1, 1, 1.0/1.0};
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	
@@ -109,7 +109,7 @@ UITextView* input;
     [view setText:@""];
     [view setTextSize:12];
 	[view setTextColor:  CGColorCreate( colorSpace, textcomponents)];
-    [view setTextFont:@"Courier New"];
+    [view setTextFont:@"Courier"];
 	[view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
     [view setEditable:NO];  // don't mess up my pretty output
     [view displayScrollerIndicators];
