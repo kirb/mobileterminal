@@ -98,13 +98,19 @@ UITextView* input;
     [window orderFront: self];
     [window makeKey: self];
     [window _setHidden: NO];
-
+//make colors	
+	float backcomponents[4] = {0, 0, 0, 1.0/1.0};
+	float textcomponents[4] = {1, 1, 1, 1.0/1.0};
+	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+	
 
     view = [[UITextView alloc]
         initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 210.0f)];
     [view setText:@""];
-    [view setTextSize:10];
-    [view setTextFont:@"Courier"];
+    [view setTextSize:12];
+	[view setTextColor:  CGColorCreate( colorSpace, textcomponents)];
+    [view setTextFont:@"Courier New"];
+	[view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
     [view setEditable:NO];  // don't mess up my pretty output
     [view displayScrollerIndicators];
 // TODO: Black on gray?
