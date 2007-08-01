@@ -133,6 +133,7 @@ UITextView* input;
     [view setTextFont:@"Courier"];
 	[view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
     [view setEditable:NO];  // don't mess up my pretty output
+	[view setAllowsRubberBanding:YES];
     [view displayScrollerIndicators];
 
     input = [[UITextView alloc]
