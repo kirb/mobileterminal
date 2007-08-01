@@ -1,1 +1,6 @@
 See wiki at http://mobileterminal.googlecode.com for more details
+
+TODO
+- auto scroll
+- disable spelling correction
+- make it like a real shell, and support interactive apps (vi, irc, etc)

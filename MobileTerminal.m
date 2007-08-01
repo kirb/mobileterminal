@@ -7,7 +7,7 @@
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UIWindow.h>
 #import <UIKit/UIHardware.h>
-#import <UIKit/UITextTraits.h>
+//#import <UIKit/UITextTraits.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIKeyboard.h>
 
