@@ -64,6 +64,7 @@ UITextView* input;
   unsigned int i;
   unsigned int newline = -1;
   for (i = 0; i < [cmd length]; ++i) {
+	[self removeAutocorrectPrompt];		// slow hack. removes suggestion bar. fix?
     unichar c = [cmd characterAtIndex:i];
     if (c == '\n') {
       newline = i + 1;
