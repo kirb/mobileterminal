@@ -1,3 +1,4 @@
+// MobileTerminal
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIApplication.h>
@@ -5,8 +6,7 @@
 #import <UIKit/UITableCell.h>
 #import <UIKit/UIImageAndTextTableCell.h>
 
-
-@interface TermApplication : UIApplication {
+@interface MobileTerminal : UIApplication {
     UIImageAndTextTableCell *pbCell;
     UITableCell *buttonCell;
 }

@@ -6,11 +6,17 @@ CFLAGS = -Wall
 
 all:	MobileTerminal
 
-MobileTerminal:	term.o TermApplication.o
+MobileTerminal:	main.o MobileTerminal.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
+package:
+	mkdir -p MobileTerminal.app
+	cp MobileTerminal MobileTerminal.app/
+	cp Info.plist MobileTerminal.app/
+	cp icon.png MobileTerminal.app/icon.png
+
 clean:	
-	rm -f *.o mobileTerm
+	rm -fr *.o MobileTerminal MobileTerminal.app
