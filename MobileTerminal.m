@@ -11,6 +11,8 @@
 #import <UIKit/UITextView.h>
 #import <UIKit/UIKeyboard.h>
 
+//#import "DelegateDebug.h"
+
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -18,18 +20,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-
 int fd;
-UITextView* view;
-UITextView* input;
-
-@interface UITextLoupe : UIView
-- (void)drawRect:(struct CGRect)fp8;
-@end
-
-@implementation UITextLoupe (black)
-- (void)drawRect:(struct CGRect)fp8{}
-@end
 
 @interface UIKeyboardImpl : UIView
 {
@@ -38,11 +29,113 @@ UITextView* input;
 
 @implementation UIKeyboardImpl(disableAutoCaps)
  
-- (BOOL)autoCorrectPreference { return false; }
+- (BOOL)autoCapitalizationPreference
+{
+	return false;
+}
 
-- (BOOL)autoCapitalizationPreference { return false; }
+- (BOOL)autoCorrectionPreference
+{
+	return false;
+}
 
 @end
+
+@interface UITextLoupe : UIView
+
+- (void)drawRect:(struct CGRect)fp8;
+
+@end
+
+@implementation UITextLoupe (black)
+
+- (void)drawRect:(struct CGRect)fp8
+{
+	
+}
+
+@end
+
+@interface ShellView : UITextView {
+	NSMutableString* _nextCommand;
+	bool _ignoreInsertText;
+}
+- (id)initWithFrame:(struct CGRect)fp8;
+- (BOOL)canBecomeFirstResponder;
+-(NSMethodSignature*)methodSignatureForSelector:(SEL)selector;
+- (void)forwardInvocation:(NSInvocation *)anInvocation;
+- (void)stopCapture;
+- (void)startCapture;
+
+@end
+
+@implementation ShellView : UITextView 
+- (id)initWithFrame:(struct CGRect)fp8
+{
+	NSLog(@"Created ShellView");
+	_nextCommand = [[NSMutableString stringWithCapacity:255] retain];
+	_ignoreInsertText = NO;
+	return [super initWithFrame:fp8];
+}
+
+- (BOOL)canBecomeFirstResponder 
+{
+	return NO;
+}
+
+- (void)stopCapture
+{
+	_ignoreInsertText = YES;
+}
+
+- (void)startCapture
+{
+	_ignoreInsertText = NO;
+}
+
+-(NSMethodSignature*)methodSignatureForSelector:(SEL)selector
+{
+	NSLog(@"Requested method for selector: %@", NSStringFromSelector(selector));
+	return [super methodSignatureForSelector:selector];
+}
+
+- (BOOL)respondsToSelector:(SEL)aSelector
+{
+	//NSLog(@"Request for selector: %@", NSStringFromSelector(aSelector));
+	return [super respondsToSelector:aSelector];
+}
+
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+	NSLog(@"Called from UITextView %@", NSStringFromSelector([anInvocation selector]));
+	[super forwardInvocation:anInvocation];
+	return;
+}
+
+- (BOOL)webView:(id)fp8 shouldDeleteDOMRange:(id)fp12
+{
+	NSLog(@"deleting range: %i, %i", [fp12 startOffset], [fp12 endOffset]);
+}
+
+- (BOOL)webView:(id)fp8 shouldInsertText:(id)character replacingDOMRange:(id)fp16 givenAction:(int)fp20
+{
+	//NSLog(@"range while inserting: %p, %x, %x", fp16, fp16->location, fp16->length);
+	//NSLog(@"range class? %@", [fp16 class]);
+	//NSLog(@"range: %i, %i", [fp16 startOffset], [fp16 endOffset]);
+	//NSLog(@"inserting.. %@", fp12);
+	if(!_ignoreInsertText) {
+		const char* cmd_cstr = [character cStringUsingEncoding:[NSString defaultCStringEncoding]];
+	    if (write(fd, cmd_cstr, [character length]) == -1) {
+	      perror("write");
+	      exit(1);
+	    }
+		return NO;
+	}
+	return [super webView:fp8 shouldInsertText:character replacingDOMRange:fp16 givenAction:fp20];
+}
+@end
+
+ShellView* view;
 
 // This keyboard is currently just used to receive a heartbeat callback.
 @interface ShellKeyboard : UIKeyboard {
@@ -55,10 +148,7 @@ UITextView* input;
 // input from the user.  When it detects the user has pressed return, it
 // sends the command to the background shell.
 - (void)heartbeatCallback:(id)ignored
-{
-  // Always disable suggestions
-  [self removeAutocorrectPrompt];
-
+{	
   char buf[255];
   int nread;
   while (1) {
@@ -71,40 +161,22 @@ UITextView* input;
        exit(1);
     }
     buf[nread] = '\0';
-    NSString* out = [[NSString stringWithCString:buf
-        encoding:[NSString defaultCStringEncoding]] retain];
+    NSString* out = [[NSString stringWithCString:buf encoding:[NSString defaultCStringEncoding]] retain];
     //NSLog(out);
-    NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
-    text = [[text stringByAppendingString: out] retain];
-    [view setText:text];
-  }
-
-  NSString* cmd = [[input text] retain];
-  //NSLog(cmd);
-  unsigned int i;
-  unsigned int newline = -1;
-  for (i = 0; i < [cmd length]; ++i) {
-    unichar c = [cmd characterAtIndex:i];
-    if (c == '\n') {
-      newline = i + 1;
-      break;
-    }
-  }
-  if (newline == -1) {
-    // no newline, dont do anything yet
-    //NSLog(@"no return");
-  } else {
-    //NSLog(@"got cmd:");
-    //NSString* cmdpart = [cmd substringToIndex:newline];
-    //NSLog(cmdpart);
-    [input setText:@""];
-
-    const char* cmd_cstr =
-        [cmd cStringUsingEncoding:[NSString defaultCStringEncoding]];
-    if (write(fd, cmd_cstr, newline) == -1) {
-      perror("write");
-      exit(1);
-    }
+    //NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
+    //text = [[text stringByAppendingString: out] retain];
+	//[view setEditable:YES];
+	[[[view _webView] webView] moveToEndOfDocument:self];
+	[view stopCapture];
+	[[view _webView] insertText: out];
+	[view startCapture];
+	
+	NSRange aRange;
+	aRange.location = 9999999;	//horray for magic number
+	aRange.length = 1;
+	[view setSelectionRange:aRange];
+	[view scrollToMakeCaretVisible:YES];
+	[view setEditable:YES];	
   }
 }
 
@@ -119,33 +191,22 @@ UITextView* input;
     [window orderFront: self];
     [window makeKey: self];
     [window _setHidden: NO];
-//make colors	
-	float backcomponents[4] = {0, 0, 0, 0.0/0.0};
-	float textcomponents[4] = {1, 1, 1, 1.0/1.0};
+	//make colors	
+	float backcomponents[4] = {0, 0, 0, 1};
+	float textcomponents[4] = {1, 1, 1, 1};
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	
 
-    view = [[UITextView alloc]
-        initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 210.0f)];
-    [view setText:@""];
+    view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
+    [view setText:@"Welcome!\n"];
     [view setTextSize:12];
 	[view setTextColor:  CGColorCreate( colorSpace, textcomponents)];
     [view setTextFont:@"Courier"];
 	[view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
-    [view setEditable:NO];  // don't mess up my pretty output
+    [view setEditable:YES];  // don't mess up my pretty output
 	[view setAllowsRubberBanding:YES];
     [view displayScrollerIndicators];
 
-    input = [[UITextView alloc]
-        initWithFrame: CGRectMake(0.0f, 210.0f, 320.0f, 240.0f)];
-    [input setText:@""];
-    [input setTextSize:14];
-    [input setTextColor:  CGColorCreate( colorSpace, textcomponents)];
-    [input setTextFont:@"Courier"];
-	[input setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
-
-    // Window size for font size 10 (determined with some manual testing)
-    // This makes ls output line up and look nice.
     struct winsize win;
     win.ws_row = 19;
     win.ws_col = 50;
@@ -175,22 +236,24 @@ UITextView* input;
       exit(1);
     }
 
+	//DelegateDebug* debugDelegate = [[DelegateDebug alloc] retain];
+	//[debugDelegate doSomethingWeird];
+	
     ShellKeyboard* keyboard = [[ShellKeyboard alloc]
         initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
-    [keyboard hideSuggestionBar];
-    [keyboard setTapDelegate:input];
+
+    [keyboard setTapDelegate:view];
     [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
-	
 
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
     rect.origin.x = rect.origin.y = 0.0f;
     UIView *mainView;
     mainView = [[UIView alloc] initWithFrame: rect];
+
     [mainView addSubview: view]; 
-    [mainView addSubview: input]; 
     [mainView addSubview: keyboard];
 
-    [input becomeFirstResponder];
+    [view becomeFirstResponder];
 	
     [window setContentView: mainView];
 }
