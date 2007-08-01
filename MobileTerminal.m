@@ -23,6 +23,20 @@ int fd;
 UITextView* view;
 UITextView* input;
 
+@interface UIKeyboardImpl : UIView
+{
+}
+@end
+
+@implementation UIKeyboardImpl(disableAutoCaps)
+ 
+- (BOOL)autoCapitalizationPreference
+{
+	return false;
+}
+
+@end
+
 // This keyboard is currently just used to receive a heartbeat callback.
 @interface ShellKeyboard : UIKeyboard {
 }
