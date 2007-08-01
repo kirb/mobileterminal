@@ -96,11 +96,13 @@ UITextView* input;
         initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 210.0f)];
     [view setText:@""];
     [view setTextSize:14];
+    [view setTextFont:@"Courier"];
     [view setEditable:NO];  // don't mess up my pretty output
 
     input = [[UITextView alloc]
         initWithFrame: CGRectMake(0.0f, 210.0f, 320.0f, 240.0f)];
     [input setTextSize:14];
+    [view setTextFont:@"Courier"];
     [input setText:@""];
 
     pid_t pid = forkpty(&fd, NULL, NULL, NULL);

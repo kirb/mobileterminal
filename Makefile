@@ -4,19 +4,19 @@ LDFLAGS = -ObjC -framework CoreFoundation -framework Foundation \
           -framework UIKit -framework LayerKit 
 CFLAGS = -Wall
 
-all:	MobileTerminal
+all:	Terminal
 
-MobileTerminal:	main.o MobileTerminal.o
+Terminal:	main.o MobileTerminal.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-package: MobileTerminal
+package: Terminal
 	rm -fr Terminal.app
 	mkdir -p Terminal.app
-	cp MobileTerminal Terminal.app/Terminal
-	cp Info.plist Terminal.app/
+	cp Terminal Terminal.app/Terminal
+	cp Info.plist Terminal.app/Info.plist
 	cp icon.png Terminal.app/icon.png
 
 clean:	
