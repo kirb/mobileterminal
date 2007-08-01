@@ -29,8 +29,15 @@ UITextView* input;
 @end
 @implementation ShellKeyboard
 
+// The heartbeatCallback is invoked by the UI occasionally.  It does a
+// non-blocking read of the background shell process, and also checks for
+// input from the user.  When it detects the user has pressed return, it
+// sends the command to the background shell.
 - (void)heartbeatCallback:(id)ignored
 {
+  // TODO: slow hack that removes suggestion bar.  fix?
+  [self hideSuggestionBar];
+
   char buf[255];
   int nread;
   while (1) {
@@ -45,11 +52,10 @@ UITextView* input;
     buf[nread] = '\0';
     NSString* out = [[NSString stringWithCString:buf
         encoding:[NSString defaultCStringEncoding]] retain];
+    //NSLog(out);
     NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
     text = [[text stringByAppendingString: out] retain];
-    NSLog(text);
     [view setText:text];
-    NSLog([view text]);
   }
 
   NSString* cmd = [[input text] retain];
@@ -57,7 +63,6 @@ UITextView* input;
   unsigned int i;
   unsigned int newline = -1;
   for (i = 0; i < [cmd length]; ++i) {
-	[self hideSuggestionBar];		// slow hack. removes suggestion bar. fix?
     unichar c = [cmd characterAtIndex:i];
     if (c == '\n') {
       newline = i + 1;
@@ -73,7 +78,8 @@ UITextView* input;
     NSLog(cmdpart);
     [input setText:@""];
 
-    const char* cmd_cstr = [cmd cStringUsingEncoding:[NSString defaultCStringEncoding]];
+    const char* cmd_cstr =
+        [cmd cStringUsingEncoding:[NSString defaultCStringEncoding]];
     if (write(fd, cmd_cstr, newline) == -1) {
       perror("write");
       exit(1);
@@ -92,21 +98,36 @@ UITextView* input;
     [window orderFront: self];
     [window makeKey: self];
     [window _setHidden: NO];
- 
+
+
     view = [[UITextView alloc]
         initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 210.0f)];
     [view setText:@""];
-    [view setTextSize:14];
+    [view setTextSize:10];
     [view setTextFont:@"Courier"];
     [view setEditable:NO];  // don't mess up my pretty output
+    [view displayScrollerIndicators];
+// TODO: Black on gray?
+//    [view setBackgroundColor:0xff];
 
     input = [[UITextView alloc]
         initWithFrame: CGRectMake(0.0f, 210.0f, 320.0f, 240.0f)];
-    [input setTextSize:14];
-    [view setTextFont:@"Courier"];
     [input setText:@""];
+    [input setTextSize:14];
+    [input setTextFont:@"Courier"];
+// TODO: Make it obvious this is an input box. TextField instead?
+//    [input placeholderTextForFieldEditor:@"< shell command >"];
+//    [input setDrawBorderText:@""];
 
-    pid_t pid = forkpty(&fd, NULL, NULL, NULL);
+    // Window size for font size 10 (determined with some manual testing)
+    // This makes ls output line up and look nice.
+    struct winsize win;
+    win.ws_row = 19;
+    win.ws_col = 50;
+    win.ws_xpixel = 320;
+    win.ws_ypixel = 210;
+
+    pid_t pid = forkpty(&fd, NULL, NULL, &win);
     if (pid == -1) {
       perror("forkpty");
       exit(1);
@@ -148,7 +169,7 @@ UITextView* input;
     [mainView addSubview: input]; 
     [mainView addSubview: keyboard];
 
-	[input becomeFirstResponder];
+    [input becomeFirstResponder];
 	
     [window setContentView: mainView];
 }
