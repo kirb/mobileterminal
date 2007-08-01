@@ -49,8 +49,8 @@ UITextView* input;
 // sends the command to the background shell.
 - (void)heartbeatCallback:(id)ignored
 {
-  // TODO: slow hack that removes suggestion bar.  fix?
-  [self hideSuggestionBar];
+  // Always disable suggestions
+  [self removeAutocorrectPrompt];
 
   char buf[255];
   int nread;
@@ -77,7 +77,6 @@ UITextView* input;
   unsigned int i;
   unsigned int newline = -1;
   for (i = 0; i < [cmd length]; ++i) {
-	[self removeAutocorrectPrompt];		// slow hack. removes suggestion bar. fix?
     unichar c = [cmd characterAtIndex:i];
     if (c == '\n') {
       newline = i + 1;
