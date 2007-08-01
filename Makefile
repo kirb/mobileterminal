@@ -20,4 +20,4 @@ package: Terminal
 	cp icon.png Terminal.app/icon.png
 
 clean:	
-	rm -fr *.o MobileTerminal Terminal.app
+	rm -fr *.o Terminal Terminal.app
