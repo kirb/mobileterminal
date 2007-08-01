@@ -23,6 +23,14 @@ int fd;
 UITextView* view;
 UITextView* input;
 
+@interface UITextLoupe : UIView
+- (void)drawRect:(struct CGRect)fp8;
+@end
+
+@implementation UITextLoupe (black)
+- (void)drawRect:(struct CGRect)fp8{}
+@end
+
 @interface UIKeyboardImpl : UIView
 {
 }
@@ -30,10 +38,9 @@ UITextView* input;
 
 @implementation UIKeyboardImpl(disableAutoCaps)
  
-- (BOOL)autoCapitalizationPreference
-{
-	return false;
-}
+- (BOOL)autoCorrectPreference { return false; }
+
+- (BOOL)autoCapitalizationPreference { return false; }
 
 @end
 
@@ -127,8 +134,6 @@ UITextView* input;
 	[view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
     [view setEditable:NO];  // don't mess up my pretty output
     [view displayScrollerIndicators];
-// TODO: Black on gray?
-//    [view setBackgroundColor:0xff];
 
     input = [[UITextView alloc]
         initWithFrame: CGRectMake(0.0f, 210.0f, 320.0f, 240.0f)];
@@ -137,9 +142,6 @@ UITextView* input;
     [input setTextColor:  CGColorCreate( colorSpace, textcomponents)];
     [input setTextFont:@"Courier"];
 	[input setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
-// TODO: Make it obvious this is an input box. TextField instead?
-//    [input placeholderTextForFieldEditor:@"< shell command >"];
-//    [input setDrawBorderText:@""];
 
     // Window size for font size 10 (determined with some manual testing)
     // This makes ls output line up and look nice.
@@ -177,14 +179,7 @@ UITextView* input;
     [keyboard hideSuggestionBar];
     [keyboard setTapDelegate:input];
     [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
-
 	
-    // TODO: Turn off auto caps?
-	// DxQ: This code doesn't work. I think setAutoCapsType is going to be something crazy (not 1 or 0)
-//	UITextTraits* textTraits = [[UITextTraits alloc] init];
-//	[textTraits setCaretColor:CGColorCreate( colorSpace, textcomponents)];
-//	[textTraits setAutoCapsType:0];
-//	[input takeTraitsFrom:textTraits];
 
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
     rect.origin.x = rect.origin.y = 0.0f;
