@@ -99,7 +99,7 @@ UITextView* input;
     [window makeKey: self];
     [window _setHidden: NO];
 //make colors	
-	float backcomponents[4] = {0, 0, 0, 1.0/1.0};
+	float backcomponents[4] = {0, 0, 0, 0.0/0.0};
 	float textcomponents[4] = {1, 1, 1, 1.0/1.0};
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	
