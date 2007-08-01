@@ -1,15 +1,16 @@
-CC=arm-apple-darwin-cc
-LD=$(CC)
-LDFLAGS=-ObjC -framework CoreFoundation -framework Foundation -framework UIKit -framework LayerKit 
-CFLAGS=-Wall
+CC = arm-apple-darwin-cc
+LD = $(CC)
+LDFLAGS = -ObjC -framework CoreFoundation -framework Foundation \
+          -framework UIKit -framework LayerKit 
+CFLAGS = -Wall
 
-all:	mobileTerm
+all:	MobileTerminal
 
-mobileTerm:		term.o TermApplication.o
+MobileTerminal:	term.o TermApplication.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
-		$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:	
-		rm -f *.o mobileTerm
+	rm -f *.o mobileTerm
