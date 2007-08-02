@@ -1,18 +1,16 @@
 #import "MobileTerminal.h"
-#import "ShellView.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/CDStructures.h>
+#import <UIKit/UIHardware.h>
+#import <UIKit/UIKeyboard.h>
+#import <UIKit/UINavigationBar.h>
+#import <UIKit/UITextView.h>
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Hierarchy.h>
-#import <UIKit/UINavigationBar.h>
-#import <UIKit/UIWindow.h>
-#import <UIKit/UIHardware.h>
 #import <UIKit/UIView-Rendering.h>
-#import <UIKit/UITextView.h>
-#import <UIKit/UIKeyboard.h>
-
-//#import "DelegateDebug.h"
+#import <UIKit/UIWindow.h>
+#import "ShellView.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>
