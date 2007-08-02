@@ -19,7 +19,7 @@
 
 - (void)setMainView:(UIView *) mainView;
 - (void)setKeyboard:(id *) keyboard;
-- (void)mouseDown:(struct __GSEvent *)fp8;
+- (void)doubleTap:(struct __GSEvent *)fp8;
 -(id)initWithFrame:(struct CGRect)fp8;
 - (BOOL)canBecomeFirstResponder;
 -(NSMethodSignature*)methodSignatureForSelector:(SEL)selector;

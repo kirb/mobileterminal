@@ -10,6 +10,7 @@
 #import <UIKit/UITransformAnimation.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIView.h>
+//#import <UIKit/UIWebView.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
@@ -29,6 +30,7 @@
 
 
 @end
+
 
 @interface UIView (CleanMoreWarnings)
 - (void) moveToEndOfDocument:(id)inVIew;
@@ -364,10 +366,11 @@ void signal_handler(int signal) {
   
 
   view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
+//  struct CGRect doubleTapRect = CGRectMake(0.0f, 0.0f, 320.0f, 240.0f);
   [view setText:@""];
   [view setTextSize:12];
   [view setTextColor: CGColorCreate( colorSpace, textcomponents)];
-  [view setTextFont:@"Courier"];
+  [view setTextFont:@"CourierNewBold"];
   [view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
   [view setEditable:YES]; // don't mess up my pretty output
   [view setAllowsRubberBanding:YES];
