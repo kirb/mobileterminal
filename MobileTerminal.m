@@ -210,7 +210,7 @@ ShellView* view;
     } else if (nread == 0) {
       // EOF -- unexpected?
       NSLog(@"read() returned EOF");
-      exit(1):
+      exit(1);
     }
     buf[nread] = '\0';
     NSString* out = [[NSString stringWithCString:buf encoding:[NSString defaultCStringEncoding]] retain];
