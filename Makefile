@@ -18,6 +18,7 @@ package: Terminal
 	cp Terminal Terminal.app/Terminal
 	cp Info.plist Terminal.app/Info.plist
 	cp icon.png Terminal.app/icon.png
+	cp Default.png Terminal.app/Default.png
 
 clean:	
 	rm -fr *.o Terminal Terminal.app
