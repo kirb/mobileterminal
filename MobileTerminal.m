@@ -114,7 +114,16 @@ int fd;
 
 - (BOOL)webView:(id)fp8 shouldDeleteDOMRange:(id)fp12
 {
-	NSLog(@"deleting range: %i, %i", [fp12 startOffset], [fp12 endOffset]);
+	//NSLog(@"deleting range: %i, %i", [fp12 startOffset], [fp12 endOffset]);
+
+	if(!_ignoreInsertText) {
+		const char delete_cstr = 0x08;
+	    if (write(fd, &delete_cstr, 1) == -1) {
+	      perror("write");
+	      exit(1);
+	    }
+	}
+	return [super webView:fp8 shouldDeleteDOMRange:fp12];
 }
 
 - (BOOL)webView:(id)fp8 shouldInsertText:(id)character replacingDOMRange:(id)fp16 givenAction:(int)fp20
@@ -122,7 +131,7 @@ int fd;
 	//NSLog(@"range while inserting: %p, %x, %x", fp16, fp16->location, fp16->length);
 	//NSLog(@"range class? %@", [fp16 class]);
 	//NSLog(@"range: %i, %i", [fp16 startOffset], [fp16 endOffset]);
-	//NSLog(@"inserting.. %@", fp12);
+	//NSLog(@"inserting.. %@", character);
 	if(!_ignoreInsertText) {
 		const char* cmd_cstr = [character cStringUsingEncoding:[NSString defaultCStringEncoding]];
 	    if (write(fd, cmd_cstr, [character length]) == -1) {
@@ -151,6 +160,7 @@ ShellView* view;
 {	
   char buf[255];
   int nread;
+
   while (1) {
     nread = read(fd, buf, 254);
     if (nread == -1) {
@@ -166,17 +176,37 @@ ShellView* view;
     //NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
     //text = [[text stringByAppendingString: out] retain];
 	//[view setEditable:YES];
+	
+	/*
+	if([out length] == 1) {
+		NSLog(@"length 1, char code %u", [out characterAtIndex:0]);		
+	} else {
+		NSLog(@"length of %d", [out length]);
+		int i;
+		for(i = 0; i < [out length]; i++) {
+			NSLog(@"char %d: code %u", i, [out characterAtIndex:i]);	
+		}
+	}
+	*/
+	
+	if([out length] == 3) {
+		if([out characterAtIndex:0] == 0x08 && [out characterAtIndex:1] == 0x20 && [out characterAtIndex:2] == 0x08) {
+			//delete sequence, don't output
+			//NSLog(@"delete");
+			continue;
+		}
+	}
+	
 	[[[view _webView] webView] moveToEndOfDocument:self];
 	[view stopCapture];
 	[[view _webView] insertText: out];
 	[view startCapture];
-	
+
 	NSRange aRange;
 	aRange.location = 9999999;	//horray for magic number
 	aRange.length = 1;
 	[view setSelectionRange:aRange];
 	[view scrollToMakeCaretVisible:YES];
-	[view setEditable:YES];	
   }
 }
 
