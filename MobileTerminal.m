@@ -19,6 +19,7 @@
 #include <util.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <signal.h>
 
 //#define DEBUG
 #ifdef DEBUG
@@ -251,8 +252,21 @@ ShellView* view;
 
 @implementation MobileTerminal
 
+// Handle signals from he child; just exit on any status change
+void signal_handler(int signal) {
+  int status; 
+  wait(&status);
+  debug(@"Child status changed to %d", status);
+  exit(1);
+}
+
+
 - (void) applicationDidFinishLaunching: (id) unused
 {
+    // Register a callback that is fired when the forked child process
+    // status is changed; Should probably only happen when it actually exits;
+    signal(SIGCHLD, &signal_handler);
+
     UIWindow *window = [[UIWindow alloc] initWithContentRect: [UIHardware 
         fullScreenApplicationContentRect]];
     [window orderFront: self];
@@ -291,8 +305,8 @@ ShellView* view;
       fprintf(stderr, "program exited.\n");
       exit(1);
     }
-    printf("Child process: %d\n", pid);
-    printf("master fd: %d\n", fd);
+    NSLog(@"Child process: %d\n", pid);
+    NSLog(@"master fd: %d\n", fd);
 
     // Set non-blocking
     int flags;
