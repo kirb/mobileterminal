@@ -207,13 +207,13 @@ ShellView* view;
        }
        perror("read");
        exit(1);
+    } else if (nread == 0) {
+      // EOF -- unexpected?
+      NSLog(@"read() returned EOF");
+      exit(1):
     }
     buf[nread] = '\0';
     NSString* out = [[NSString stringWithCString:buf encoding:[NSString defaultCStringEncoding]] retain];
-    //debug(out);
-    //NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
-    //text = [[text stringByAppendingString: out] retain];
-	//[view setEditable:YES];
 	
 	if([out length] == 1) {
 		debug(@"length 1, char code %u", [out characterAtIndex:0]);		
@@ -234,7 +234,6 @@ ShellView* view;
 	if([out length] == 3) {
 		if([out characterAtIndex:0] == 0x08 && [out characterAtIndex:1] == 0x20 && [out characterAtIndex:2] == 0x08) {
 			//delete sequence, don't output
-			//debug(@"delete");
 			continue;
 		}
 	}
@@ -325,9 +324,6 @@ void signal_handler(int signal) {
       exit(1);
     }
 
-	//DelegateDebug* debugDelegate = [[DelegateDebug alloc] retain];
-	//[debugDelegate doSomethingWeird];
-	
     ShellKeyboard* keyboard = [[ShellKeyboard alloc]
         initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
 
