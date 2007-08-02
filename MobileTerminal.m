@@ -63,8 +63,7 @@ int fd;
 
 @end
 
-// Disable the Loupe because it doesn't work -- you can't reposition the cursor
-// since we've already sent text to the shell.
+#ifndef GREENTEXT
 @interface UITextLoupe : UIView
 
 - (void)drawRect:(struct CGRect)fp8;
@@ -79,10 +78,36 @@ int fd;
 }
 
 @end
+#endif // !GREENTEXT
 
+// This keyboard is currently just used to receive a heartbeat callback.
+@interface ShellKeyboard : UIKeyboard {
+	bool _kbOut;
+}
+@end
 
 
 @implementation ShellView : UITextView 
+- (void)setKeyboard:(ShellKeyboard *) keyboard
+{
+        _keyboard=keyboard;
+}
+
+- (void)setMainView:(UIView *) mainView
+{
+        _mainView=mainView;
+}
+
+- (void)mouseUp:(struct __GSEvent *)fp8
+{
+        if ([self isScrolling]) {
+          //NSLog(@"MouseUp: scrolling\n");
+        }else{
+          //NSLog(@"MouseUp: not scrolling\n");
+          [_keyboard toggle:_mainView shell:self];
+        }
+        [super mouseUp:fp8];
+}
 - (id)initWithFrame:(struct CGRect)fp8
 {
 	debug(@"Created ShellView");
@@ -184,11 +209,43 @@ int fd;
 
 ShellView* view;
 
-// This keyboard is currently just used to receive a heartbeat callback.
-@interface ShellKeyboard : UIKeyboard {
-}
-@end
 @implementation ShellKeyboard
+
+- (void) show:(id *)mainView shell:(id *)shellView
+{
+        //NSLog(@"keyboard show\n");
+        [mainView bringSubviewToFront:self];
+        //[mainView sendSubviewToBack:self];
+        [shellView  setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 245.0f)];
+
+        _kbOut=YES;
+}
+- (void) hide:(id *)mainView shell:(id *)shellView
+{
+        //NSLog(@"keyboard hide\n");
+  [mainView sendSubviewToBack:self];
+  //[mainView bringSubviewToFront:self];
+  struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
+  rect.origin.x = rect.origin.y = 0.0f;
+  [shellView  setFrame:rect]; //CGRectMake(0.0f, 0.0f, 320.0f, 480.0f - 16.0f - 32.0f)];
+
+        _kbOut=NO;
+}
+- (bool) toggle:(id *)mainView shell:(id *)shellView
+{
+        //NSLog(@"keyboard toggle\n");
+        if (_kbOut) {
+                [self hide:mainView shell:shellView];
+        }else{
+                [self show:mainView  shell:shellView];
+        }
+        return _kbOut;
+}
+
+-(bool) kbOut
+{
+        return _kbOut;
+}
 
 // The heartbeatCallback is invoked by the UI occasionally.  It does a
 // non-blocking read of the background shell process, and also checks for
@@ -207,13 +264,13 @@ ShellView* view;
        }
        perror("read");
        exit(1);
-    } else if (nread == 0) {
-      // EOF -- unexpected?
-      NSLog(@"read() returned EOF");
-      exit(1);
     }
     buf[nread] = '\0';
     NSString* out = [[NSString stringWithCString:buf encoding:[NSString defaultCStringEncoding]] retain];
+    //debug(out);
+    //NSString* text = [[[NSString alloc] initWithString:[view text]] retain];
+    //text = [[text stringByAppendingString: out] retain];
+	//[view setEditable:YES];
 	
 	if([out length] == 1) {
 		debug(@"length 1, char code %u", [out characterAtIndex:0]);		
@@ -226,9 +283,15 @@ ShellView* view;
 	}
 	
 	//seems like if i read out a empty buffer with errno = EAGAIN it means exit
+	if(![out length]) {
+		//doesn't zoom out, is there a UIApplication method?
+		exit(1);
+	}
+	
 	if([out length] == 3) {
 		if([out characterAtIndex:0] == 0x08 && [out characterAtIndex:1] == 0x20 && [out characterAtIndex:2] == 0x08) {
 			//delete sequence, don't output
+			//debug(@"delete");
 			continue;
 		}
 	}
@@ -247,6 +310,7 @@ ShellView* view;
 }
 
 @end
+
 
 @implementation MobileTerminal
 
@@ -319,8 +383,13 @@ void signal_handler(int signal) {
       exit(1);
     }
 
+	//DelegateDebug* debugDelegate = [[DelegateDebug alloc] retain];
+	//[debugDelegate doSomethingWeird];
+	
     ShellKeyboard* keyboard = [[ShellKeyboard alloc]
         initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
+
+    [view setKeyboard:keyboard];
 
     [keyboard setTapDelegate:view];
     [keyboard startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
@@ -329,6 +398,10 @@ void signal_handler(int signal) {
     rect.origin.x = rect.origin.y = 0.0f;
     UIView *mainView;
     mainView = [[UIView alloc] initWithFrame: rect];
+        [mainView setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
+
+    [view setMainView:mainView];
+    [keyboard show:mainView shell:view];
 
     [mainView addSubview: view]; 
     [mainView addSubview: keyboard];
