@@ -1,4 +1,5 @@
 #import "MobileTerminal.h"
+#import "ShellView.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/CDStructures.h>
@@ -20,6 +21,19 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <signal.h>
+
+@interface UITextView (CleanWarnings)
+
+-(UIView*) webView;
+
+
+@end
+
+@interface UIView (CleanMoreWarnings)
+- (void) moveToEndOfDocument:(id)inVIew;
+- (void) insertText: (id)ourText;
+@end
+
 
 //#define DEBUG
 #ifdef DEBUG
@@ -68,19 +82,7 @@ int fd;
 @end
 #endif // !GREENTEXT
 
-@interface ShellView : UITextView {
-	NSMutableString* _nextCommand;
-	bool _ignoreInsertText;
-	bool _controlKeyMode;
-}
-- (id)initWithFrame:(struct CGRect)fp8;
-- (BOOL)canBecomeFirstResponder;
--(NSMethodSignature*)methodSignatureForSelector:(SEL)selector;
-- (void)forwardInvocation:(NSInvocation *)anInvocation;
-- (void)stopCapture;
-- (void)startCapture;
 
-@end
 
 @implementation ShellView : UITextView 
 - (id)initWithFrame:(struct CGRect)fp8
