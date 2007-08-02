@@ -63,7 +63,8 @@ int fd;
 
 @end
 
-#ifndef GREENTEXT
+// Disable the Loupe because it doesn't work -- you can't reposition the cursor
+// since we've already sent text to the shell.
 @interface UITextLoupe : UIView
 
 - (void)drawRect:(struct CGRect)fp8;
@@ -78,7 +79,6 @@ int fd;
 }
 
 @end
-#endif // !GREENTEXT
 
 
 
@@ -226,11 +226,6 @@ ShellView* view;
 	}
 	
 	//seems like if i read out a empty buffer with errno = EAGAIN it means exit
-	if(![out length]) {
-		//doesn't zoom out, is there a UIApplication method?
-		exit(1);
-	}
-	
 	if([out length] == 3) {
 		if([out characterAtIndex:0] == 0x08 && [out characterAtIndex:1] == 0x20 && [out characterAtIndex:2] == 0x08) {
 			//delete sequence, don't output
