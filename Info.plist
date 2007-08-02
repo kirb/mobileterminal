@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Terminal</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.googlecode.mobileterminal</string>
+	<string>com.googlecode.mobileterminal.Terminal</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
