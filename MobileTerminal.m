@@ -28,6 +28,8 @@
     #define debug(...)
 #endif
 
+#define GREENTEXT
+
 int fd;
 
 @interface UIKeyboardImpl : UIView
@@ -49,6 +51,7 @@ int fd;
 
 @end
 
+#ifndef GREENTEXT
 @interface UITextLoupe : UIView
 
 - (void)drawRect:(struct CGRect)fp8;
@@ -63,6 +66,7 @@ int fd;
 }
 
 @end
+#endif // !GREENTEXT
 
 @interface ShellView : UITextView {
 	NSMutableString* _nextCommand;
@@ -274,7 +278,11 @@ void signal_handler(int signal) {
     [window _setHidden: NO];
 	//make colors	
 	float backcomponents[4] = {0, 0, 0, 1};
-	float textcomponents[4] = {1, 1, 1, 1};
+	#ifndef GREENTEXT
+		float textcomponents[4] = {1, 1, 1, 1};
+	#else
+		float textcomponents[4] = {.1, .9, .1, 1};
+	#endif // !GREENTEXT
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	
 
