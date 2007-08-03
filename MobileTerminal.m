@@ -44,7 +44,7 @@
   #define debug(...)
 #endif
 
-#define GREENTEXT
+//#define GREENTEXT
 int fd;
 
 @interface UIKeyboardImpl : UIView
