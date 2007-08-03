@@ -19,6 +19,6 @@ package: Terminal
 	cp Info.plist Terminal.app/Info.plist
 	cp icon.png Terminal.app/icon.png
 	cp Default.png Terminal.app/Default.png
-	scp -r "Terminal.app" root@10.0.1.3:/Applications
+
 clean:	
 	rm -fr *.o Terminal Terminal.app
