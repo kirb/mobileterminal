@@ -45,7 +45,6 @@
 #endif
 
 #define GREENTEXT
-
 int fd;
 
 @interface UIKeyboardImpl : UIView
@@ -67,7 +66,6 @@ int fd;
 
 @end
 
-#ifndef GREENTEXT
 @interface UITextLoupe : UIView
 
 - (void)drawRect:(struct CGRect)fp8;
@@ -82,7 +80,6 @@ int fd;
 }
 
 @end
-#endif // !GREENTEXT
 
 // This keyboard is currently just used to receive a heartbeat callback.
 @interface ShellKeyboard : UIKeyboard {
@@ -92,7 +89,7 @@ int fd;
 
 
 @implementation ShellView : UITextView 
-- (void)setKeyboard:(ShellKeyboard *) keyboard
+- (void)setKeyboard:(id) keyboard
 {
     _keyboard=keyboard;
 }
@@ -251,6 +248,7 @@ ShellView* view;
 
     _kbOut=NO;
 }
+
 - (bool) toggle:(id *)mainView shell:(id *)shellView
 {
     //NSLog(@"keyboard toggle\n");
@@ -365,19 +363,19 @@ void signal_handler(int signal) {
   
 
   view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
-//  struct CGRect doubleTapRect = CGRectMake(0.0f, 0.0f, 320.0f, 240.0f);
   [view setText:@""];
+  // Don't change the font size or style without updating the window size below
   [view setTextSize:12];
-  [view setTextColor: CGColorCreate( colorSpace, textcomponents)];
   [view setTextFont:@"CourierNewBold"];
+  [view setTextColor: CGColorCreate( colorSpace, textcomponents)];
   [view setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
   [view setEditable:YES]; // don't mess up my pretty output
   [view setAllowsRubberBanding:YES];
   [view displayScrollerIndicators];
 
   struct winsize win;
-  win.ws_row = 19;
-  win.ws_col = 50;
+  win.ws_row = 15;
+  win.ws_col = 41;
   win.ws_xpixel = 320;
   win.ws_ypixel = 210;
 

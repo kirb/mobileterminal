@@ -13,12 +13,12 @@
 	NSMutableString* _nextCommand;
 	bool _ignoreInsertText;
 	bool _controlKeyMode;
-        id *_keyboard;
+        id _keyboard;
         UIView *_mainView;
 }
 
 - (void)setMainView:(UIView *) mainView;
-- (void)setKeyboard:(id *) keyboard;
+- (void)setKeyboard:(id) keyboard;
 - (void)doubleTap:(struct __GSEvent *)fp8;
 -(id)initWithFrame:(struct CGRect)fp8;
 - (BOOL)canBecomeFirstResponder;
