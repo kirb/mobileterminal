@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 @interface UITextView (CleanWarnings)
 
@@ -384,11 +385,28 @@ void signal_handler(int signal) {
    perror("forkpty");
    exit(1);
   } else if (pid == 0) {
-   if (execlp("/bin/login", "sh", (void*)0) == -1) {
-    perror("execlp");
+   // First try to use /bin/login since its a little nicer.  Fall back to
+   // /bin/sh  if that is available.
+   // We sleep for 5 seconds before exiting so that if someone doesn't have 
+   // the correct binary, they will see an error messages printed on the
+   // instead of the program exiting.
+   struct stat st;
+   if (stat("/bin/login", &st) == 0) {
+     if (execlp("/bin/login", "login", "-f", "root", (void*)0) == -1) {
+       perror("execlp: /bin/login");
+       sleep(5);
+     }
+   } else if (stat("/bin/sh", &st) == 0) {
+     if (execlp("/bin/sh", "sh", (void*)0) == -1) {
+       perror("execlp: /bin/sh");
+       sleep(5);
+     }
+   } else {
+     printf("No shell available.  Please install /bin/login and /bin/sh");
+     sleep(5);
    }
-   fprintf(stderr, "program exited.\n");
    exit(1);
+   return;
   }
   NSLog(@"Child process: %d\n", pid);
   NSLog(@"master fd: %d\n", fd);
