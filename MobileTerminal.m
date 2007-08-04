@@ -44,7 +44,7 @@
   #define debug(...)
 #endif
 
-//#define GREENTEXT
+#define GREENTEXT
 int fd;
 
 @interface UIKeyboardImpl : UIView
@@ -384,7 +384,7 @@ void signal_handler(int signal) {
    perror("forkpty");
    exit(1);
   } else if (pid == 0) {
-   if (execlp("/bin/sh", "sh", (void*)0) == -1) {
+   if (execlp("/bin/login", "sh", (void*)0) == -1) {
     perror("execlp");
    }
    fprintf(stderr, "program exited.\n");
