@@ -13,6 +13,8 @@
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
+#import <UIKit/UIImageView.h>
+#import <UIKit/UIImage.h>
 #import "ShellView.h"
 
 #include <sys/types.h>
@@ -237,7 +239,7 @@ ShellView* view;
 
  struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
  rect.origin.x = rect.origin.y = 0.0f;
- [shellView setFrame:rect];
+ [shellView setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 415.0f)];
  [self setTransform:CGAffineTransformMake(1,0,0,1,0,0)];
  [self setFrame:CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
  
@@ -354,14 +356,24 @@ void signal_handler(int signal) {
   [window makeKey: self];
   [window _setHidden: NO];
   //make colors  
-  float backcomponents[4] = {0, 0, 0, 1};
+  float backcomponents[4] = {0, 0, 0, 0};
   #ifndef GREENTEXT
     float textcomponents[4] = {1, 1, 1, 1};
   #else
     float textcomponents[4] = {.1, .9, .1, 1};
   #endif // !GREENTEXT
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-  
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *defaultPath = [bundle pathForResource:@"Default" ofType:@"png"];
+  NSString *vanishPath = [bundle pathForResource:@"vanish" ofType:@"png"];
+
+  UIImage *theDefault = [[UIImage alloc]initWithContentsOfFile:defaultPath];
+  UIImage *vanish = [[UIImage alloc]initWithContentsOfFile:vanishPath];
+  UIImageView *workaround = [[UIImageView alloc] init];
+  UIImageView *vanisher = [[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 408.0f, 320.0f, 8.0f)];
+  [vanisher setImage:vanish];
+  [workaround setImage:theDefault];
+  NSLog(@"%@",theDefault);
 
   view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
   [view setText:@""];
@@ -373,6 +385,7 @@ void signal_handler(int signal) {
   [view setEditable:YES]; // don't mess up my pretty output
   [view setAllowsRubberBanding:YES];
   [view displayScrollerIndicators];
+  [view setOpaque:NO];
 
   struct winsize win;
   win.ws_row = 15;
@@ -435,16 +448,19 @@ void signal_handler(int signal) {
   rect.origin.x = rect.origin.y = 0.0f;
   UIView *mainView;
   mainView = [[UIView alloc] initWithFrame: rect];
-    [mainView setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
+  //  [mainView setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
 
   [view setMainView:mainView];
   [keyboard show:mainView shell:view];
   
-  [mainView addSubview: view]; 
+  [mainView addSubview: workaround];
+  [mainView addSubview: view];
+  [mainView addSubview: vanisher]; 
   [mainView addSubview: keyboard];
-
-  [view becomeFirstResponder];
   
+ 
+  
+  [view becomeFirstResponder];
   [window setContentView: mainView];
 }
 
