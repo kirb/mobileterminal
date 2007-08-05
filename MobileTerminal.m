@@ -217,6 +217,8 @@ ShellView* view;
 
 - (void) show:(id *)mainView shell:(id *)shellView
 {
+	[shellView setBottomBufferHeight:(5.0f)]; 
+
     //NSLog(@"keyboard show\n");
 
 //    [mainView bringSubviewToFront:self];
@@ -236,10 +238,11 @@ ShellView* view;
 }
 - (void) hide:(id *)mainView shell:(id *)shellView
 {
+ [shellView setBottomBufferHeight:(70.0f)]; 
 
  struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
  rect.origin.x = rect.origin.y = 0.0f;
- [shellView setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 415.0f)];
+ [shellView setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 480.0f)];
  [self setTransform:CGAffineTransformMake(1,0,0,1,0,0)];
  [self setFrame:CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
  
@@ -355,7 +358,8 @@ void signal_handler(int signal) {
   [window orderFront: self];
   [window makeKey: self];
   [window _setHidden: NO];
-  //make colors  
+  //make colors 
+  float barcomponents[4] = {0, 0, 0, .5};
   float backcomponents[4] = {0, 0, 0, 0};
   #ifndef GREENTEXT
     float textcomponents[4] = {1, 1, 1, 1};
@@ -386,12 +390,16 @@ void signal_handler(int signal) {
   [view setAllowsRubberBanding:YES];
   [view displayScrollerIndicators];
   [view setOpaque:NO];
+  [view setBottomBufferHeight:(5.0f)];
 
+  UIView *barView = [[UIView alloc] initWithFrame: CGRectMake(0.0f, 410.0f, 320.0f, 480.0f)];
+  [barView setBackgroundColor: CGColorCreate( colorSpace, barcomponents)];
+ 
   struct winsize win;
   win.ws_row = 15;
   win.ws_col = 41;
   win.ws_xpixel = 320;
-  win.ws_ypixel = 210;
+  win.ws_ypixel = 210; 
 
   pid_t pid = forkpty(&fd, NULL, NULL, &win);
   if (pid == -1) {
@@ -456,6 +464,7 @@ void signal_handler(int signal) {
   [mainView addSubview: workaround];
   [mainView addSubview: view];
   [mainView addSubview: vanisher]; 
+  [mainView addSubview: barView];
   [mainView addSubview: keyboard];
   
  
