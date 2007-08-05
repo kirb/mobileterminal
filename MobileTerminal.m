@@ -357,9 +357,6 @@ void signal_handler(int signal) {
     fullScreenApplicationContentRect]];
   [window orderFront: self];
   [window makeKey: self];
-  [window _setHidden: NO];
-  //make colors 
-  float barcomponents[4] = {0, 0, 0, .75};
   float backcomponents[4] = {0, 0, 0, 0};
   #ifndef GREENTEXT
     float textcomponents[4] = {1, 1, 1, 1};
@@ -370,14 +367,19 @@ void signal_handler(int signal) {
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *defaultPath = [bundle pathForResource:@"Default" ofType:@"png"];
   NSString *vanishPath = [bundle pathForResource:@"vanish" ofType:@"png"];
+  NSString *barPath = [bundle pathForResource:@"bar" ofType:@"png"];
 
   UIImage *theDefault = [[UIImage alloc]initWithContentsOfFile:defaultPath];
   UIImage *vanish = [[UIImage alloc]initWithContentsOfFile:vanishPath];
+  UIImage *bar = [[UIImage alloc]initWithContentsOfFile:barPath];
+  UIImageView *barView = [[UIImageView alloc] initWithFrame: CGRectMake(0.0f, 405.0f, 320.0f, 480.0f)];
   UIImageView *workaround = [[UIImageView alloc] init];
   UIImageView *vanisher = [[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 408.0f, 320.0f, 8.0f)];
   [vanisher setImage:vanish];
   [workaround setImage:theDefault];
+  [barView setImage:bar];
   NSLog(@"%@",theDefault);
+  [barView setAlpha:.80];
 
   view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
   [view setText:@""];
@@ -391,9 +393,6 @@ void signal_handler(int signal) {
   [view displayScrollerIndicators];
   [view setOpaque:NO];
   [view setBottomBufferHeight:(5.0f)];
-
-  UIView *barView = [[UIView alloc] initWithFrame: CGRectMake(0.0f, 410.0f, 320.0f, 480.0f)];
-  [barView setBackgroundColor: CGColorCreate( colorSpace, barcomponents)];
  
   struct winsize win;
   win.ws_row = 15;
@@ -456,14 +455,13 @@ void signal_handler(int signal) {
   rect.origin.x = rect.origin.y = 0.0f;
   UIView *mainView;
   mainView = [[UIView alloc] initWithFrame: rect];
-  //  [mainView setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
 
   [view setMainView:mainView];
   [keyboard show:mainView shell:view];
   
   [mainView addSubview: workaround];
   [mainView addSubview: view];
-  [mainView addSubview: vanisher]; 
+  [mainView addSubview: vanisher];
   [mainView addSubview: barView];
   [mainView addSubview: keyboard];
   
