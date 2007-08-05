@@ -359,7 +359,7 @@ void signal_handler(int signal) {
   [window makeKey: self];
   [window _setHidden: NO];
   //make colors 
-  float barcomponents[4] = {0, 0, 0, .5};
+  float barcomponents[4] = {0, 0, 0, .75};
   float backcomponents[4] = {0, 0, 0, 0};
   #ifndef GREENTEXT
     float textcomponents[4] = {1, 1, 1, 1};
