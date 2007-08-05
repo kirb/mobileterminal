@@ -379,7 +379,7 @@ void signal_handler(int signal) {
   [workaround setImage:theDefault];
   [barView setImage:bar];
   NSLog(@"%@",theDefault);
-  [barView setAlpha:.80];
+  [barView setAlpha:1.0];
 
   view = [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
   [view setText:@""];
