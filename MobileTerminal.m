@@ -366,16 +366,12 @@ void signal_handler(int signal) {
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *defaultPath = [bundle pathForResource:@"Default" ofType:@"png"];
-  NSString *vanishPath = [bundle pathForResource:@"vanish" ofType:@"png"];
   NSString *barPath = [bundle pathForResource:@"bar" ofType:@"png"];
 
   UIImage *theDefault = [[UIImage alloc]initWithContentsOfFile:defaultPath];
-  UIImage *vanish = [[UIImage alloc]initWithContentsOfFile:vanishPath];
   UIImage *bar = [[UIImage alloc]initWithContentsOfFile:barPath];
   UIImageView *barView = [[UIImageView alloc] initWithFrame: CGRectMake(0.0f, 405.0f, 320.0f, 480.0f)];
   UIImageView *workaround = [[UIImageView alloc] init];
-  UIImageView *vanisher = [[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 408.0f, 320.0f, 8.0f)];
-  [vanisher setImage:vanish];
   [workaround setImage:theDefault];
   [barView setImage:bar];
   NSLog(@"%@",theDefault);
@@ -461,7 +457,6 @@ void signal_handler(int signal) {
   
   [mainView addSubview: workaround];
   [mainView addSubview: view];
-  [mainView addSubview: vanisher];
   [mainView addSubview: barView];
   [mainView addSubview: keyboard];
   
