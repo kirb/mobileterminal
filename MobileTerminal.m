@@ -1,7 +1,6 @@
 // MobileTerminal.m
 #import "MobileTerminal.h"
 
-#import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIHardware.h>
@@ -15,12 +14,12 @@
 #import "Cleanup.h"
 #import "ShellKeyboard.h"
 #import "ShellView.h"
+#import "SubProcess.h"
 
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#include <util.h>
-#include <sys/stat.h>
 
 @implementation MobileTerminal
 
@@ -33,8 +32,9 @@
   char buf[255];
   int nread;
 
+  int fd = [_shellProcess fileDescriptor];
   while (1) {
-    nread = read(_fd, buf, 254);
+    nread = read(fd, buf, 254);
     if (nread == -1) {
       if (errno == EAGAIN) {
         break;
@@ -84,65 +84,10 @@
   }
 }
 
-// Handle signals from he child; just exit on any status change
-static void signal_handler(int signal) {
-  int status; 
-  wait(&status);
-  debug(@"Child status changed to %d", status);
-  exit(1);
-}
-
 - (void) applicationDidFinishLaunching: (id) unused
 {
-  // Register a callback that is fired when the forked child process
-  // status is changed; Should probably only happen when it actually exits;
-  signal(SIGCHLD, &signal_handler);
-
-  struct winsize win;
-  win.ws_row = 15;
-  win.ws_col = 41;
-  win.ws_xpixel = 320;
-  win.ws_ypixel = 210; 
-
-  pid_t pid = forkpty(&_fd, NULL, NULL, &win);
-  if (pid == -1) {
-    perror("forkpty");
-    exit(1);
-  } else if (pid == 0) {
-    // First try to use /bin/login since its a little nicer.  Fall back to
-    // /bin/sh  if that is available.
-    // We sleep for 5 seconds before exiting so that if someone doesn't have 
-    // the correct binary, they will see an error messages printed on the
-    // instead of the program exiting.
-    struct stat st;
-    if (stat("/bin/login", &st) == 0) {
-      if (execlp("/bin/login", "login", "-f", "root", (void*)0) == -1) {
-        perror("execlp: /bin/login");
-        sleep(5);
-      }
-    } else if (stat("/bin/sh", &st) == 0) {
-      if (execlp("/bin/sh", "sh", (void*)0) == -1) {
-        perror("execlp: /bin/sh");
-        sleep(5);
-      }
-    } else {
-      printf("No shell available.  Please install /bin/login and /bin/sh");
-      sleep(5);
-    }
-    exit(1);
-    return;
-  }
-  NSLog(@"Child process: %d\n", pid);
-  NSLog(@"master fd: %d\n", _fd);
-
-  // Set non-blocking
-  int flags;
-  if ((flags = fcntl(_fd, F_GETFL, 0)) == -1)
-    flags = 0;
-  if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-    perror("fcntl");
-    exit(1);
-  }
+  // Terminal size based on the font size below
+  _shellProcess = [[SubProcess alloc] initWithRows:19 columns:41];
 
   UIWindow *window = [[UIWindow alloc] initWithContentRect: [UIHardware 
     fullScreenApplicationContentRect]];
@@ -169,7 +114,7 @@ static void signal_handler(int signal) {
 
   ShellView* view =
     [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
-  [view setFd:_fd];
+  [view setFd:[_shellProcess fileDescriptor]];
   [view setText:@""];
   // Don't change the font size or style without updating the window size below
   [view setTextSize:12];

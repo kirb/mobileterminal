@@ -1,10 +1,10 @@
 // MobileTermina.h
 #import <UIKit/UIApplication.h>
 
-@class ShellView;
+@class ShellView, SubProcess;
 
 @interface MobileTerminal : UIApplication {
-  int _fd;
+  SubProcess* _shellProcess;
   ShellView* _view;
 }
 

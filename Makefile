@@ -6,7 +6,7 @@ CFLAGS = -Wall -Werror
 
 all:	Terminal
 
-Terminal: main.o MobileTerminal.o ShellView.o ShellKeyboard.o
+Terminal: main.o MobileTerminal.o ShellView.o ShellKeyboard.o SubProcess.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
