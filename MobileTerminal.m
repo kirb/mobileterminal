@@ -5,17 +5,12 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIHardware.h>
-#import <UIKit/UIImageView.h>
 #import <UIKit/UIImage.h>
-#import <UIKit/UIKeyboard.h>
-#import <UIKit/UINavigationBar.h>
-#import <UIKit/UISegmentedControl.h>
-#import <UIKit/UITextView.h>
+#import <UIKit/UIImageView.h>
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
-#import <UIKit/UIViewHeartbeat.h>
 #import "Common.h"
 #import "Cleanup.h"
 #import "ShellKeyboard.h"
@@ -25,8 +20,6 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <util.h>
-#include <stdlib.h>
-#include <signal.h>
 #include <sys/stat.h>
 
 @implementation MobileTerminal

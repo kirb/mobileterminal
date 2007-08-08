@@ -2,7 +2,7 @@ CC = arm-apple-darwin-cc
 LD = $(CC)
 LDFLAGS = -ObjC -framework CoreFoundation -framework Foundation \
           -framework UIKit -framework LayerKit -framework Coregraphics
-CFLAGS = -Wall -DDEBUG
+CFLAGS = -Wall -Werror
 
 all:	Terminal
 
