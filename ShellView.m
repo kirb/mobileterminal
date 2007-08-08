@@ -4,14 +4,24 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#import "ShellKeyboard.h"
+#import <UIKit/UIView-Rendering.h>
+#import "Cleanup.h"
 #import "Common.h"
+#import "ShellKeyboard.h"
+
+// TODO: Is the code for ignoring inserted text even needed? This should run
+// in the same thread as the heartbeat callback.
+
+// Forward declarations
 
 @interface NSObject (HeartbeatDelegate)
 
 - (void)heartbeatCallback:(id)ignored;
 
 @end
+
+// Disable the magnifying Glass effect for the shell view, since it can't be
+// used effectively to change the cursor position (maybe later)
 
 @interface UITextLoupe : UIView
 
@@ -21,15 +31,43 @@
 
 @implementation UITextLoupe (Black)
 
-- (void)drawRect:(struct CGRect)fp8
-{
-
-}
+- (void)drawRect:(struct CGRect)fp8 { }
 
 @end
 
+// ShellView
 
 @implementation ShellView : UITextView
+
+- (id)initWithFrame:(struct CGRect)fp8
+{
+  debug(@"Created ShellView");
+  id parent = [super initWithFrame:fp8];
+
+  _nextCommand = [[NSMutableString stringWithCapacity:255] retain];
+  _ignoreInsertText = NO;
+  _controlKeyMode = NO;
+
+
+  float backcomponents[4] = {0, 0, 0, 0};
+#ifndef GREENTEXT
+  float textcomponents[4] = {1, 1, 1, 1};
+#else
+  float textcomponents[4] = {.1, .9, .1, 1};
+#endif // !GREENTEXT
+
+  CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+  [self setTextColor: CGColorCreate( colorSpace, textcomponents)];
+  [self setBackgroundColor: CGColorCreate( colorSpace, backcomponents)];
+
+  [self setText:@""];
+  [self setEditable:NO]; // don't mess up my pretty output
+  [self setAllowsRubberBanding:YES];
+  [self displayScrollerIndicators];
+  [self setOpaque:NO];
+
+  return parent;
+}
 
 - (void)setKeyboard:(ShellKeyboard*) keyboard
 {
@@ -49,20 +87,12 @@
 - (void)mouseUp:(struct __GSEvent *)fp8
 {
   if ([self isScrolling]) {
-    //NSLog(@"MouseUp: scrolling\n");
+    // Ignore mouse events that cause scrolling
   } else{
-    //NSLog(@"MouseUp: not scrolling\n");
+    // NSLog(@"MouseUp: not scrolling\n");
     [_keyboard toggle:self];
   }
   [super mouseUp:fp8];
-}
-- (id)initWithFrame:(struct CGRect)fp8
-{
-  debug(@"Created ShellView");
-  _nextCommand = [[NSMutableString stringWithCapacity:255] retain];
-  _ignoreInsertText = NO;
-  _controlKeyMode = NO;
-  return [super initWithFrame:fp8];
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -70,32 +100,31 @@
   return NO;
 }
 
-- (void)stopCapture
-{
-  _ignoreInsertText = YES;
-}
-
-- (void)startCapture
-{
-  _ignoreInsertText = NO;
-}
-
 - (BOOL)respondsToSelector:(SEL)aSelector
 {
-  //debug(@"Request for selector: %@", NSStringFromSelector(aSelector));
+//  debug(@"Request for selector: %@", NSStringFromSelector(aSelector));
   return [super respondsToSelector:aSelector];
 }
 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-  debug(@"Called from UITextView %@", NSStringFromSelector([anInvocation selector]));
+  debug(@"Called from UITextView %@",
+        NSStringFromSelector([anInvocation selector]));
   [super forwardInvocation:anInvocation];
   return;
 }
 
 - (BOOL)webView:(id)fp8 shouldDeleteDOMRange:(id)fp12
 {
-//  debug(@"deleting range: %i, %i", [fp12 startOffset], [fp12 endOffset]);
+  //debug(@"deleting  range: %i, %i", [fp12 startOffset], [fp12 endOffset]);
+
+  // TODO: There is an annoying bug here.  This writes a ^H to the subprocess
+  // then passes the delete on to the parent which removes it from the display.
+  // The delete sent to the subprocess is echo'd back in heartbeatCallback
+  // and we ignore it.  If we attempt to backspace over the start of a line,
+  // then we end up causing a bell (^G) to get echo'd back to the terminal;
+  // we don't backspace further and end up backspacing over the bells we are
+  // creating.  Ghetto!
 
   if(!_ignoreInsertText) {
     const char delete_cstr = 0x08;
@@ -110,14 +139,16 @@
 - (BOOL)webView:(id)fp8 shouldInsertText:(id)character replacingDOMRange:(id)fp16 givenAction:(int)fp20
 {
   debug(@"inserting.. %#x", [character characterAtIndex:0]);
- 
   if(!_ignoreInsertText) {
-    if([character length] > 1) return false;  //or just loop through
+    if([character length] > 1) {
+      debug(@"Unhandled multiple character insert!");
+      return false;  //or just loop through
+    }
  
     char cmd_char = [character characterAtIndex:0];
  
-    if(!_controlKeyMode) {
-      if([character characterAtIndex:0] == 0x2022) {
+    if (!_controlKeyMode) {
+      if ([character characterAtIndex:0] == 0x2022) {
         //debug(@"ctrl key mode");
         _controlKeyMode = YES;
         return NO;
@@ -126,10 +157,10 @@
       // was in ctrl key mode, got another key
       //debug(@"sending ctrl key");
       if (cmd_char < 0x60 && cmd_char > 0x40) {
-        //Uppercase
+        // Uppercase
         cmd_char -= 0x40;      
       } else if (cmd_char < 0x7B && cmd_char > 0x61) {
-        //Lowercase
+        // Lowercase
         cmd_char -= 0x60;
       }
       _controlKeyMode = NO;
@@ -162,6 +193,27 @@
 {
   _heartbeatDelegate = delegate;
   [self startHeartbeat:@selector(heartbeatCallback:) inRunLoopMode:nil];
+}
+
+- (void)scrollToEnd
+{
+  NSRange aRange;
+  aRange.location = 9999999; // horray for magic number
+  aRange.length = 1;
+  [self setSelectionRange:aRange];
+  [self scrollToMakeCaretVisible:YES];
+}
+
+- (void)insertText:(NSString*)text
+{
+  // Insert at the end of the WebKit WebView
+  [[[self _webView] webView] moveToEndOfDocument:self];
+
+  _ignoreInsertText = YES;
+  [[self _webView] insertText:text];
+  _ignoreInsertText = NO;
+
+  [self scrollToEnd];
 }
 
 @end

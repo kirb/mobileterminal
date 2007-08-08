@@ -20,14 +20,13 @@
 - (void)setMainView:(UIView *) mainView;
 - (void)setKeyboard:(ShellKeyboard*) keyboard;
 - (BOOL)canBecomeFirstResponder;
-- (void)forwardInvocation:(NSInvocation *)anInvocation;
-- (void)stopCapture;
-- (void)startCapture;
 - (BOOL)respondsToSelector:(SEL)aSelector;
 - (void)forwardInvocation:(NSInvocation *)anInvocation;
 - (BOOL)webView:(id)fp8 shouldDeleteDOMRange:(id)fp12;
 - (BOOL)webView:(id)fp8 shouldInsertText:(id)character
       replacingDOMRange:(id)fp16 givenAction:(int)fp20;
 - (void)setHeartbeatDelegate:(id)delegate;
+- (void)scrollToEnd;
+- (void)insertText:(NSString*)text;
 
 @end
