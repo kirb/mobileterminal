@@ -1,5 +1,5 @@
+// main.m
 #import <UIKit/UIKit.h>
-
 #import "MobileTerminal.h"
 
 int main(int argc, char **argv)

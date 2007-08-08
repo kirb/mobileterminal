@@ -1,8 +1,11 @@
-// MobileTerminal
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+// MobileTermina.h
 #import <UIKit/UIApplication.h>
 
+@class ShellView;
+
 @interface MobileTerminal : UIApplication {
+  int _fd;
+  ShellView* _view;
 }
+
 @end
