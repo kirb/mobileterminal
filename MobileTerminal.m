@@ -2,6 +2,7 @@
 #import "MobileTerminal.h"
 
 #import <Foundation/Foundation.h>
+#import <UIKit/CDStructures.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIHardware.h>
 #import <UIKit/UIImage.h>
