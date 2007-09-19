@@ -1,8 +1,9 @@
-CC = arm-apple-darwin-cc
+CC = /usr/local/arm-apple-darwin/bin/gcc
 LD = $(CC)
-LDFLAGS = -ObjC -framework CoreFoundation -framework Foundation \
+LDFLAGS = -Wl,-syslibroot,$(HEAVENLY) -lobjc \
+          -framework CoreFoundation -framework Foundation \
           -framework UIKit -framework LayerKit -framework CoreGraphics
-CFLAGS = -Wall -Werror
+CFLAGS = -fsigned-char -Wall -Werror
 
 all:	Terminal
 

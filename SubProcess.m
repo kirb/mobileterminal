@@ -8,7 +8,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <util.h>
-#import <Foundation/Foundation.h>
 #import "Common.h"
 
 @implementation SubProcess
