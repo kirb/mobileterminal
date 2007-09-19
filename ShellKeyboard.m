@@ -3,7 +3,6 @@
 // TODO: Should be able to cancel animations that have already started so they
 // transition smoothly in the other direction
 #import "ShellKeyboard.h"
-#import <UIKit/UITransformAnimation.h>
 #import "Common.h"
 
 //

@@ -2,15 +2,6 @@
 #import "MobileTerminal.h"
 
 #import <Foundation/Foundation.h>
-#import <UIKit/CDStructures.h>
-#import <UIKit/UIKit.h>
-#import <UIKit/UIHardware.h>
-#import <UIKit/UIImage.h>
-#import <UIKit/UIImageView.h>
-#import <UIKit/UIView.h>
-#import <UIKit/UIView-Hierarchy.h>
-#import <UIKit/UIView-Rendering.h>
-#import <UIKit/UIWindow.h>
 #import "Common.h"
 #import "ShellKeyboard.h"
 #import "ShellView.h"

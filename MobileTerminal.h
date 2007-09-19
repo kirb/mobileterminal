@@ -1,5 +1,5 @@
 // MobileTermina.h
-#import <UIKit/UIApplication.h>
+#import <UIKit/UIKit.h>
 
 @class ShellView, SubProcess;
 

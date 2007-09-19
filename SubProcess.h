@@ -1,5 +1,5 @@
 // SubProcess.h
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 
 @interface SubProcess : NSObject
 {
