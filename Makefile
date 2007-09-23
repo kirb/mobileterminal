@@ -18,10 +18,10 @@ package: Terminal
 	mkdir -p Terminal.app
 	cp Terminal Terminal.app/Terminal
 	cp Info.plist Terminal.app/Info.plist
-	cp icon.png Terminal.app/icon.png
-	cp Default.png Terminal.app/Default.png
-	cp vanish.png Terminal.app/vanish.png
-	cp bar.png Terminal.app/bar.png
+	cp Resources/icon.png Terminal.app/icon.png
+	cp Resources/Default.png Terminal.app/Default.png
+	cp Resources/vanish.png Terminal.app/vanish.png
+	cp Resources/bar.png Terminal.app/bar.png
 
 clean:	
 	rm -fr *.o Terminal Terminal.app
