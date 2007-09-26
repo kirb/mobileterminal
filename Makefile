@@ -1,14 +1,12 @@
-CC = /usr/local/arm-apple-darwin/bin/gcc
-LD = $(CC)
-LDFLAGS = -Wl,-syslibroot,$(HEAVENLY) -lobjc \
-          -framework CoreFoundation -framework Foundation \
-          -framework UIKit -framework LayerKit -framework CoreGraphics
-CFLAGS = -fsigned-char -Wall -Werror
+CC=arm-apple-darwin-gcc
+LDFLAGS=-lobjc -framework CoreFoundation -framework Foundation \
+        -framework UIKit -framework LayerKit -framework CoreGraphics
+CFLAGS=-Wall -Werror
 
 all:	Terminal
 
 Terminal: main.o MobileTerminal.o ShellView.o ShellKeyboard.o SubProcess.o
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
