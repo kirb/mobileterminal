@@ -1,18 +1,22 @@
 // ShellKeyboard.h
-#import <UIKit/UIKIt.h>
+#include <UIKit/UIKit.h>
+#include <UIKit/UITextView.h>
 
 @class ShellView;
 
-@interface ShellKeyboard : UIKeyboard
+@protocol KeyboardInputProtocol
+- (void)handleKeyPress:(unichar)c;
+@end
+
+@interface ShellKeyboard : UIKeyboard<KeyboardInputProtocol>
 {
-  bool _hidden;
+  id inputDelegate;
+  UITextView* inputView;
 }
 
-// TODO: Init code that sets default values for _hidden
-
-// TODO: Only show and toggle are called -- remove more dead code here
-- (void)show:(ShellView*)shellView;
-- (void)hide:(ShellView*)shellView;
-- (void)toggle:(ShellView*)shellView;
+- (id)initWithFrame:(CGRect)frame;
+- (UITextView*)inputView;
+- (void)setInputDelegate:(id)delegate;
+- (void)handleKeyPress:(unichar)c;
 
 @end

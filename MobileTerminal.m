@@ -1,123 +1,137 @@
-// MobileTerminal.m
+// MobileTerminal.h
+#define DEBUG_METHOD_TRACE    0
+
 #import "MobileTerminal.h"
-
 #import <Foundation/Foundation.h>
-#import "Common.h"
+#import <GraphicsServices/GraphicsServices.h>
 #import "ShellKeyboard.h"
-#import "ShellView.h"
+#import "PTYTextView.h"
 #import "SubProcess.h"
-
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
+#import "VT100Terminal.h"
+#import "VT100Screen.h"
+#import "GestureView.h"
+#import "PieView.h"
 
 @implementation MobileTerminal
 
-// The heartbeatCallback is invoked by the UI occasionally. It does a
-// non-blocking read of the background shell process, and also checks for
-// input from the user. When it detects the user has pressed return, it
-// sends the command to the background shell.
-- (void)heartbeatCallback:(id)ignored
+- (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
-  char buf[255];
-  int nread;
+  controlKeyMode = NO;
 
-  int fd = [_shellProcess fileDescriptor];
-  nread = read(fd, buf, 254);
-  if (nread == -1) {
-    if (errno == EAGAIN) {
-      // No input was available, try reading again on next heartbeat
-      return;
-    }
-    perror("read");
-    return exit(1);
-  } if (nread == 0) {
-    NSLog(@"End of file from child process");
-    return exit(1);
-  }
-  buf[nread] = '\0';
-  NSString* out =
-    [[NSString stringWithCString:buf
-        encoding:[NSString defaultCStringEncoding]] retain];
-#ifdef DEBUG
-  if ([out length] == 1) {
-    debug(@"length 1, char code %u", [out characterAtIndex:0]);
-  } else {
-    debug(@"length of %d", [out length]);
-    int i;
-    for (i = 0; i < [out length]; i++) {
-      debug(@"char %d: code %u", i, [out characterAtIndex:i]);
-    }
-  }
-#endif
-  // TODO: Delete handling is broken; See bug in ShellView shouldDeleteDOMRange
-  if ([out length] == 3 &&
-      [out characterAtIndex:0] == 0x08 &&
-      [out characterAtIndex:1] == 0x20 &&
-      [out characterAtIndex:2] == 0x08) {
-    // delete sequence, don't output
-    NSLog(@"Ignored delete");
-    return;
-  }
-  [_view insertText:out];
-}
+  CGRect frame = [UIHardware fullScreenApplicationContentRect];
+  frame.origin.y = 0;
 
-- (void) applicationDidFinishLaunching: (id) unused
-{
-  // Terminal size based on the font size below
-  _shellProcess = [[SubProcess alloc] initWithRows:19 columns:41];
+  terminal = [[VT100Terminal alloc] init];
+  screen = [[VT100Screen alloc] init];
+  [screen setTerminal:terminal];
+  [terminal setScreen:screen];
 
-  UIWindow *window = [[UIWindow alloc] initWithContentRect: [UIHardware 
-    fullScreenApplicationContentRect]];
+  window = [[UIWindow alloc] initWithContentRect:frame];
+
+  CGRect textFrame = CGRectMake(0.0f, 0.0, 320.0f, 250.0f);
+  textScroller = [[UIScroller alloc] initWithFrame:textFrame];
+  textView = [[PTYTextView alloc] initWithFrame:textFrame
+                                         source:screen
+                                       scroller:textScroller];
+
+  CGRect keyFrame = CGRectMake(0.0f, 245.0, 320.0f, 480.0f); 
+  keyboardView = [[ShellKeyboard alloc] initWithFrame:keyFrame];
+  [keyboardView setInputDelegate:self];
+
+  UIView *mainView = [[UIView alloc] initWithFrame: frame];
+  [mainView addSubview:[keyboardView inputView]];
+
   [window orderFront: self];
   [window makeKey: self];
-
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *defaultPath = [bundle pathForResource:@"Default" ofType:@"png"];
-  NSString *barPath = [bundle pathForResource:@"bar" ofType:@"png"];
-
-  UIImage *theDefault = [[UIImage alloc]initWithContentsOfFile:defaultPath];
-  UIImage *bar = [[UIImage alloc]initWithContentsOfFile:barPath];
-  UIImageView *barView = [[UIImageView alloc] initWithFrame: CGRectMake(0.0f, 405.0f, 320.0f, 480.0f)];
-  UIImageView *workaround = [[UIImageView alloc] init];
-  [workaround setImage:theDefault];
-  [barView setImage:bar];
-  [barView setAlpha:1.0];
-
-  ShellView* view =
-    [[ShellView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 240.0f)];
-  [view setFd:[_shellProcess fileDescriptor]];
-  [view setText:@""];
-  // Don't change the font size or style without updating the window size of the  // sub process above
-  [view setTextSize:12];
-  [view setTextFont:@"CourierNewBold"];
-  //[view setBottomBufferHeight:(5.0f)];
-  _view = view;
- 
-  ShellKeyboard* keyboard = [[ShellKeyboard alloc]
-    initWithFrame: CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
-
-  [view setKeyboard:keyboard];
-  [keyboard setTapDelegate:view];
-
-  struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
-  rect.origin.x = rect.origin.y = 0.0f;
-
-  UIView *mainView = [[UIView alloc] initWithFrame: rect];
-
-  [view setMainView:mainView];
-  [keyboard show:view];
-
-  [view setHeartbeatDelegate:self];
-
-  [mainView addSubview: workaround];
-  [mainView addSubview: view];
-  [mainView addSubview: barView];
-  [mainView addSubview: keyboard];
-  
-  [view becomeFirstResponder];
   [window setContentView: mainView];
+  [window _setHidden:NO];
+
+  process = [[SubProcess alloc] initWithDelegate:self];
+
+  // add the gesture view with the pie thing too
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *pieImagePath = [bundle pathForResource: @"pie" ofType: @"png"];
+  UIImage *pieImage = [[UIImage alloc] initWithContentsOfFile: pieImagePath];
+  pieView = [[PieView alloc] initWithFrame: CGRectMake(56.0f,16.0f,208.0f,213.0f)];
+  [pieView setImage: pieImage];
+  [pieView setAlpha: 0.9f];
+  gestureView = [[GestureView alloc] initWithProcess: process Frame: CGRectMake(0.0f, 0.0f, 240.0f, 250.0f) Pie: pieView];
+
+  [mainView addSubview:textScroller];
+  [mainView addSubview:keyboardView];
+  [mainView addSubview:[keyboardView inputView]];
+  [mainView addSubview:gestureView];
+  [mainView addSubview:pieView];
+  [pieView hideSlow:YES];
+  [[keyboardView inputView] becomeFirstResponder];
+}
+
+- (void)applicationExited:(GSEvent *)event
+{
+  [process close];
+}
+
+// Process output from the shell and pass it to the screen
+- (void)handleStreamOutput:(const char*)c length:(unsigned int)len
+{
+#if DEBUG_METHOD_TRACE
+  NSLog(@"%s: 0x%x (%d bytes)", __PRETTY_FUNCTION__, self, len);
+#endif
+
+  [terminal putStreamData:c length:len];
+
+  // Now that we've got the raw data from the sub process, write it to the
+  // terminal.  We get back tokens to display on the screen and pass the
+  // update in the main thread.
+  VT100TCC token;
+  while((token = [terminal getNextToken]),
+    token.type != VT100_WAIT && token.type != VT100CC_NULL) {
+    // process token
+    if (token.type != VT100_SKIP) {
+      if (token.type == VT100_NOTSUPPORT) {
+        NSLog(@"%s(%d):not support token", __FILE__ , __LINE__);
+      } else {
+        [screen putToken:token];
+      }
+    } else {
+      NSLog(@"%s(%d):skip token", __FILE__ , __LINE__);
+    }
+  }
+  [textView performSelectorOnMainThread:@selector(updateAndScrollToEnd)
+                             withObject:nil
+                          waitUntilDone:NO];
+}
+
+// Process input from the keyboard
+- (void)handleKeyPress:(unichar)c
+{
+#if DEBUG_METHOD_TRACE
+  NSLog(@"%s: 0x%x (c=0x%02x)", __PRETTY_FUNCTION__, self, c);
+#endif
+
+  if (!controlKeyMode) {
+    if (c == 0x2022) {
+      controlKeyMode = YES;
+      return;
+    }
+  } else {
+    // was in ctrl key mode, got another key
+    if (c < 0x60 && c > 0x40) {
+      // Uppercase
+      c -= 0x40;
+    } else if (c < 0x7B && c > 0x61) {
+      // Lowercase
+      c -= 0x60;
+    }
+    controlKeyMode = NO;
+  }
+  // Not sure if this actually matches anything.  Maybe support high bits later?
+  if ((c & 0xff00) != 0) {
+    NSLog(@"Unsupported unichar: %x", c);
+    return;
+  }
+  char simple_char = (char)c;
+  [process write:&simple_char length:1];
 }
 
 @end

@@ -1,11 +1,15 @@
 CC=arm-apple-darwin-gcc
+CFLAGS=-Wall -Werror -O7
 LDFLAGS=-lobjc -framework CoreFoundation -framework Foundation \
-        -framework UIKit -framework LayerKit -framework CoreGraphics
-CFLAGS=-Wall -Werror
+        -framework UIKit -framework LayerKit -framework CoreGraphics \
+        -framework GraphicsServices -lcurses
 
 all:	Terminal
 
-Terminal: main.o MobileTerminal.o ShellView.o ShellKeyboard.o SubProcess.o
+Terminal: main.o MobileTerminal.o  ShellKeyboard.o SubProcess.o \
+	VT100Screen.o VT100Terminal.o PTYTextView.o  \
+        ColorMap.o PTYTile.o Settings.o \
+        GestureView.o PieView.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o:	%.m
@@ -18,8 +22,10 @@ package: Terminal
 	cp Info.plist Terminal.app/Info.plist
 	cp Resources/icon.png Terminal.app/icon.png
 	cp Resources/Default.png Terminal.app/Default.png
-	cp Resources/vanish.png Terminal.app/vanish.png
-	cp Resources/bar.png Terminal.app/bar.png
+	cp Resources/pie.png Terminal.app/pie.png
+
+dist: package
+	zip -r Terminal.zip Terminal.app/
 
 clean:	
-	rm -fr *.o Terminal Terminal.app
+	rm -fr *.o Terminal Terminal.app Terminal.zip

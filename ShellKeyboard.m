@@ -1,14 +1,7 @@
 // ShellKeyboard.m
-//
-// TODO: Should be able to cancel animations that have already started so they
-// transition smoothly in the other direction
 #import "ShellKeyboard.h"
-#import "Common.h"
 
-//
 // Override settings of the default keyboard implementation
-//
-
 @implementation UIKeyboardImpl (DisableFeatures)
 
 - (BOOL)autoCapitalizationPreference
@@ -23,54 +16,67 @@
 
 @end
 
-//
+@interface TextInputHandler : UITextView
+{
+  ShellKeyboard* shellKeyboard;
+}
+
+- (id)initWithKeyboard:(ShellKeyboard*)keyboard;
+
+@end
+
+@implementation TextInputHandler
+
+- (id)initWithKeyboard:(ShellKeyboard*)keyboard;
+{
+  self = [super initWithFrame:CGRectMake(0.0f, 0.0f, 0.0f, 0.0f)];
+  shellKeyboard = keyboard;
+  return self;
+}
+
+- (BOOL)webView:(id)fp8 shouldDeleteDOMRange:(id)fp12
+{
+  [shellKeyboard handleKeyPress:0x08];
+}
+
+- (BOOL)webView:(id)fp8 shouldInsertText:(id)character
+                       replacingDOMRange:(id)fp16
+                             givenAction:(int)fp20
+{
+  if ([character length] != 1) {
+    [NSException raise:@"Unsupported" format:@"Unhandled multi-char insert!"];
+    return false;
+  }
+  [shellKeyboard handleKeyPress:[character characterAtIndex:0]];
+}
+
+@end
+
 // ShellKeyboard
-//
 
 @implementation ShellKeyboard
 
-- (void) show:(ShellView*)shellView
+- (id)initWithFrame:(CGRect)frame
 {
-  [shellView setBottomBufferHeight:(5.0f)];
-
-  [shellView setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 245.0f)];
-  [self setTransform:CGAffineTransformMake(1,0,0,1,0,0)];
-  [self setFrame:CGRectMake(0.0f, 480.0, 320.0f, 480.0f)];
-
-  struct CGAffineTransform trans = CGAffineTransformMakeTranslation(0, -240);
-  UITransformAnimation *translate =
-    [[UITransformAnimation alloc] initWithTarget: self];
-  [translate setStartTransform: CGAffineTransformMake(1,0,0,1,0,0)];
-  [translate setEndTransform: trans];
-  [[[UIAnimator alloc] init] addAnimation:translate withDuration:.5 start:YES];
-
-  _hidden = NO;
+  self = [super initWithFrame:frame];
+  inputDelegate = nil;
+  inputView = [[TextInputHandler alloc] initWithKeyboard:self];
+  return self;
 }
 
-- (void) hide:(ShellView*)shellView
+- (UITextView*)inputView
 {
-  [shellView setBottomBufferHeight:(70.0f)];
-
-  [shellView setFrame:CGRectMake(0.0f, 0.0f, 320.0f, 480.0f)];
-  [self setTransform:CGAffineTransformMake(1,0,0,1,0,0)];
-  [self setFrame:CGRectMake(0.0f, 240.0, 320.0f, 480.0f)];
-
-  struct CGAffineTransform trans = CGAffineTransformMakeTranslation(0, 240);
-  UITransformAnimation *translate =
-    [[UITransformAnimation alloc] initWithTarget: self];
-  [translate setStartTransform: CGAffineTransformMake(1,0,0,1,0,0)];
-  [translate setEndTransform: trans];
-  [[[UIAnimator alloc] init] addAnimation:translate withDuration:.5 start:YES];
-  _hidden = YES;
+  return inputView;
 }
 
-- (void) toggle:(ShellView*)shellView
+- (void)setInputDelegate:(id)delegate;
 {
-  if (_hidden) {
-    [self show:shellView];
-  } else{
-    [self hide:shellView];
-  }
+  inputDelegate = delegate;
+}
+
+- (void)handleKeyPress:(unichar)c
+{
+  [inputDelegate handleKeyPress:c];
 }
 
 @end

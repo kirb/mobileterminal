@@ -1,87 +1,137 @@
 // SubProcess.m
 #import "SubProcess.h"
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <util.h>
-#import "Common.h"
+#import "Settings.h"
 
 @implementation SubProcess
 
+static SubProcess* instance = nil;
+
 static void signal_handler(int signal) {
-  int status;
-  wait(&status);
-  debug(@"Child status changed to %d", status);
+  NSLog(@"Caught signal: %d", signal);
+  [instance dealloc];
+  instance = nil;
   exit(1);
 }
 
-- (id)initWithRows:(int)rows columns:(int)cols
-{
-  _fd = 0;
+int start_process(const char* path, char* const args[], char* const env[]) {
+  struct stat st;
+  if (stat(path, &st) != 0) {
+    fprintf(stderr, "%s: File does not exist\n", path);
+    return -1;
+  }
+  if ((st.st_mode & S_IXUSR) == 0) {
+    fprintf(stderr, "%s: Permission denied\n", path);
+    return -1;
+  }
+  if (execve(path, args, env) == -1) {
+    perror("execlp:");
+    return -1;
+  }
+  // execve never returns if successful
+  return 0;
+}
 
-  // Register a callback that is fired when the forked child process
-  // status is changed; Should probably only happen when it actually exits;
-  signal(SIGCHLD, &signal_handler);
+- (id)initWithDelegate:(id)inputDelegate
+{
+  if (instance != nil) {
+    [NSException raise:@"Unsupported" format:@"Only one SubProcess"];
+  }
+  self = [super init];
+  instance = self;
+  fd = 0;
+  delegate = inputDelegate;
+
+  // Clean up when ^C is pressed during debugging from a console
+  signal(SIGINT, &signal_handler);
+
+  Settings* settings = [Settings sharedInstance];
 
   struct winsize win;
-  win.ws_row = rows;
-  win.ws_col = cols;
+  win.ws_col = [settings width];
+  win.ws_row = [settings height];
 
-  pid_t pid = forkpty(&_fd, NULL, NULL, &win);
+  pid_t pid = forkpty(&fd, NULL, NULL, &win);
   if (pid == -1) {
     perror("forkpty");
-    exit(1);
+    [self failure:@"[Failed to fork child process]"];
+    exit(0);
   } else if (pid == 0) {
     // First try to use /bin/login since its a little nicer.  Fall back to
     // /bin/sh  if that is available.
-    // We sleep for 5 seconds before exiting so that if someone doesn't have 
-    // the correct binary, they will see an error messages printed on the
-    // instead of the program exiting.
-    struct stat st;
-    if (stat("/bin/login", &st) == 0) {
-      if (execlp("/bin/login", "login", "-f", "root", (void*)0) == -1) {
-        perror("execlp: /bin/login");
-        sleep(5);
-      }
-    } else if (stat("/bin/sh", &st) == 0) {
-      if (execlp("/bin/sh", "sh", (void*)0) == -1) {
-        perror("execlp: /bin/sh");
-        sleep(5);
-      }
-    } else {
-      printf("No shell available.  Please install /bin/login and /bin/sh");
-      sleep(5);
-    }
-    exit(1);
-    return nil;  // not reached
+    char* login_args[] = { "login", "-f", "root", (char*)0, };
+    char* sh_args[] = { "sh", (char*)0, };
+    char* env[] = { "TERM=vt100", (char*)0 };
+    // NOTE: These should never return if successful
+    start_process("/usr/bin/login", login_args, env);
+    start_process("/bin/login", login_args, env);
+    start_process("/bin/sh", sh_args, env);
+    exit(0);
   }
   NSLog(@"Child process id: %d\n", pid);
-
-  // Future read/write operations should not block
-  int flags;
-  if ((flags = fcntl(_fd, F_GETFL, 0)) == -1) {
-    flags = 0;
-  }
-  if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-    perror("fcntl");
-    exit(1);
-  }  
+  [NSThread detachNewThreadSelector:@selector(startIOThread:)
+                           toTarget:self
+                         withObject:delegate];
   return self;
-}
-
-- (int)fileDescriptor
-{
-  return _fd;
 }
 
 - (void)dealloc
 {
-  close(_fd);
+  [self close];
   [super dealloc];
+}
+
+- (void)close
+{
+  if (fd != 0) {
+    close(fd);
+    fd = 0;
+  }
+}
+
+- (BOOL)isRunning
+{
+  return (fd != 0) ? YES : NO;
+}
+
+- (int)write:(const char*)data length:(unsigned int)length
+{
+  return write(fd, data, length);
+}
+
+- (void)startIOThread:(id)inputDelegate
+{
+  [[NSAutoreleasePool alloc] init];
+  const int kBufSize = 1024;
+  char buf[kBufSize];
+  ssize_t nread;
+  while (1) {
+    // Blocks until a character is ready
+    nread = read(fd, buf, kBufSize);
+    // On error, give a tribute to OS X terminal
+    if (nread == -1) {
+      perror("read");
+      [self failure:@"[Process completed]"];
+      return;
+    } else if (nread == 0) {
+      [self failure:@"[Process completed]"];
+      return;
+    }
+    [inputDelegate handleStreamOutput:buf length:nread];
+  }
+}
+
+- (void)failure:(NSString*)message;
+{
+  // HACK: Just pretend the message came from the child
+  [delegate handleStreamOutput:[message cString] length:[message length]];
 }
 
 @end
