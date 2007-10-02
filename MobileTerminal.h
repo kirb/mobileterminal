@@ -1,5 +1,6 @@
 // MobileTermina.h
 #import <UIKit/UIKit.h>
+#import <GraphicsServices/GraphicsServices.h>
 
 @class PTYTextView;
 @class ShellKeyboard;
@@ -14,6 +15,7 @@
 //<KeyboardInputProtocol, InputDelegateProtocol>
 {
   UIWindow* window;
+  UIView* mainView;
   PTYTextView* textView;
   UIScroller* textScroller;
   ShellKeyboard* keyboardView;
@@ -28,6 +30,8 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
+- (void)applicationSuspend:(GSEvent *)event;
+- (void)applicationResume:(GSEvent *)event;
 
 - (void)handleStreamOutput:(const char*)c length:(unsigned int)len;
 - (void)handleKeyPress:(unichar)c;
