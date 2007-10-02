@@ -38,7 +38,7 @@
   keyboardView = [[ShellKeyboard alloc] initWithFrame:keyFrame];
   [keyboardView setInputDelegate:self];
 
-  UIView *mainView = [[UIView alloc] initWithFrame: frame];
+  mainView = [[UIView alloc] initWithFrame: frame];
   [mainView addSubview:[keyboardView inputView]];
 
   [window orderFront: self];
@@ -63,6 +63,26 @@
   [mainView addSubview:gestureView];
   [mainView addSubview:pieView];
   [pieView hideSlow:YES];
+  [[keyboardView inputView] becomeFirstResponder];
+}
+
+// Suspend/Resume: We have to hide then show again the keyboard view to get it
+// to properly acheive focus on suspend and resume.
+
+- (void)applicationSuspend:(GSEvent *)event
+{
+  if (![process isRunning]) {
+    exit(0);
+  }
+
+  [[keyboardView inputView] removeFromSuperview];
+  [keyboardView removeFromSuperview];
+}
+
+- (void)applicationResume:(GSEvent *)event
+{
+  [mainView addSubview:keyboardView];
+  [mainView addSubview:[keyboardView inputView]];
   [[keyboardView inputView] becomeFirstResponder];
 }
 

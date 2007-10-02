@@ -118,9 +118,11 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     // On error, give a tribute to OS X terminal
     if (nread == -1) {
       perror("read");
+      fd = 0;
       [self failure:@"[Process completed]"];
       return;
     } else if (nread == 0) {
+      fd = 0;
       [self failure:@"[Process completed]"];
       return;
     }
