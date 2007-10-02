@@ -109,6 +109,22 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 - (void)startIOThread:(id)inputDelegate
 {
   [[NSAutoreleasePool alloc] init];
+
+  NSString* arg = [[Settings sharedInstance]  arguments];
+  if (arg != nil) {
+    // A command line argument was passed to the program. What to do? 
+    const char* path = [arg cString];
+    struct stat st;
+    if ((stat(path, &st) == 0) && ((st.st_mode & S_IFDIR) != 0)) {
+      write(fd, "cd ", 3);
+      write(fd, path, [arg length]);
+      write(fd, "\n", 1);
+    } else {
+      write(fd, path, [arg length]);
+      write(fd, "; exit\n", 7);
+    }
+  }
+
   const int kBufSize = 1024;
   char buf[kBufSize];
   ssize_t nread;
@@ -118,11 +134,11 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     // On error, give a tribute to OS X terminal
     if (nread == -1) {
       perror("read");
-      fd = 0;
+      [self close];
       [self failure:@"[Process completed]"];
       return;
     } else if (nread == 0) {
-      fd = 0;
+      [self close];
       [self failure:@"[Process completed]"];
       return;
     }

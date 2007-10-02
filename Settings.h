@@ -8,6 +8,7 @@
   int width;
   int height;
   NSString* font;
+  NSString* args;
 }
 
 + (Settings*)sharedInstance;
@@ -17,8 +18,10 @@
 - (int)width;
 - (int)height;
 - (NSString*)font;
+- (NSString*)arguments;
 - (void)setWidth:(int)width;
 - (void)setHeight:(int)height;
 - (void)setFont:(NSString*)terminalFont;
+- (void)setArguments:(NSString*)arguments;
 
 @end
