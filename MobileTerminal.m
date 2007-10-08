@@ -21,6 +21,8 @@
   CGRect frame = [UIHardware fullScreenApplicationContentRect];
   frame.origin.y = 0;
 
+  keyboardShown = YES;
+
   terminal = [[VT100Terminal alloc] init];
   screen = [[VT100Screen alloc] init];
   [screen setTerminal:terminal];
@@ -48,21 +50,20 @@
 
   process = [[SubProcess alloc] initWithDelegate:self];
 
-  // add the gesture view with the pie thing too
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *pieImagePath = [bundle pathForResource: @"pie" ofType: @"png"];
-  UIImage *pieImage = [[UIImage alloc] initWithContentsOfFile: pieImagePath];
-  pieView = [[PieView alloc] initWithFrame: CGRectMake(56.0f,16.0f,208.0f,213.0f)];
-  [pieView setImage: pieImage];
-  [pieView setAlpha: 0.9f];
-  gestureView = [[GestureView alloc] initWithProcess: process Frame: CGRectMake(0.0f, 0.0f, 240.0f, 250.0f) Pie: pieView];
+  CGRect gestureFrame = CGRectMake(0.0f, 0.0f, 240.0f, 250.0f);
+  gestureView =
+    [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   [mainView addSubview:textScroller];
   [mainView addSubview:keyboardView];
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:gestureView];
-  [mainView addSubview:pieView];
-  [pieView hideSlow:YES];
+  [mainView addSubview:[PieView sharedInstance]];
+
+  // Shows momentarily and hides so the user knows its there
+  [[PieView sharedInstance] hideSlow:YES];
+
+  // Input focus
   [[keyboardView inputView] becomeFirstResponder];
 }
 
@@ -152,6 +153,50 @@
   }
   char simple_char = (char)c;
   [process write:&simple_char length:1];
+}
+
+- (void)hideMenu
+{
+  [[PieView sharedInstance] hide];
+}
+
+- (void)showMenu:(CGPoint)point
+{
+  [[PieView sharedInstance] showAtPoint:point];
+};
+
+- (void)handleInputFromMenu:(NSString*)input
+{
+  [process write:[input cString] length:[input length]];
+}
+
+- (void)toggleKeyboard
+{
+  // TODO: Bring back keyboard hide/show animation
+  CGRect textFrame;
+  CGRect gestureFrame;
+  int height;
+  int width;
+  if (keyboardShown) {
+    gestureFrame = CGRectMake(0.0f, 0.0f, 240.0f, 460.0f);
+    textFrame = CGRectMake(0.0f, 0.0, 320.0f, 460.0);
+    keyboardShown = NO;
+    width = 45;
+    height = 32;
+    [keyboardView removeFromSuperview];
+  } else {
+    gestureFrame = CGRectMake(0.0f, 0.0f, 240.0f, 250.0f);
+    textFrame = CGRectMake(0.0f, 0.0, 320.0f, 250.0f);
+    keyboardShown = YES;
+    width = 45;
+    height = 17;
+    [mainView addSubview:keyboardView];
+  }
+  [textScroller setFrame:textFrame];
+  [textView setFrame:textFrame];
+  [gestureView setFrame:gestureFrame];
+  [process setWidth:width height:height];
+  [screen resizeWidth:width height:height];
 }
 
 @end

@@ -20,13 +20,13 @@
   UIScroller* textScroller;
   ShellKeyboard* keyboardView;
   GestureView* gestureView;
-  PieView* pieView;
 
   SubProcess* process;
   VT100Screen* screen;
   VT100Terminal* terminal;
 
   BOOL controlKeyMode;
+  BOOL keyboardShown;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
@@ -35,5 +35,11 @@
 
 - (void)handleStreamOutput:(const char*)c length:(unsigned int)len;
 - (void)handleKeyPress:(unichar)c;
+
+// Invoked by GestureMenu
+- (void)hideMenu;
+- (void)showMenu:(CGPoint)point;
+- (void)handleInputFromMenu:(NSString*)input;
+- (void)toggleKeyboard;
 
 @end

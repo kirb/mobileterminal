@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <util.h>
+#include <sys/ioctl.h>
 #import "Settings.h"
 
 @implementation SubProcess
@@ -134,6 +135,21 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 {
   // HACK: Just pretend the message came from the child
   [delegate handleStreamOutput:[message cString] length:[message length]];
+}
+
+- (void)setWidth:(int)width height:(int)height
+{
+  struct winsize winsize;
+
+  if (fd == 0)
+    return;
+
+  ioctl(fd, TIOCGWINSZ, &winsize);
+  if (winsize.ws_col != width || winsize.ws_row != height) {
+    winsize.ws_col = width;
+    winsize.ws_row = height;
+    ioctl(fd, TIOCSWINSZ, &winsize);
+  }
 }
 
 @end
