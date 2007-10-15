@@ -1,15 +1,13 @@
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import <UIKit/CDStructures.h>
+#import <UIKit/UIImageView.h>
 
 @interface PieView : UIImageView {
-    CGRect visibleFrame;
+    CGRect visibleFrame, hiddenFrame;
     CGPoint location;
     BOOL _visible;
 }
-
-+ (PieView*)sharedInstance;
-
-- (void)showAtPoint:(CGPoint)p;
-- (void)hide;
-- (void)hideSlow:(BOOL)slow;
-
+-(void)showAtPoint:(CGPoint)p;
+-(void)hide;
+-(void)hideSlow:(BOOL)slow;
 @end

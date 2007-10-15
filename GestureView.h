@@ -3,18 +3,14 @@
 
 @class SubProcess, PieView;
 
-@protocol GestureInputProtocol
-- (void)showMenu:(CGPoint)point;
-- (void)hideMenu;
-- (void)handleInputFromMenu:(NSString*)input;
-- (void)toggleKeyboard;
-@end
-
 @interface GestureView : UIView {
-  id delegate;
+    SubProcess *_shellProcess;
+    PieView *_pie;
+    BOOL _isGesture;
 }
 
-- (id)initWithFrame:(CGRect)rect
-           delegate:(id)inputDelegate;
+- (id)initWithProcess:(SubProcess *)aProcess
+                Frame:(CGRect)rect
+                  Pie:(PieView *)pie;
 
 @end

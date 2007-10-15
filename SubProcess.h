@@ -1,5 +1,5 @@
 // SubProcess.h
-#import <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 
 @protocol InputDelegateProtocol
 - (void)handleStreamOutput:(const char*)c length:(unsigned int)len;
@@ -19,6 +19,5 @@
 - (int)write:(const char*)c length:(unsigned int)len; 
 - (void)startIOThread:(id)inputDelegate;
 - (void)failure:(NSString*)message;
-- (void)setWidth:(int)width height:(int)height;
 
 @end

@@ -1,6 +1,6 @@
 // ShellKeyboard.h
-#import <UIKit/UIKit.h>
-#import <UIKit/UITextView.h>
+#include <UIKit/UIKit.h>
+#include <UIKit/UITextView.h>
 
 @class ShellView;
 
