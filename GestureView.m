@@ -1,100 +1,160 @@
 #import "GestureView.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "PieView.h"
-#import "SubProcess.h"
-
-// TODO: Switch to the GSEventGetLocationInWindow defined in the toolchain
-// which returns a CGPoint.
-struct CGRect GSEventGetLocationInWindow(struct __GSEvent *ev);
+#import <GraphicsServices/GraphicsServices.h>
 
 @implementation GestureView
 
-- (id)initWithProcess:(SubProcess *)aProcess
-                Frame:(struct CGRect)rect
-                  Pie:(PieView *)pie
+- (id)initWithFrame:(CGRect)rect
+           delegate:(id)inputDelegate
 {
-  if ((self = [super initWithFrame: rect])) {
-    _shellProcess = aProcess;
-    _pie = pie;
-  }
-  return self;
+	self = [super initWithFrame:rect];
+	delegate = inputDelegate;
+	return self;
 }
-
-#define ARROW_KEY_SLOP 75.0
 
 CGPoint start;
+BOOL gesture;
 
-- (void)mouseDown:(struct __GSEvent *)event
+- (void)mouseDown:(GSEvent *)event
 {
-  CGRect rect = GSEventGetLocationInWindow(event);
-  start = rect.origin;
-  [_pie showAtPoint: rect.origin];
+	gesture = NO;
+	start = GSEventGetLocationInWindow(event);
+	NSLog(@"GV MouseDown: %f, %f", start.x, start.y);
+	[delegate showMenu:start];
 }
 
-- (void)mouseDragged:(struct __GSEvent*)event
+- (void)mouseUp:(GSEvent*)event
 {
-}
-
-- (void)mouseUp:(struct __GSEvent*)event
-{
-  CGRect rect = GSEventGetLocationInWindow(event);
-  CGPoint vector;
-  vector.x = rect.origin.x - start.x;
-  vector.y = rect.origin.y - start.y;
-
-  float theta, r, absx, absy;
-  absx = (vector.x>0)?vector.x:-vector.x;
-  absy = (vector.y>0)?vector.y:-vector.y;
-  r = (absx>absy)?absx:absy;
-  theta = atan2(-vector.y, vector.x);
-  NSLog(@"%f,%f: %f,%f\n", vector.y, -vector.x, r, theta);
-  int zone = (int)((theta / (2 * 3.1415f * 0.125f)) + 0.5f + 4.0f);
-  NSLog(@"%d\n", zone);
-  if (r > 30.0f) {
-    NSString *characters = nil;
-    switch (zone) {
-      case 0:
-      case 8:
-        characters = @"\x1B[D";
-        break;
-      case 2:
-        characters = @"\x1B[B";
-        break;
-      case 4:
-        characters = @"\x1B[C";
-        break;
-      case 6:
-        characters = @"\x1B[A";
-        break;
-      case 5:
-        characters = @"\x03";
-        break;
-      case 7:
-        characters = @"\x1B";
-        break;
-      case 1:
-        characters = @"\x09";
-        break;
-      case 3:
-        characters = @"\x04";
-        break;
+	if (gesture) {
+		return;
+	}
+	
+	CGPoint end = GSEventGetLocationInWindow(event);
+	CGPoint vector = CGPointMake(end.x - start.x, end.y - start.y);
+	
+	float absx = (vector.x > 0) ? vector.x : -vector.x;
+	float absy = (vector.y > 0) ? vector.y : -vector.y;
+	float r = (absx > absy) ? absx : absy;
+	float theta = atan2(-vector.y, vector.x);
+	int zone = (int)((theta / (2 * 3.1415f * 0.125f)) + 0.5f + 4.0f);
+	if (r > 30.0f) {
+		NSString *characters = nil;
+		switch (zone) {
+			case 0:
+			case 8:  // Left
+				characters = @"\x1B[D";
+				break;
+			case 2:  // Down
+				characters = @"\x1B[B";
+				break;
+			case 4:  // Right
+				characters = @"\x1B[C";
+				break;
+			case 6:  // Up
+				characters = @"\x1B[A";
+				break;
+			case 5:  // ^C
+				characters = @"\x03";
+				break;
+			case 7:  // ^[
+				characters = @"\x1B";
+				break;
+			case 1: // Tab
+				characters = @"\x09";
+				break;
+			case 3:  // ^D
+				characters = @"\x04";
+				break;
     }
-    if (characters) {
-      [_shellProcess write:[characters cStringUsingEncoding:NSASCIIStringEncoding] length:[characters lengthOfBytesUsingEncoding: NSASCIIStringEncoding]];
-    }
+		if (characters) {
+			[delegate handleInputFromMenu:characters];
+		}
   }
-  [_pie hide];
+	[delegate hideMenu];
+}
+
+- (void)gestureStarted:(GSEvent *)event
+{
+	gesture = YES;
+	[delegate hideMenu];
+	
+	struct CGPoint pt;
+   struct CGPoint pt2;
+	
+	pt = GSEventGetInnerMostPathPosition(event);
+	pt2 = GSEventGetOuterMostPathPosition(event);
+	
+	float avgx = (pt.x + pt2.x) / 2.0;
+	float avgy = (pt.y + pt2.y) / 2.0;
+	
+	start = CGPointMake(avgx, avgy);
+}
+
+- (void)gestureEnded:(GSEvent *)event
+{
+	struct CGPoint pt;
+   struct CGPoint pt2;
+	
+	pt = GSEventGetInnerMostPathPosition(event);
+	pt2 = GSEventGetOuterMostPathPosition(event);
+	
+	float avgx = (pt.x + pt2.x) / 2.0;
+	float avgy = (pt.y + pt2.y) / 2.0;
+	
+	CGPoint end = CGPointMake(avgx, avgy);
+	CGPoint vector = CGPointMake(end.x - start.x, end.y - start.y);
+	
+	float absx = (vector.x > 0) ? vector.x : -vector.x;
+	float absy = (vector.y > 0) ? vector.y : -vector.y;
+	
+	float r = (absx > absy) ? absx : absy;
+	float theta = atan2(-vector.y, vector.x);
+	int zone = (int)((theta / (2 * 3.1415f * 0.125f)) + 0.5f + 4.0f);
+	if (r > 30.0f) {
+		switch (zone) {
+			case 0:
+			case 8:  // Left
+				[delegate prevTerminal];
+				break;
+			case 2:  // Down
+				//NSLog(@"Swiped down");
+				break;
+			case 4:  // Right
+				[delegate nextTerminal];
+				break;
+			case 6:  // Up
+				//NSLog(@"Swiped up");
+				break;
+			case 5:  // ^C
+				//NSLog(@"Swiped up-Right");
+				break;
+			case 7:  // ^[
+				//NSLog(@"Swiped up-Left");
+				break;
+			case 1: // Tab
+				//NSLog(@"Swiped down-left");
+				break;
+			case 3:  // ^D
+				//NSLog(@"Swiped down-right");
+				break;
+      }
+   }
 }
 
 - (BOOL)canBecomeFirstResponder
 {
-  return NO;
+	return NO;
+}
+
+- (BOOL)canHandleGestures
+{
+	return YES;
 }
 
 - (BOOL)isOpaque
 {
-  return NO;
+	return NO;
 }
 
 - (void)drawRect: (CGRect *)rect

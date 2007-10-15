@@ -67,6 +67,13 @@ static PTYTextView* instance = nil;
   return self;
 }
 
+-(void)setSource:(VT100Screen*)screen
+{
+	dataSource = screen;
+	[self updateAll];
+	[self updateAndScrollToEnd];
+}
+
 - (void)dealloc
 {
 #if DEBUG_ALLOC
@@ -102,6 +109,37 @@ static PTYTextView* instance = nil;
   // TODO: Use margins on either side
   margin = floor((frame.size.width - (charWidth * WIDTH)) / 2);
   vmargin = floor((frame.size.height - (lineHeight * HEIGHT)) / 2);
+}
+
+- (void)updateAll
+{
+  [dataSource acquireLock];
+  int height = [dataSource height];
+  int lines = [dataSource numberOfLines];
+
+  // Expand the height, and cause scroll
+  int newHeight = lines * lineHeight;
+  CGRect frame = [self frame];
+  if (frame.size.height != newHeight) {
+    frame.size.height = newHeight;
+    [self setFrame:frame];
+    [textScroller setContentSize:frame.size];
+  }
+  int startIndex = 0;
+  if (lines > height) {
+    startIndex = lines - height;
+  }
+
+  // Check for dirty on-screen rows; scroll back is not updated
+  int row;
+  for (row = 0; row < height; row++) {
+       CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight,
+                               [self frame].size.width, lineHeight);
+      [self setNeedsDisplayInRect:rect];
+  }
+
+  [dataSource resetDirty];
+  [dataSource releaseLock];
 }
 
 - (void)updateIfNecessary

@@ -190,6 +190,8 @@ static __inline__ screen_char_t *incrementLinePointer(
     free(temp_buffer);
   }
 
+	[screenLock unlock];
+
   [screenLock release];
 
   [printToAnsiString release];

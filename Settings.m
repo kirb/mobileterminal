@@ -15,7 +15,7 @@
 {
   self = [super init];
   width = 45;
-  height = 17;
+  height = 15; // Was originally height = 17; - reduced to 15 to account for the status bar
   font = @"CourierNewBold";
   return self;
 }

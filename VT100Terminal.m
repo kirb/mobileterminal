@@ -1190,7 +1190,9 @@ autorelease]; */
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
 #endif
 
+  
   free(STREAM);
+  [streamLock tryLock];
   [streamLock unlock];
   [streamLock release];
   [termType release];

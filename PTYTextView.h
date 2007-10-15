@@ -36,6 +36,8 @@
            scroller:(UIScroller*)scroller;
 - (void)dealloc;
 
+- (void)setSource:(VT100Screen*)screen;
+
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect;
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect;
 - (void)refresh;
@@ -43,6 +45,8 @@
 // Only draws tiles which are dirty
 - (void)updateIfNecessary;
 - (void)updateAndScrollToEnd;
+
+- (void)updateAll;
 
 - (void)drawBox:(CGContextRef)context
           color:(CGColorRef)color

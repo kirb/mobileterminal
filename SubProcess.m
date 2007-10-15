@@ -8,18 +8,17 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <util.h>
+#include <sys/ioctl.h>
 #import "Settings.h"
 
 @implementation SubProcess
 
-static SubProcess* instance = nil;
-
-static void signal_handler(int signal) {
-  NSLog(@"Caught signal: %d", signal);
-  [instance dealloc];
-  instance = nil;
-  exit(1);
-}
+//static void signal_handler(int signal) {
+//  NSLog(@"Caught signal: %d", signal);
+//  [instance dealloc];
+//  instance = nil;
+//  exit(1);
+//}
 
 int start_process(const char* path, char* const args[], char* const env[]) {
   struct stat st;
@@ -39,18 +38,16 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   return 0;
 }
 
-- (id)initWithDelegate:(id)inputDelegate
+- (id)initWithDelegate:(id)inputDelegate identifier:(int) tid
 {
-  if (instance != nil) {
-    [NSException raise:@"Unsupported" format:@"Only one SubProcess"];
-  }
   self = [super init];
-  instance = self;
   fd = 0;
   delegate = inputDelegate;
+  termid = tid;
+  closed = 0;
 
   // Clean up when ^C is pressed during debugging from a console
-  signal(SIGINT, &signal_handler);
+//  signal(SIGINT, &signal_handler);
 
   Settings* settings = [Settings sharedInstance];
 
@@ -58,7 +55,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   win.ws_col = [settings width];
   win.ws_row = [settings height];
 
-  pid_t pid = forkpty(&fd, NULL, NULL, &win);
+  pid = forkpty(&fd, NULL, NULL, &win);
   if (pid == -1) {
     perror("forkpty");
     [self failure:@"[Failed to fork child process]"];
@@ -88,6 +85,14 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   [super dealloc];
 }
 
+- (void)closeSession { // this is invoked when the user closes that terminal session
+	closed = 1;
+	kill(pid, SIGHUP);
+	int stat;
+	waitpid(pid, &stat, WUNTRACED);
+	[self close];
+}
+
 - (void)close
 {
   if (fd != 0) {
@@ -109,6 +114,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 - (void)startIOThread:(id)inputDelegate
 {
   [[NSAutoreleasePool alloc] init];
+
   const int kBufSize = 1024;
   char buf[kBufSize];
   ssize_t nread;
@@ -118,22 +124,44 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     // On error, give a tribute to OS X terminal
     if (nread == -1) {
       perror("read");
-      fd = 0;
-      [self failure:@"[Process completed]"];
+			[self close];
+			if(!closed)
+				[self failure:@"[Process completed]"];
       return;
     } else if (nread == 0) {
-      fd = 0;
-      [self failure:@"[Process completed]"];
+			[self close];
+			if(!closed)
+				[self failure:@"[Process completed]"];
       return;
     }
-    [inputDelegate handleStreamOutput:buf length:nread];
+    [inputDelegate handleStreamOutput:buf length:nread identifier:termid];
   }
 }
 
 - (void)failure:(NSString*)message;
 {
   // HACK: Just pretend the message came from the child
-  [delegate handleStreamOutput:[message cString] length:[message length]];
+  [delegate handleStreamOutput:[message cString] length:[message length] identifier:termid];
+}
+
+- (void)setWidth:(int)width height:(int)height
+{
+  struct winsize winsize;
+
+  if (fd == 0)
+    return;
+
+  ioctl(fd, TIOCGWINSZ, &winsize);
+  if (winsize.ws_col != width || winsize.ws_row != height) {
+    winsize.ws_col = width;
+    winsize.ws_row = height;
+    ioctl(fd, TIOCSWINSZ, &winsize);
+  }
+}
+
+- (void)setIdentifier:(int)tid
+{
+	termid = tid;
 }
 
 @end
