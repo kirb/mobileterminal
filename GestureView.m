@@ -1,13 +1,12 @@
 #import "GestureView.h"
 #import <Foundation/Foundation.h>
+#import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UIKit.h>
 #import "PieView.h"
 #import "SubProcess.h"
 
 // TODO: Switch to the GSEventGetLocationInWindow defined in the toolchain
 // which returns a CGPoint.
-struct CGRect GSEventGetLocationInWindow(struct __GSEvent *ev);
-
 @implementation GestureView
 
 - (id)initWithProcess:(SubProcess *)aProcess
@@ -25,23 +24,22 @@ struct CGRect GSEventGetLocationInWindow(struct __GSEvent *ev);
 
 CGPoint start;
 
-- (void)mouseDown:(struct __GSEvent *)event
+- (void)mouseDown:(GSEvent *)event
 {
-  CGRect rect = GSEventGetLocationInWindow(event);
-  start = rect.origin;
-  [_pie showAtPoint: rect.origin];
+  start = GSEventGetLocationInWindow(event);
+  [_pie showAtPoint:start];
 }
 
-- (void)mouseDragged:(struct __GSEvent*)event
+- (void)mouseDragged:(GSEvent*)event
 {
 }
 
-- (void)mouseUp:(struct __GSEvent*)event
+- (void)mouseUp:(GSEvent*)event
 {
-  CGRect rect = GSEventGetLocationInWindow(event);
+  CGPoint endPoint= GSEventGetLocationInWindow(event);
   CGPoint vector;
-  vector.x = rect.origin.x - start.x;
-  vector.y = rect.origin.y - start.y;
+  vector.x = endPoint.x - start.x;
+  vector.y = endPoint.y - start.y;
 
   float theta, r, absx, absy;
   absx = (vector.x>0)?vector.x:-vector.x;
