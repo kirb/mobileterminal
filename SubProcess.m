@@ -67,7 +67,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   } else if (pid == 0) {
     // First try to use /bin/login since its a little nicer.  Fall back to
     // /bin/sh  if that is available.
-    char* login_args[] = { "login", "-f", "root", (char*)0, };
+    char* login_args[] = { "login", "-fp", "mobile", (char*)0, };
     char* sh_args[] = { "sh", (char*)0, };
     char* env[] = { "TERM=vt100", (char*)0 };
     // NOTE: These should never return if successful
