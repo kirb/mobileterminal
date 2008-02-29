@@ -140,7 +140,7 @@
     if (c < 0x60 && c > 0x40) {
       // Uppercase
       c -= 0x40;
-    } else if (c < 0x7B && c > 0x61) {
+    } else if (c < 0x7B && c > 0x60) {
       // Lowercase
       c -= 0x60;
     }
