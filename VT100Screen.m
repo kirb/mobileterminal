@@ -34,6 +34,7 @@
 #import "charmaps.h"
 #import "PTYTextView.h"
 #import "Settings.h"
+#import "Log.h"
 
 #define MAX_SCROLLBACK_LINES 100000
 
@@ -301,6 +302,7 @@ static __inline__ screen_char_t *incrementLinePointer(
   }
 }
 
+//_______________________________________________________________________________
 
 - (void)resizeWidth:(int)width height:(int)height
 {
@@ -310,6 +312,7 @@ static __inline__ screen_char_t *incrementLinePointer(
 #if DEBUG_METHOD_TRACE
   NSLog(@"%s:%d :%d]", __PRETTY_FUNCTION__, width, height);
 #endif
+	log(@"resize %d %d", width, height);
 
   if (WIDTH == 0 || HEIGHT == 0 || (width==WIDTH && height==HEIGHT)) {
     return;
@@ -478,6 +481,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   // adjusted to fit the new size
   [display setNeedsDisplay];
 }
+
+//_______________________________________________________________________________
 
 - (void)reset
 {

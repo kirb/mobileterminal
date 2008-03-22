@@ -8,7 +8,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <util.h>
+#include <sys/ioctl.h>
 #import "Settings.h"
+#import "Log.h"
 
 @implementation SubProcess
 
@@ -59,14 +61,18 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   win.ws_row = [settings height];
 
   pid_t pid = forkpty(&fd, NULL, NULL, &win);
-  if (pid == -1) {
+	
+  if (pid == -1) 
+	{
     perror("forkpty");
     [self failure:@"[Failed to fork child process]"];
     exit(0);
-  } else if (pid == 0) {
+  } 
+	else if (pid == 0) 
+	{
     // First try to use /bin/login since its a little nicer.  Fall back to
     // /bin/sh  if that is available.
-    char* login_args[] = { "login", "-f", "root", (char*)0, };
+    char* login_args[] = { "login", "-fp", "mobile", (char*)0, };
     char* sh_args[] = { "sh", (char*)0, };
     char* env[] = { "TERM=vt100", (char*)0 };
     // NOTE: These should never return if successful
@@ -75,7 +81,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     start_process("/bin/sh", sh_args, env);
     exit(0);
   }
-  NSLog(@"Child process id: %d\n", pid);
+  //log(@"Child process id: %d\n", pid);
   [NSThread detachNewThreadSelector:@selector(startIOThread:)
                            toTarget:self
                          withObject:delegate];
@@ -120,8 +126,9 @@ int start_process(const char* path, char* const args[], char* const env[]) {
       write(fd, path, [arg length]);
       write(fd, "\n", 1);
     } else {
-      write(fd, path, [arg length]);
-      write(fd, "; exit\n", 7);
+			// doesn't work for me (springboard adds --launchedFromSB) -kodi
+      //write(fd, path, [arg length]);
+      //write(fd, "; exit\n", 7);
     }
   }
 
@@ -150,6 +157,21 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 {
   // HACK: Just pretend the message came from the child
   [delegate handleStreamOutput:[message cString] length:[message length]];
+}
+
+- (void)setWidth:(int)width height:(int)height
+{
+  struct winsize winsize;
+
+  if (fd == 0)
+    return;
+
+  ioctl(fd, TIOCGWINSZ, &winsize);
+  if (winsize.ws_col != width || winsize.ws_row != height) {
+    winsize.ws_col = width;
+    winsize.ws_row = height;
+    ioctl(fd, TIOCSWINSZ, &winsize);
+  }
 }
 
 @end

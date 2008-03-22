@@ -31,9 +31,7 @@
 + (PTYTextView*)sharedInstance;
 + (Class)tileClass;
 
-- (id)initWithFrame:(CGRect)rect
-             source:(VT100Screen*)screen
-           scroller:(UIScroller*)scroller;
+- (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller;
 - (void)dealloc;
 
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect;

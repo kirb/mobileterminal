@@ -8,6 +8,7 @@
 #import "ColorMap.h"
 #import "PTYTile.h"
 #import "Settings.h"
+#import "Log.h"
 
 #include <sys/time.h>
 #include <math.h>
@@ -30,8 +31,10 @@ static PTYTextView* instance = nil;
   return [PTYTile class];
 }
 
-- (id)initWithFrame:(CGRect)frame
-             source:(VT100Screen*)screen
+//_______________________________________________________________________________
+
+- (id)initWithFrame:(CGRect)frame 
+						 source:(VT100Screen*)screen
            scroller:(UIScroller*)scroller
 {
 #if DEBUG_ALLOC
@@ -48,24 +51,27 @@ static PTYTextView* instance = nil;
   textScroller = scroller;
   [textScroller addSubview:self];
   [textScroller setAllowsRubberBanding:YES];
-  [textScroller displayScrollerIndicators];
-  [textScroller setBottomBufferHeight:10.0];
+  [textScroller setBottomBufferHeight:0.0];
   [textScroller setBounces:YES];
   [textScroller setContentSize:frame.size];
-// 0.3 toolchain maybe doesn't see this? doesn't compile for me (gabe.schine)
-//  [textScroller setScrollerIndicatorStyle:kUIScrollerIndicatorWhite];
+  [textScroller setScrollerIndicatorStyle:2];
+	[textScroller displayScrollerIndicators];
 
   [self refresh];
 
   // Create one tile per row
-  _tileSize = CGSizeMake(frame.size.width, lineHeight);
+  //_tileSize = CGSizeMake(frame.size.width, lineHeight);
+	_tileSize = CGSizeMake(480, lineHeight);
   _firstTileSize = _tileSize;
 
   [self setOpaque:YES];
   [self setTilingEnabled:YES];
   [self setTileDrawingEnabled:YES];
+	
   return self;
 }
+
+//_______________________________________________________________________________
 
 - (void)dealloc
 {
@@ -80,14 +86,11 @@ static PTYTextView* instance = nil;
 #endif
 }
 
-- (void)logRect:(struct CGRect)rect;
-{
-  NSLog(@"(%f,%f) -> (%f,%f)", rect.origin.x, rect.origin.y,
-        rect.size.width, rect.size.height);
-}
+//_______________________________________________________________________________
 
 - (void)refresh
 {
+	log(@"refresh");
   id temp = dataSource;
   [temp acquireLock];
   int WIDTH = [dataSource width];
@@ -104,7 +107,9 @@ static PTYTextView* instance = nil;
   vmargin = floor((frame.size.height - (lineHeight * HEIGHT)) / 2);
 }
 
-- (void)updateIfNecessary
+//_______________________________________________________________________________
+
+- (void) updateIfNecessary
 {
   [dataSource acquireLock];
   int width = [dataSource width];
@@ -148,7 +153,9 @@ static PTYTextView* instance = nil;
   [dataSource releaseLock];
 }
 
-- (void)updateAndScrollToEnd
+//_______________________________________________________________________________
+
+- (void) updateAndScrollToEnd
 {
   [self updateIfNecessary];
 
@@ -165,6 +172,8 @@ static PTYTextView* instance = nil;
   [textScroller scrollRectToVisible:visibleRect animated:YES];
   [dataSource releaseLock];
 }
+
+//_______________________________________________________________________________
 
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect
 {
@@ -212,6 +221,8 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 //XXX: put me in a standard header somewhere
 bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
+//_______________________________________________________________________________
+
 - (void)drawChar:(CGContextRef)context
        character:(char)c
            color:(CGColorRef)color
@@ -240,6 +251,8 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   CGContextShowGlyphsWithAdvances(context,glyphs,advances,1);
 }
 
+//_______________________________________________________________________________
+
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect
 {
   CGContextRef context = UICurrentContext();
@@ -252,6 +265,9 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
   // Draw background for each column in the row
   int width = [dataSource width];
+	
+	log(@"width %d row %d", width, row);
+	
   screen_char_t *theLine = [dataSource getLineAtIndex:row];
   int column;
 
@@ -276,7 +292,7 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   // some testing.
   charRect.origin.y += lineHeight - 3;
 
-  // Draw forground character for each column in the row
+  // Draw foreground character for each column in the row
   charRect.origin.x = rect.origin.x;
   for (column = 0; column < width; column++) {
     char c = 0xff & theLine[column].ch;

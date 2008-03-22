@@ -1,89 +1,162 @@
 #import "GestureView.h"
 #import <Foundation/Foundation.h>
-#import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UIKit.h>
-#import "PieView.h"
-#import "SubProcess.h"
+#import <GraphicsServices/GraphicsServices.h>
 
-// TODO: Switch to the GSEventGetLocationInWindow defined in the toolchain
-// which returns a CGPoint.
 @implementation GestureView
 
-- (id)initWithProcess:(SubProcess *)aProcess
-                Frame:(struct CGRect)rect
-                  Pie:(PieView *)pie
+//_______________________________________________________________________________
+
+- (id)initWithFrame:(CGRect)rect
+           delegate:(id)inputDelegate
 {
-  if ((self = [super initWithFrame: rect])) {
-    _shellProcess = aProcess;
-    _pie = pie;
-  }
+  self = [super initWithFrame:rect];
+  delegate = inputDelegate;
+	[super setTapDelegate: self];
+	
+	toggleKeyboardTimer = NULL;
+	
   return self;
 }
 
-#define ARROW_KEY_SLOP 75.0
+//_______________________________________________________________________________
 
 CGPoint start;
+
+//_______________________________________________________________________________
 
 - (void)mouseDown:(GSEvent *)event
 {
   start = GSEventGetLocationInWindow(event);
-  [_pie showAtPoint:start];
+  [delegate showMenu:start];
 }
 
-- (void)mouseDragged:(GSEvent*)event
-{
-}
+//_______________________________________________________________________________
 
 - (void)mouseUp:(GSEvent*)event
 {
-  CGPoint endPoint= GSEventGetLocationInWindow(event);
-  CGPoint vector;
-  vector.x = endPoint.x - start.x;
-  vector.y = endPoint.y - start.y;
+	//NSLog(@"mouseUp");
+	
+	[delegate hideMenu];
+	
+  CGPoint end = GSEventGetLocationInWindow(event);
+  CGPoint vector = CGPointMake(end.x - start.x, end.y - start.y);
 
-  float theta, r, absx, absy;
-  absx = (vector.x>0)?vector.x:-vector.x;
-  absy = (vector.y>0)?vector.y:-vector.y;
-  r = (absx>absy)?absx:absy;
-  theta = atan2(-vector.y, vector.x);
-  NSLog(@"%f,%f: %f,%f\n", vector.y, -vector.x, r, theta);
+  float absx = (vector.x > 0) ? vector.x : -vector.x;
+  float absy = (vector.y > 0) ? vector.y : -vector.y;
+  float r = (absx > absy) ? absx : absy;
+  float theta = atan2(-vector.y, vector.x);
   int zone = (int)((theta / (2 * 3.1415f * 0.125f)) + 0.5f + 4.0f);
-  NSLog(@"%d\n", zone);
-  if (r > 30.0f) {
+  if (r > 30.0f) 
+	{
     NSString *characters = nil;
-    switch (zone) {
+		
+    switch (zone) 
+		{
       case 0:
-      case 8:
-        characters = @"\x1B[D";
+      case 8:  // Left
+				if (r < 150.0f)
+					characters = @"\x1B[D";
+				else
+					characters = @"\x1"; // ctrl-a
         break;
-      case 2:
+      case 2:  // Down
         characters = @"\x1B[B";
         break;
-      case 4:
-        characters = @"\x1B[C";
+      case 4:  // Right
+				if (r < 150.0f)
+					characters = @"\x1B[C";
+				else
+					characters = @"\x5"; // ctrl-e
         break;
-      case 6:
+      case 6:  // Up
         characters = @"\x1B[A";
         break;
-      case 5:
+      case 5:  // ^C
         characters = @"\x03";
         break;
-      case 7:
+      case 7:  // ^[
         characters = @"\x1B";
         break;
-      case 1:
+      case 1: // Tab
         characters = @"\x09";
         break;
-      case 3:
+      case 3:  // ^D
         characters = @"\x04";
         break;
     }
-    if (characters) {
-      [_shellProcess write:[characters cStringUsingEncoding:NSASCIIStringEncoding] length:[characters lengthOfBytesUsingEncoding: NSASCIIStringEncoding]];
+    if (characters) 
+		{
+			NSLog(@"zone %d %f", zone, r);
+			[self stopToggleKeyboardTimer];
+			[delegate handleInputFromMenu:characters];
     }
   }
-  [_pie hide];
+
+	//[super mouseUp:event];
 }
+
+//_______________________________________________________________________________
+
+- (BOOL)canHandleGestures
+{
+  return YES;
+}
+
+//_______________________________________________________________________________
+
+- (void)gestureStarted:(GSEvent *)event
+{
+	//[super gestureStarted:event];
+}
+
+//_______________________________________________________________________________
+
+-(void) stopToggleKeyboardTimer
+{
+	if (toggleKeyboardTimer != NULL) {
+		[toggleKeyboardTimer invalidate];
+		toggleKeyboardTimer = NULL;
+	}
+}
+
+//_______________________________________________________________________________
+
+- (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
+{
+	CGPoint point = GSEventGetLocationInWindow(event);
+	//NSLog(@"tap: fingers %d count %d at %f,%f", fingers, count, point.x, point.y);	
+
+	if (fingers == 1 && count == 2)
+	{
+		[self stopToggleKeyboardTimer];
+		toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(toggleKeyboard) userInfo:NULL repeats:NO];
+	}
+}
+
+//_______________________________________________________________________________
+
+-(void)toggleKeyboard
+{	
+	[self stopToggleKeyboardTimer];
+	[delegate hideMenu];
+	[delegate toggleKeyboard];	
+}
+
+//_______________________________________________________________________________
+
+- (BOOL)canHandleSwipes
+{
+	return YES;
+}
+
+- (int)swipe:(int)direction withEvent:(GSEvent *)event
+{
+	NSLog(@"swipeStarted %d %@", direction, event);
+	return direction;
+}
+
+//_______________________________________________________________________________
 
 - (BOOL)canBecomeFirstResponder
 {

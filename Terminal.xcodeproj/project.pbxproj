@@ -1,0 +1,198 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXFileReference section */
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
+		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
+		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
+		C37DAB700D93475A00FC5BC7 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Log.m; sourceTree = "<group>"; };
+		C3A4E5E30D91AA86009A610C /* charmaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = charmaps.h; sourceTree = "<group>"; };
+		C3A4E5E40D91AA86009A610C /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
+		C3A4E5E50D91AA86009A610C /* ColorMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ColorMap.m; sourceTree = "<group>"; };
+		C3A4E5E60D91AA86009A610C /* GestureView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GestureView.h; sourceTree = "<group>"; };
+		C3A4E5E70D91AA86009A610C /* GestureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GestureView.m; sourceTree = "<group>"; };
+		C3A4E5E80D91AA86009A610C /* MobileTerminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MobileTerminal.h; sourceTree = "<group>"; };
+		C3A4E5E90D91AA86009A610C /* MobileTerminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MobileTerminal.m; sourceTree = "<group>"; };
+		C3A4E5EA0D91AA86009A610C /* PieView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PieView.h; sourceTree = "<group>"; };
+		C3A4E5EB0D91AA86009A610C /* PieView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PieView.m; sourceTree = "<group>"; };
+		C3A4E5EC0D91AA86009A610C /* PTYTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTYTextView.h; sourceTree = "<group>"; };
+		C3A4E5ED0D91AA86009A610C /* PTYTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTYTextView.m; sourceTree = "<group>"; };
+		C3A4E5EE0D91AA86009A610C /* PTYTile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTYTile.h; sourceTree = "<group>"; };
+		C3A4E5EF0D91AA86009A610C /* PTYTile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTYTile.m; sourceTree = "<group>"; };
+		C3A4E5F00D91AA86009A610C /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Settings.h; sourceTree = "<group>"; };
+		C3A4E5F10D91AA86009A610C /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Settings.m; sourceTree = "<group>"; };
+		C3A4E5F20D91AA86009A610C /* ShellKeyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShellKeyboard.h; sourceTree = "<group>"; };
+		C3A4E5F30D91AA86009A610C /* ShellKeyboard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShellKeyboard.m; sourceTree = "<group>"; };
+		C3A4E5F40D91AA86009A610C /* SubProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubProcess.h; sourceTree = "<group>"; };
+		C3A4E5F50D91AA86009A610C /* SubProcess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubProcess.m; sourceTree = "<group>"; };
+		C3A4E5F60D91AA86009A610C /* VT100Screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Screen.h; sourceTree = "<group>"; };
+		C3A4E5F70D91AA86009A610C /* VT100Screen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Screen.m; sourceTree = "<group>"; };
+		C3A4E5F80D91AA86009A610C /* VT100Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Terminal.h; sourceTree = "<group>"; };
+		C3A4E5F90D91AA86009A610C /* VT100Terminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Terminal.m; sourceTree = "<group>"; };
+		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		29B97314FDCFA39411CA2CEA /* terminal */ = {
+			isa = PBXGroup;
+			children = (
+				C33DEA310D953AFE002261A5 /* Sources */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				C3267EDD0D93143D00A0F396 /* Makefile */,
+				C3267EF20D93175100A0F396 /* Makefile.build */,
+				C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */,
+			);
+			name = terminal;
+			sourceTree = "<group>";
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				29B97316FDCFA39411CA2CEA /* main.m */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8D1107310486CEB800E47090 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		C33DEA310D953AFE002261A5 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				C3A4E5E80D91AA86009A610C /* MobileTerminal.h */,
+				C3A4E5E90D91AA86009A610C /* MobileTerminal.m */,
+				C3A4E5E60D91AA86009A610C /* GestureView.h */,
+				C3A4E5E70D91AA86009A610C /* GestureView.m */,
+				C3A4E5EC0D91AA86009A610C /* PTYTextView.h */,
+				C3A4E5ED0D91AA86009A610C /* PTYTextView.m */,
+				C3A4E5EE0D91AA86009A610C /* PTYTile.h */,
+				C3A4E5EF0D91AA86009A610C /* PTYTile.m */,
+				C3A4E5F60D91AA86009A610C /* VT100Screen.h */,
+				C3A4E5F70D91AA86009A610C /* VT100Screen.m */,
+				C3A4E5F80D91AA86009A610C /* VT100Terminal.h */,
+				C3A4E5F90D91AA86009A610C /* VT100Terminal.m */,
+				C3A4E5F20D91AA86009A610C /* ShellKeyboard.h */,
+				C3A4E5F30D91AA86009A610C /* ShellKeyboard.m */,
+				C3A4E5F40D91AA86009A610C /* SubProcess.h */,
+				C3A4E5F50D91AA86009A610C /* SubProcess.m */,
+				C3A4E5EA0D91AA86009A610C /* PieView.h */,
+				C3A4E5EB0D91AA86009A610C /* PieView.m */,
+				C3A4E5F00D91AA86009A610C /* Settings.h */,
+				C3A4E5F10D91AA86009A610C /* Settings.m */,
+				C3A4E5E30D91AA86009A610C /* charmaps.h */,
+				C3A4E5E40D91AA86009A610C /* ColorMap.h */,
+				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
+				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
+				C37DAB700D93475A00FC5BC7 /* Log.m */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		C3267F2C0D931B2A00A0F396 /* Terminal */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = C3267F2F0D931B3200A0F396 /* Build configuration list for PBXLegacyTarget "Terminal" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			dependencies = (
+			);
+			name = Terminal;
+			passBuildSettingsInEnvironment = 1;
+			productName = Terminal;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Terminal" */;
+			compatibilityVersion = "Xcode 2.4";
+			hasScannedForEncodings = 1;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* terminal */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C3267F2C0D931B2A00A0F396 /* Terminal */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				PREBINDING = NO;
+			};
+			name = Release;
+		};
+		C3267F2D0D931B2A00A0F396 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = Terminal;
+			};
+			name = Debug;
+		};
+		C3267F2E0D931B2A00A0F396 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = Terminal;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Terminal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C3267F2F0D931B3200A0F396 /* Build configuration list for PBXLegacyTarget "Terminal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3267F2D0D931B2A00A0F396 /* Debug */,
+				C3267F2E0D931B2A00A0F396 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}
