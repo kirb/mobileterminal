@@ -309,10 +309,7 @@ static __inline__ screen_char_t *incrementLinePointer(
   int i, total_height, new_total_height;
   screen_char_t *bl, *aLine, *c1, *c2, *new_scrollback_top;
 
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s:%d :%d]", __PRETTY_FUNCTION__, width, height);
-#endif
-	log(@"resize %d %d", width, height);
+	//log(@"resize %d %d", width, height);
 
   if (WIDTH == 0 || HEIGHT == 0 || (width==WIDTH && height==HEIGHT)) {
     return;

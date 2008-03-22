@@ -24,7 +24,7 @@
 	int degrees = [[[notification userInfo] objectForKey:@"UIApplicationOrientationUserInfoKey"] intValue];	
 	if (degrees == application.degrees) return;
 	
-	log(@"orientation changed: %d", degrees);
+	//log(@"orientation changed: %d", degrees);
 	
 	BOOL landscape;
 		
@@ -73,7 +73,7 @@
 - (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context 
 {
 	//log(@"stop %@ finished %@", animationID, finished);
-	[application updateFrames];
+	[application updateFrames:YES];
 }
 
 @end
@@ -89,13 +89,12 @@
 
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
-	log(@"applicationDidFinishLaunching");
+	//log(@"applicationDidFinishLaunching");
 
   controlKeyMode = NO;
 
 	CGSize screenSize = [UIHardware mainScreenSize];
   CGRect frame = CGRectMake(0, 0, screenSize.width, screenSize.height);
-	logRect(@"screen size", frame);
 
   keyboardShown = YES;
 
@@ -140,7 +139,7 @@
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
 
-	[self updateFrames];
+	[self updateFrames:NO];
 	
 	process  = [[SubProcess alloc] initWithDelegate:self];	
 }
@@ -286,7 +285,7 @@
 		[mainView addSubview:keyboardView];		
 	}
 		
-	[self updateFrames];
+	[self updateFrames:NO];
 }
 
 //_______________________________________________________________________________
@@ -305,7 +304,7 @@
 
 //_______________________________________________________________________________
 
-- (void) updateFrames 
+- (void) updateFrames:(BOOL)needsRefresh
 {
 	CGRect contentRect;
 	CGRect textFrame;
@@ -320,18 +319,8 @@
 	if (landscape) contentRect = CGRectMake(0, statusBarHeight, size.height, size.width-statusBarHeight);
 	else           contentRect = CGRectMake(0, statusBarHeight, size.width, size.height-statusBarHeight);
 
-	logRect(@"---- contentRect", contentRect);
-	//logRect(@"----- contentView.frame", contentView.frame);
-	//logRect(@"----- contentView.bounds", contentView.bounds);
-	
-	//logRect(@"----- ---- mainView.frame", mainView.frame);
-	//logRect(@"----- ---- mainView.bounds", mainView.bounds);
-
 	[mainView setFrame:contentRect];
-	
-	//logRect(@"----- ---- mainView.frame", mainView.frame);
-	//logRect(@"----- ---- mainView.bounds", mainView.bounds);
-	
+		
 	if (keyboardShown) 
 	{
 		gestureFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40, mainView.bounds.size.height-keybSize.height);
@@ -351,23 +340,19 @@
 		height = landscape ? 23 : 32;
 	}
 	
-	[textScroller setFrame:textFrame];
 	[textView setFrame:textFrame];
-	
-	logRect(@"---- textFrame",  textFrame);
-	logRect(@"---- textView.frame",  [textView frame]);
-	logRect(@"---- textView.bounds",  [textView bounds]);
-	
+	[textScroller setFrame:textFrame];
+	[textScroller setContentSize:textFrame.size];
 	[gestureView setFrame:gestureFrame];
 	
 	[process setWidth:width height:height];
-	
 	[screen resizeWidth:width height:height];
-	[screen clearBuffer];
 	
-  [textView refresh];	
-	[textView updateAndScrollToEnd];
-	//[textView updateIfNecessary];
+	if (needsRefresh) 
+	{
+		[textView refresh];	
+		[textView updateIfNecessary];
+	}
 }
 
 @end

@@ -90,18 +90,29 @@ static PTYTextView* instance = nil;
 
 - (void)refresh
 {
-	log(@"refresh");
   id temp = dataSource;
   [temp acquireLock];
   int WIDTH = [dataSource width];
   int HEIGHT = [dataSource height];
   [temp releaseLock];
 
+	//log(@"refresh %d %d", WIDTH, HEIGHT);
+
   CGRect frame = [self frame];
   charWidth = floor(frame.size.width / WIDTH);
+	
+	//log(@"charWidth %f frame.width %f", charWidth, frame.size.width);
+
   float availableHeight = frame.size.height - [textScroller bottomBufferHeight];
   lineHeight = floor(availableHeight / HEIGHT);
 
+	[self setFirstTileSize:CGSizeMake(frame.size.width, lineHeight)];
+	[self setTileSize:CGSizeMake(frame.size.width, lineHeight)];
+	//[self removeAllTiles];
+	[self setNeedsLayout];
+	
+	//log(@"lineHeight %f frame.height %f", lineHeight, frame.size.height);
+	
   // TODO: Use margins on either side
   margin = floor((frame.size.width - (charWidth * WIDTH)) / 2);
   vmargin = floor((frame.size.height - (lineHeight * HEIGHT)) / 2);
@@ -119,7 +130,9 @@ static PTYTextView* instance = nil;
   // Expand the height, and cause scroll
   int newHeight = lines * lineHeight;
   CGRect frame = [self frame];
-  if (frame.size.height != newHeight) {
+	
+  if (frame.size.height != newHeight) 
+	{
     frame.size.height = newHeight;
     [self setFrame:frame];
     [textScroller setContentSize:frame.size];
@@ -179,7 +192,10 @@ static PTYTextView* instance = nil;
 {
   // Each Tile is responsible for one row so determine the row that this
   // tile is responsible for based on its bounding rectangle.
+	//logRect(@"frame", frame);
+	//logRect(@"rect", rect);
   int row = (int)((frame.origin.y - [self frame].origin.y) / lineHeight);
+	//log(@"row %d", row);
   [self drawRow:row tileRect:(CGRect)rect];
 }
 
@@ -265,16 +281,27 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
   // Draw background for each column in the row
   int width = [dataSource width];
-	
-	log(@"width %d row %d", width, row);
-	
-  screen_char_t *theLine = [dataSource getLineAtIndex:row];
   int column;
+		
+  screen_char_t * theLine = [dataSource getLineAtIndex:row];
+	
+	/*
+	NSMutableString * line = [NSMutableString stringWithCapacity:width];
+  for (column = 0; column < width; column++) {
+    char c = 0xff & theLine[column].ch;
+    if (c == 0) c = ' ';
+		[line appendFormat:@"%c", c];
+	}
+	//logRect(@"   ", rect);		
+	log(@"width %02d row %02d [%@]", width, row, line);
+	*/
 
-  // Avoid painting each black square individually. First paint the whole 
+  // Avoid painting each black squdraware individually. First paint the whole 
   // row with the background color  
-  [self drawBox:context color:[[ColorMap sharedInstance] colorForCode:DEFAULT_BG_COLOR_CODE]
-     boxRect:CGRectMake(rect.origin.x, rect.origin.y, charWidth * width, lineHeight)];
+	
+  [self drawBox:context 
+					color:[[ColorMap sharedInstance] colorForCode:DEFAULT_BG_COLOR_CODE]
+				boxRect:CGRectMake(rect.origin.x, rect.origin.y, charWidth * width, lineHeight)];
 
   //now specially paint any exceptional backgrounds
   for (column = 0; column < width; column++) {

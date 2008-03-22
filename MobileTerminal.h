@@ -69,7 +69,7 @@
 - (void) handleInputFromMenu:(NSString*)input;
 - (void) toggleKeyboard;
 
-- (void) updateFrames;
+- (void) updateFrames:(BOOL)needsRefresh;
 - (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_;
 
 - (CGPoint) viewPointForWindowPoint:(CGPoint)point;

@@ -51,7 +51,7 @@
 
 - (void)showAtPoint:(CGPoint)p
 {
-	log(@"showAtPoint %f %f", p.x, p.y);
+	//log(@"showAtPoint %f %f", p.x, p.y);
 	[self stopTimer];
   location.x = (int)(p.x - visibleFrame.size.width*0.5f);
   location.y = (int)(p.y - visibleFrame.size.height*0.5f);;
