@@ -22,7 +22,7 @@
 -(void) _handleOrientationChange:(id)notification
 {
 	int degrees = [[[notification userInfo] objectForKey:@"UIApplicationOrientationUserInfoKey"] intValue];	
-	log(@"orientation changed: %d", degrees);
+	//log(@"orientation changed: %d", degrees);
 	if (degrees == application.degrees) return;
 	
 	BOOL landscape;
@@ -152,7 +152,7 @@
   [[keyboardView inputView] becomeFirstResponder];
 			
 	[self updateFrames:YES];
-		
+	
 	[self setActiveTerminal:0];
 }
 
@@ -341,7 +341,6 @@
 - (void) statusBarMouseDown:(GSEvent*)event
 {
 	CGPoint pos = GSEventGetLocationInWindow(event);
-	logPoint(@"pos", pos);
 	float width = landscape ? window.frame.size.height : window.frame.size.width;
 	if (pos.x > width/2 && pos.x < width*3/4)
 		[self prevTerminal];
@@ -368,13 +367,13 @@
 	landscape = landscape_;
 	degrees = degrees_;
 	
-	log(@"setLandscape %d", degrees);
+	//log(@"setLandscape %d", degrees);
 	
 	[self setStatusBarMode: [self statusBarMode]
 						 orientation: degrees
 								duration: 0.5 
 								 fenceID: 0 
-							 animation: 3];	
+							 animation: 0];	
 }
 
 //_______________________________________________________________________________
@@ -385,7 +384,7 @@
 	CGRect textFrame;
 	CGRect textScrollerFrame;
 	CGRect gestureFrame;
-	int width, height;
+	int width, height, i;
 
 	struct CGSize size = [UIHardware mainScreenSize];
 	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
@@ -425,8 +424,11 @@
 	[textScroller setContentSize:textFrame.size];
 	[gestureView setFrame:gestureFrame];
 	
-	[[self activeProcess] setWidth:width height:height];
-	[[self activeScreen] resizeWidth:width height:height];
+	for (i = 0; i < MAXTERMINALS; i++)
+	{
+		[[processes objectAtIndex:i] setWidth:width    height:height];
+		[[screens   objectAtIndex:i] resizeWidth:width height:height];
+	}
 	
 	if (needsRefresh) 
 	{
@@ -454,7 +456,7 @@
 	
 	if (numTerminals == 0) 
 	{
-		[self newTerminal];
+		//[self newTerminal];
 	} 
 	else 
 	{
@@ -484,7 +486,7 @@
 	
 	[textView setSource: [self activeScreen]];
 	
-	[self setStatusBarCustomText:[NSString stringWithFormat:@"Terminal %d", activeTerminal+1]];
+	//[self setStatusBarCustomText:[NSString stringWithFormat:@"Terminal %d", activeTerminal+1]];
 }
 
 //_______________________________________________________________________________
