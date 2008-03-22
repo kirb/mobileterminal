@@ -196,11 +196,16 @@
 
 - (void)applicationResume:(GSEvent *)event
 {
-  [mainView addSubview:keyboardView];
-  [mainView addSubview:[keyboardView inputView]];
-  [[keyboardView inputView] becomeFirstResponder];
+	if (keyboardShown)
+	{
+		[mainView addSubview:keyboardView];
+	}
+	
+	[mainView addSubview:[keyboardView inputView]];
+	[[keyboardView inputView] becomeFirstResponder];
 	
 	[self setActiveTerminal:0];
+	[self setLandscape: landscape degrees: degrees];
 }
 
 //_______________________________________________________________________________
