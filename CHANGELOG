@@ -1,0 +1,10 @@
+- long swipe left: start of line (ctrl-a)
+- long swipe right: end og line (ctrl-e)
+- bigger gesture view area 
+- pie menu fades in with a delay
+- keyboard toggle via 1-finger-double-tap with a short delay
+- reactivated the scrollbar display
+- Makefile improved
+- XCode project added
+- initial landscape mode (unfinished)
+
