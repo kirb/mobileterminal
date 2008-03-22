@@ -6,10 +6,10 @@
 //_______________________________________________________________________________
 
 @protocol GestureInputProtocol
-- (void)showMenu:(CGPoint)point;
-- (void)hideMenu;
-- (void)handleInputFromMenu:(NSString*)input;
-- (void)toggleKeyboard;
+- (void) showMenu:(CGPoint)point;
+- (void) hideMenu;
+- (void) handleInputFromMenu:(NSString*)input;
+- (void) toggleKeyboard;
 @end
 
 //_______________________________________________________________________________

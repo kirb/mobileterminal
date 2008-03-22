@@ -72,4 +72,6 @@
 - (void) updateFrames;
 - (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_;
 
+- (CGPoint) viewPointForWindowPoint:(CGPoint)point;
+
 @end

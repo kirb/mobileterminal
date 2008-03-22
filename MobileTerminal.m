@@ -49,7 +49,7 @@
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 	[UIView setAnimationWillStartSelector: @selector(animationWillStart:context:)];
-	[[self contentView] setTransform:transEnd];
+	[(UIView*)[self contentView] setTransform:transEnd];
 	[[self contentView] setBounds:contentBounds];
 	[UIView endAnimations];
 	
@@ -84,6 +84,8 @@
 @implementation MobileTerminal
 
 @synthesize landscape, degrees;
+
+//_______________________________________________________________________________
 
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
@@ -243,10 +245,19 @@
 
 //_______________________________________________________________________________
 
+-(CGPoint) viewPointForWindowPoint:(CGPoint)point
+{
+	return [mainView convertPoint:point fromView:window];
+}
+
+//_______________________________________________________________________________
+
 - (void)hideMenu
 {
   [[PieView sharedInstance] hide];
 }
+
+//_______________________________________________________________________________
 
 - (void)showMenu:(CGPoint)point
 {
@@ -350,7 +361,9 @@
 	[gestureView setFrame:gestureFrame];
 	
 	[process setWidth:width height:height];
+	
 	[screen resizeWidth:width height:height];
+	[screen clearBuffer];
 	
   [textView refresh];	
 	[textView updateAndScrollToEnd];

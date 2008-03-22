@@ -26,7 +26,7 @@
 
 //_______________________________________________________________________________
 
-+ (void)logFunc: (char*)func format:(NSString*)format, ...; 
++ (void)logFunc: (const char*)func format:(NSString*)format, ...; 
 {
 	va_list ap;
 	NSString *print, *funcs;
@@ -47,9 +47,16 @@
 }
 //_______________________________________________________________________________
 
-+ (void)logFunc: (char*)func string:(NSString*)s rect:(CGRect)r 
++ (void)logFunc: (const char*)func string:(NSString*)s rect:(CGRect)r 
 {
 	[FileLog logFunc: func format:@"%@ [%0.2f %0.2f %0.2f %0.2f]", s, r.origin.x, r.origin.y, r.size.width, r.size.height];
+}
+
+//_______________________________________________________________________________
+
++ (void)logFunc: (const char*)func string:(NSString*)s point:(CGPoint)p 
+{
+	[FileLog logFunc: func format:@"%@ <%0.2f %0.2f>", s, p.x, p.y];
 }
 
 //_______________________________________________________________________________

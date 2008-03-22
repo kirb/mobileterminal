@@ -6,11 +6,13 @@
 #define logfRect(s, r) [FileLog logFile:__FILE__ lineNumber:__LINE__ string:(s) rect:(r)] 
 #define log(s,...)     [FileLog logFunc:__PRETTY_FUNCTION__ format:(s),##__VA_ARGS__]
 #define logRect(s, r)  [FileLog logFunc:__PRETTY_FUNCTION__ string:(s) rect:(r)] 
+#define logPoint(s, p) [FileLog logFunc:__PRETTY_FUNCTION__ string:(s) point:(p)] 
 
 @interface FileLog : NSObject {
 }
-+ (void)logFunc: (char*)func format:(NSString*)format, ...;
-+ (void)logFunc: (char*)func string:(NSString*)s rect:(CGRect)r;
++ (void)logFunc: (const char*)func format:(NSString*)format, ...;
++ (void)logFunc: (const char*)func string:(NSString*)s rect:(CGRect)r;
++ (void)logFunc: (const char*)func string:(NSString*)s point:(CGPoint)p;
 + (void)logFile: (char*)sourceFile lineNumber: (int)lineNumber format:(NSString*)format, ...;
 + (void)logFile: (char*)sourceFile lineNumber: (int)lineNumber string:(NSString*)s rect:(CGRect)r;
 

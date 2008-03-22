@@ -2,6 +2,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
+#import "MobileTerminal.h"
 
 @implementation GestureView
 
@@ -27,7 +28,7 @@ CGPoint start;
 
 - (void)mouseDown:(GSEvent *)event
 {
-  start = GSEventGetLocationInWindow(event);
+	start = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   [delegate showMenu:start];
 }
 
@@ -35,11 +36,9 @@ CGPoint start;
 
 - (void)mouseUp:(GSEvent*)event
 {
-	//NSLog(@"mouseUp");
-	
 	[delegate hideMenu];
 	
-  CGPoint end = GSEventGetLocationInWindow(event);
+  CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   CGPoint vector = CGPointMake(end.x - start.x, end.y - start.y);
 
   float absx = (vector.x > 0) ? vector.x : -vector.x;
@@ -87,7 +86,7 @@ CGPoint start;
     }
     if (characters) 
 		{
-			NSLog(@"zone %d %f", zone, r);
+			//log(@"zone %d %f", zone, r);
 			[self stopToggleKeyboardTimer];
 			[delegate handleInputFromMenu:characters];
     }
@@ -124,9 +123,6 @@ CGPoint start;
 
 - (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
 {
-	CGPoint point = GSEventGetLocationInWindow(event);
-	//NSLog(@"tap: fingers %d count %d at %f,%f", fingers, count, point.x, point.y);	
-
 	if (fingers == 1 && count == 2)
 	{
 		[self stopToggleKeyboardTimer];
@@ -152,7 +148,7 @@ CGPoint start;
 
 - (int)swipe:(int)direction withEvent:(GSEvent *)event
 {
-	NSLog(@"swipeStarted %d %@", direction, event);
+	//log(@"swipeStarted %d %@", direction, event);
 	return direction;
 }
 
