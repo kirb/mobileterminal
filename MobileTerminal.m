@@ -22,9 +22,8 @@
 -(void) _handleOrientationChange:(id)notification
 {
 	int degrees = [[[notification userInfo] objectForKey:@"UIApplicationOrientationUserInfoKey"] intValue];	
+	log(@"orientation changed: %d", degrees);
 	if (degrees == application.degrees) return;
-	
-	//log(@"orientation changed: %d", degrees);
 	
 	BOOL landscape;
 		
@@ -89,23 +88,36 @@
 
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
-	//log(@"applicationDidFinishLaunching");
+	log(@"applicationDidFinishLaunching");
 
+	activeTerminal = 0;
   controlKeyMode = NO;
+  keyboardShown = YES;
 
 	CGSize screenSize = [UIHardware mainScreenSize];
   CGRect frame = CGRectMake(0, 0, screenSize.width, screenSize.height);
 
-  keyboardShown = YES;
+	processes = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
+  screens   = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
+  terminals = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
+  
+	for (numTerminals = 0; numTerminals < MAXTERMINALS; numTerminals++)
+	{
+		VT100Terminal * terminal = [[VT100Terminal alloc] init];
+		VT100Screen   * screen   = [[VT100Screen alloc] init];
+		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];  
+		
+		[screens   addObject: screen];
+		[terminals addObject: terminal];
+		[processes addObject: process];
 
-  terminal = [[VT100Terminal alloc] init];
-  screen   = [[VT100Screen alloc] init];
-  [screen setTerminal:terminal];
-  [terminal setScreen:screen];
-
+		[screen setTerminal:terminal];
+		[terminal setScreen:screen];		
+	}
+	
   textScroller = [[UIScroller alloc] init];
   textView = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
-																				 source: screen
+																				 source: [self activeScreen]
 																			 scroller: textScroller];
 
   keyboardView = [[[ShellKeyboard alloc] initWithFrame:CGRectMake(0.0f, 244.0f, 320.0f, 460.0f-244.0f)] retain];
@@ -117,9 +129,9 @@
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
 	
   [mainView addSubview:textScroller];
+  [mainView addSubview:gestureView];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
-  [mainView addSubview:gestureView];
   [mainView addSubview:[PieView sharedInstance]];
 
 	contentView = [[UIView alloc] initWithFrame: frame];
@@ -138,10 +150,10 @@
 
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
-
-	[self updateFrames:NO];
-	
-	process  = [[SubProcess alloc] initWithDelegate:self];	
+			
+	[self updateFrames:YES];
+		
+	[self setActiveTerminal:0];
 }
 
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
@@ -149,14 +161,35 @@
 
 //_______________________________________________________________________________
 
+- (void) deviceOrientationChanged: (GSEvent*)event 
+{
+	// keep me!
+}
+
+//_______________________________________________________________________________
+
 - (void)applicationSuspend:(GSEvent *)event
 {
-  if (![process isRunning]) {
+	BOOL shouldQuit;
+	int i;
+	shouldQuit = YES;
+	
+	for (i = 0; i < [processes count]; i++) {
+		if ([ [processes objectAtIndex: i] isRunning]) {
+			shouldQuit = NO;
+			break;
+		}
+	}
+	
+  if (shouldQuit) {		
     exit(0);
   }
 
   [[keyboardView inputView] removeFromSuperview];
   [keyboardView removeFromSuperview];
+	
+	for (i = 0; i < MAXTERMINALS; i++)
+		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", i]];
 }
 
 //_______________________________________________________________________________
@@ -166,24 +199,35 @@
   [mainView addSubview:keyboardView];
   [mainView addSubview:[keyboardView inputView]];
   [[keyboardView inputView] becomeFirstResponder];
+	
+	[self setActiveTerminal:0];
 }
 
 //_______________________________________________________________________________
 
 - (void)applicationExited:(GSEvent *)event
 {
-  [process close];
+	int i;
+	for (i = 0; i < [processes count]; i++) {
+		[[processes objectAtIndex: i] close];
+	}	
+
+	for (i = 0; i < MAXTERMINALS; i++)
+		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", i]];
 }
 
 //_______________________________________________________________________________
 
 // Process output from the shell and pass it to the screen
-- (void)handleStreamOutput:(const char*)c length:(unsigned int)len
+- (void)handleStreamOutput:(const char*)c length:(unsigned int)len identifier:(int)tid
 {
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s: 0x%x (%d bytes)", __PRETTY_FUNCTION__, self, len);
-#endif
-
+	if (tid < 0 || tid >= [terminals count]) {
+		return;
+  }
+	
+  VT100Terminal* terminal = [terminals objectAtIndex: tid];
+  VT100Screen* screen = [screens objectAtIndex: tid];
+  	
   [terminal putStreamData:c length:len];
 
   // Now that we've got the raw data from the sub process, write it to the
@@ -203,9 +247,12 @@
       NSLog(@"%s(%d):skip token", __FILE__ , __LINE__);
     }
   }
-  [textView performSelectorOnMainThread:@selector(updateAndScrollToEnd)
-                             withObject:nil
-                          waitUntilDone:NO];
+	
+  if (tid == activeTerminal) {
+		[textView performSelectorOnMainThread:@selector(updateAndScrollToEnd)
+															 withObject:nil
+														waitUntilDone:NO];
+	}	
 }
 
 //_______________________________________________________________________________
@@ -239,7 +286,8 @@
     return;
   }
   char simple_char = (char)c;
-  [process write:&simple_char length:1];
+	
+  [[self activeProcess] write:&simple_char length:1];
 }
 
 //_______________________________________________________________________________
@@ -267,7 +315,7 @@
 
 - (void)handleInputFromMenu:(NSString*)input
 {
-  [process write:[input cString] length:[input length]];
+  [[self activeProcess] write:[input cString] length:[input length]];
 }
 
 //_______________________________________________________________________________
@@ -290,10 +338,37 @@
 
 //_______________________________________________________________________________
 
+- (void) statusBarMouseDown:(GSEvent*)event
+{
+	CGPoint pos = GSEventGetLocationInWindow(event);
+	logPoint(@"pos", pos);
+	float width = landscape ? window.frame.size.height : window.frame.size.width;
+	if (pos.x > width/2 && pos.x < width*3/4)
+		[self prevTerminal];
+	else if (pos.x > width*3/4)
+		[self nextTerminal];
+}	
+
+//_______________________________________________________________________________
+
+- (void) statusBarMouseUp:(GSEvent*)event
+{
+}	
+
+//_______________________________________________________________________________
+
+- (void) statusBarMouseDragged:(GSEvent*)event
+{
+}	
+
+//_______________________________________________________________________________
+
 - (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_
 {
 	landscape = landscape_;
 	degrees = degrees_;
+	
+	log(@"setLandscape %d", degrees);
 	
 	[self setStatusBarMode: [self statusBarMode]
 						 orientation: degrees
@@ -308,6 +383,7 @@
 {
 	CGRect contentRect;
 	CGRect textFrame;
+	CGRect textScrollerFrame;
 	CGRect gestureFrame;
 	int width, height;
 
@@ -323,8 +399,10 @@
 		
 	if (keyboardShown) 
 	{
-		gestureFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40, mainView.bounds.size.height-keybSize.height);
-		textFrame    = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height-keybSize.height);
+		gestureFrame			= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40.0f, mainView.bounds.size.height-keybSize.height);
+		textScrollerFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height-keybSize.height);
+		textFrame					= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height-keybSize.height);
+		
 		width  = landscape ? 67 : 45;
 		height = landscape ?  8 : 17;
 		
@@ -334,25 +412,114 @@
 	} 
 	else 
 	{
-		gestureFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40, mainView.bounds.size.height);
-		textFrame    = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height);
+		gestureFrame			= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40.0f, mainView.bounds.size.height);
+		textScrollerFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height);
+		textFrame					= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height);
+		
 		width  = landscape ? 67 : 45;
 		height = landscape ? 23 : 32;
 	}
 	
 	[textView setFrame:textFrame];
-	[textScroller setFrame:textFrame];
+	[textScroller setFrame:textScrollerFrame];
 	[textScroller setContentSize:textFrame.size];
 	[gestureView setFrame:gestureFrame];
 	
-	[process setWidth:width height:height];
-	[screen resizeWidth:width height:height];
+	[[self activeProcess] setWidth:width height:height];
+	[[self activeScreen] resizeWidth:width height:height];
 	
 	if (needsRefresh) 
 	{
 		[textView refresh];	
 		[textView updateIfNecessary];
 	}
+}
+
+//_______________________________________________________________________________
+
+-(void) closeTerminal
+{
+	VT100Screen		* screen		= [self activeScreen];
+	VT100Terminal	* terminal	= [self activeTerminal];
+	SubProcess		* process		= [self activeProcess];
+	int i;
+	
+	[process closeSession];
+	
+	[screens   removeObjectAtIndex: activeTerminal];
+	[terminals removeObjectAtIndex: activeTerminal];
+	[processes removeObjectAtIndex: activeTerminal];
+	
+	numTerminals -= 1;
+	
+	if (numTerminals == 0) 
+	{
+		[self newTerminal];
+	} 
+	else 
+	{
+		for (i = activeTerminal; i < [processes count]; i++)
+		{
+			SubProcess* sp = [processes objectAtIndex: i];
+			[sp setIdentifier: i];
+		}
+		
+		if (activeTerminal >= numTerminals)
+			activeTerminal = numTerminals - 1;
+		
+		[textView setSource: [self activeScreen]];
+	}	
+	
+	[screen release];
+	[terminal release];
+}
+
+//_______________________________________________________________________________
+
+-(void) setActiveTerminal:(int)active
+{
+	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
+	activeTerminal = active;
+	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
+	
+	[textView setSource: [self activeScreen]];
+	
+	[self setStatusBarCustomText:[NSString stringWithFormat:@"Terminal %d", activeTerminal+1]];
+}
+
+//_______________________________________________________________________________
+
+-(void) prevTerminal
+{
+	int active = activeTerminal - 1;
+	if (active < 0) active = numTerminals-1;
+	[self setActiveTerminal:active];
+}
+
+//_______________________________________________________________________________
+
+-(void) nextTerminal
+{
+	int active = activeTerminal + 1;
+	if (active >= numTerminals) active = 0;
+	[self setActiveTerminal:active];
+}
+
+//_______________________________________________________________________________
+
+-(SubProcess*) activeProcess
+{
+	return [processes objectAtIndex: activeTerminal];
+}
+
+-(VT100Screen*) activeScreen
+{
+	return [screens objectAtIndex: activeTerminal];
+}
+
+-(VT100Terminal*) activeTerminal
+{
+	return [terminals objectAtIndex: activeTerminal];
 }
 
 @end

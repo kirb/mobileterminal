@@ -80,10 +80,52 @@ static PTYTextView* instance = nil;
 #endif
   CFRelease(fontRef);
   [super dealloc];
-
+	
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x, done", __PRETTY_FUNCTION__, self);
 #endif
+}
+
+//_______________________________________________________________________________
+
+-(void)setSource:(VT100Screen*)screen
+{
+	dataSource = screen;
+	[self updateAll];
+	[self updateAndScrollToEnd];
+}
+
+//_______________________________________________________________________________
+
+- (void)updateAll
+{
+  [dataSource acquireLock];
+  int height = [dataSource height];
+  int lines = [dataSource numberOfLines];
+	
+  // Expand the height, and cause scroll
+  int newHeight = lines * lineHeight;
+  CGRect frame = [self frame];
+  if (frame.size.height != newHeight) {
+    frame.size.height = newHeight;
+    [self setFrame:frame];
+    [textScroller setContentSize:frame.size];
+  }
+  int startIndex = 0;
+  if (lines > height) {
+    startIndex = lines - height;
+  }
+	
+  // Check for dirty on-screen rows; scroll back is not updated
+  int row;
+  for (row = 0; row < height; row++) {
+		CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight,
+														 [self frame].size.width, lineHeight);
+		[self setNeedsDisplayInRect:rect];
+  }
+	
+  [dataSource resetDirty];
+  [dataSource releaseLock];
 }
 
 //_______________________________________________________________________________
@@ -196,7 +238,8 @@ static PTYTextView* instance = nil;
 	//logRect(@"rect", rect);
   int row = (int)((frame.origin.y - [self frame].origin.y) / lineHeight);
 	//log(@"row %d", row);
-  [self drawRow:row tileRect:(CGRect)rect];
+	if (row >= 0)
+		[self drawRow:row tileRect:(CGRect)rect];
 }
 
 //XXX: put me in a standard header somewhere

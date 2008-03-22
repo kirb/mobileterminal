@@ -11,6 +11,9 @@
 @class GestureView;
 @class PieView;
 @class MobileTerminal;
+@class StatusView;
+
+#define MAXTERMINALS 4
 
 //_______________________________________________________________________________
 
@@ -42,10 +45,14 @@
   UIScroller		* textScroller;
   ShellKeyboard	* keyboardView;
   GestureView		* gestureView;
+	StatusView    * statusView;
 
-  SubProcess		* process;
-  VT100Screen		* screen;
-  VT100Terminal	* terminal;
+  NSMutableArray* processes;
+  NSMutableArray* screens;
+  NSMutableArray* terminals;
+  
+  int numTerminals;
+  int activeTerminal;	
 
   BOOL controlKeyMode;
   BOOL keyboardShown;
@@ -60,8 +67,16 @@
 - (void) applicationSuspend:(GSEvent *)event;
 - (void) applicationResume:(GSEvent *)event;
 
-- (void) handleStreamOutput:(const char*)c length:(unsigned int)len;
+- (void) handleStreamOutput:(const char*)c length:(unsigned int)len identifier:(int)tid;
 - (void) handleKeyPress:(unichar)c;
+
+- (void) updateFrames:(BOOL)needsRefresh;
+- (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_;
+- (CGPoint) viewPointForWindowPoint:(CGPoint)point;
+
+-(SubProcess*) activeProcess;
+-(VT100Screen*) activeScreen;
+-(VT100Terminal*) activeTerminal;
 
 // Invoked by GestureMenu
 - (void) hideMenu;
@@ -69,9 +84,10 @@
 - (void) handleInputFromMenu:(NSString*)input;
 - (void) toggleKeyboard;
 
-- (void) updateFrames:(BOOL)needsRefresh;
-- (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_;
-
-- (CGPoint) viewPointForWindowPoint:(CGPoint)point;
+// Invoked by SwitcherMenu
+- (void) closeTerminal;
+- (void) prevTerminal;
+- (void) nextTerminal;
+- (void) setActiveTerminal:(int)active;
 
 @end

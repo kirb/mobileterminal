@@ -34,6 +34,9 @@
 - (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller;
 - (void)dealloc;
 
+- (void)setSource:(VT100Screen*)screen;
+- (void)updateAll;
+
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect;
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect;
 - (void)refresh;

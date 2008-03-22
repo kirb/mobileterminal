@@ -1821,7 +1821,6 @@ static __inline__ screen_char_t *incrementLinePointer(
   scrollUpLines = 0;
 }
 
-
 @end
 
 @implementation VT100Screen (Private)

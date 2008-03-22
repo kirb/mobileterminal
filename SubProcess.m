@@ -41,15 +41,19 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   return 0;
 }
 
-- (id)initWithDelegate:(id)inputDelegate
+- (id)initWithDelegate:(id)inputDelegate identifier:(int) tid
 {
-  if (instance != nil) {
-    [NSException raise:@"Unsupported" format:@"Only one SubProcess"];
-  }
+  //if (instance != nil)  [NSException raise:@"Unsupported" format:@"Only one SubProcess"];
+	
   self = [super init];
-  instance = self;
+
+	//instance = self;
+  
   fd = 0;
   delegate = inputDelegate;
+	
+	termid = tid;
+  closed = 0;
 
   // Clean up when ^C is pressed during debugging from a console
   signal(SIGINT, &signal_handler);
@@ -60,7 +64,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   win.ws_col = [settings width];
   win.ws_row = [settings height];
 
-  pid_t pid = forkpty(&fd, NULL, NULL, &win);
+  pid = forkpty(&fd, NULL, NULL, &win);
 	
   if (pid == -1) 
 	{
@@ -92,6 +96,14 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 {
   [self close];
   [super dealloc];
+}
+
+- (void)closeSession { // this is invoked when the user closes that terminal session
+	closed = 1;
+	kill(pid, SIGHUP);
+	int stat;
+	waitpid(pid, &stat, WUNTRACED);
+	[self close];
 }
 
 - (void)close
@@ -142,21 +154,23 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     if (nread == -1) {
       perror("read");
       [self close];
-      [self failure:@"[Process completed]"];
+			if(!closed)
+				[self failure:@"[Process completed]"];
       return;
     } else if (nread == 0) {
       [self close];
-      [self failure:@"[Process completed]"];
+			if(!closed)
+				[self failure:@"[Process completed]"];
       return;
     }
-    [inputDelegate handleStreamOutput:buf length:nread];
+    [inputDelegate handleStreamOutput:buf length:nread identifier:termid];
   }
 }
 
 - (void)failure:(NSString*)message;
 {
   // HACK: Just pretend the message came from the child
-  [delegate handleStreamOutput:[message cString] length:[message length]];
+  [delegate handleStreamOutput:[message cString] length:[message length] identifier:termid];
 }
 
 - (void)setWidth:(int)width height:(int)height
@@ -172,6 +186,11 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     winsize.ws_row = height;
     ioctl(fd, TIOCSWINSZ, &winsize);
   }
+}
+
+- (void)setIdentifier:(int)tid
+{
+	termid = tid;
 }
 
 @end
