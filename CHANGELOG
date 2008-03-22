@@ -8,3 +8,6 @@
 - XCode project added
 - initial landscape mode (unfinished)
 
+- multiple terminals added (code merged from the multi branch) 
+  this feature works best if the Default_MobileTerminal?.png and FSO_MobileTerminal?.png images are copied to /System/CoreServices/SpringBoard.app 
+
