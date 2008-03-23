@@ -3,10 +3,6 @@
 
 @implementation PieView
 
-#define PIE_MENU_DELAY         1.0 
-#define PIE_MENU_FADE_IN_TIME  0.25
-#define PIE_MENU_FADE_OUT_TIME 0.25
-
 //_______________________________________________________________________________
 
 + (PieView*)sharedInstance

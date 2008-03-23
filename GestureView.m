@@ -126,7 +126,7 @@ CGPoint start;
 	if (fingers == 1 && count == 2)
 	{
 		[self stopToggleKeyboardTimer];
-		toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(toggleKeyboard) userInfo:NULL repeats:NO];
+		toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:TOGGLE_KEYBOARD_DELAY target:self selector:@selector(toggleKeyboard) userInfo:NULL repeats:NO];
 	}
 }
 

@@ -37,6 +37,7 @@
 		C3A4E5F80D91AA86009A610C /* VT100Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Terminal.h; sourceTree = "<group>"; };
 		C3A4E5F90D91AA86009A610C /* VT100Terminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Terminal.m; sourceTree = "<group>"; };
 		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
+		C3E137B20D95F931005B2F2D /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -97,6 +98,7 @@
 				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
 				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
 				C37DAB700D93475A00FC5BC7 /* Log.m */,
+				C3E137B20D95F931005B2F2D /* Constants.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

@@ -13,6 +13,21 @@
 #import "PieView.h"
 
 #import <UIKit/UIView-Geometry.h>
+#import <LayerKit/LKAnimation.h>
+#import <CoreGraphics/CoreGraphics.h>
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation UIView (Color)
+
++ (CGColorRef)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
+{
+	float rgba[4] = {red, green, blue, alpha};
+	CGColorSpaceRef rgbColorSpace = (CGColorSpaceRef)[(id)CGColorSpaceCreateDeviceRGB() autorelease];
+	CGColorRef color = (CGColorRef)[(id)CGColorCreate(rgbColorSpace, rgba) autorelease];
+	return color;
+}
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -47,7 +62,6 @@
 	[UIView beginAnimations:@"rotation"];
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-	[UIView setAnimationWillStartSelector: @selector(animationWillStart:context:)];
 	[(UIView*)[self contentView] setTransform:transEnd];
 	[[self contentView] setBounds:contentBounds];
 	[UIView endAnimations];
@@ -59,13 +73,6 @@
 
 - (void) setApplication:(MobileTerminal*)app { application = app; }
 - (MobileTerminal*) application { return application; }
-
-//_______________________________________________________________________________
-
-- (void) animationWillStart:(NSString *)animationID context:(void *)context 
-{
-	//log(@"start %@ %@", animationID, context);
-}
 
 //_______________________________________________________________________________
 
@@ -127,14 +134,15 @@
   gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
-	
   [mainView addSubview:textScroller];
   [mainView addSubview:gestureView];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:[PieView sharedInstance]];
+	[mainView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
+	activeView = mainView;
 
-	contentView = [[UIView alloc] initWithFrame: frame];
+	contentView = [[UITransitionView alloc] initWithFrame: frame];
 	[contentView addSubview:mainView];
 	
 	window = [[MainWindow alloc] initWithFrame: frame];
@@ -158,13 +166,6 @@
 
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
 // to properly acheive focus on suspend and resume.
-
-//_______________________________________________________________________________
-
-- (void) deviceOrientationChanged: (GSEvent*)event 
-{
-	// keep me!
-}
 
 //_______________________________________________________________________________
 
@@ -297,6 +298,13 @@
 
 //_______________________________________________________________________________
 
+- (void) deviceOrientationChanged: (GSEvent*)event 
+{
+	// keep me!
+}
+
+//_______________________________________________________________________________
+
 -(CGPoint) viewPointForWindowPoint:(CGPoint)point
 {
 	return [mainView convertPoint:point fromView:window];
@@ -351,18 +359,8 @@
 		[self prevTerminal];
 	else if (pos.x > width*3/4)
 		[self nextTerminal];
-}	
-
-//_______________________________________________________________________________
-
-- (void) statusBarMouseUp:(GSEvent*)event
-{
-}	
-
-//_______________________________________________________________________________
-
-- (void) statusBarMouseDragged:(GSEvent*)event
-{
+	else
+		[self showPreferences];
 }	
 
 //_______________________________________________________________________________
@@ -444,45 +442,6 @@
 
 //_______________________________________________________________________________
 
--(void) closeTerminal
-{
-	VT100Screen		* screen		= [self activeScreen];
-	VT100Terminal	* terminal	= [self activeTerminal];
-	SubProcess		* process		= [self activeProcess];
-	int i;
-	
-	[process closeSession];
-	
-	[screens   removeObjectAtIndex: activeTerminal];
-	[terminals removeObjectAtIndex: activeTerminal];
-	[processes removeObjectAtIndex: activeTerminal];
-	
-	numTerminals -= 1;
-	
-	if (numTerminals == 0) 
-	{
-		//[self newTerminal];
-	} 
-	else 
-	{
-		for (i = activeTerminal; i < [processes count]; i++)
-		{
-			SubProcess* sp = [processes objectAtIndex: i];
-			[sp setIdentifier: i];
-		}
-		
-		if (activeTerminal >= numTerminals)
-			activeTerminal = numTerminals - 1;
-		
-		[textView setSource: [self activeScreen]];
-	}	
-	
-	[screen release];
-	[terminal release];
-}
-
-//_______________________________________________________________________________
-
 -(void) setActiveTerminal:(int)active
 {
 	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
@@ -527,6 +486,46 @@
 -(VT100Terminal*) activeTerminal
 {
 	return [terminals objectAtIndex: activeTerminal];
+}
+
+//_______________________________________________________________________________
+
+- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context 
+{
+	log(@"animation did stop %@ finished %@", animationID, finished);
+	[self updateFrames:YES];
+}
+
+//_______________________________________________________________________________
+-(void) initPreferences
+{
+	preferencesView = [[[UIView alloc] initWithFrame:CGRectMake(0,0,320,480)] retain];
+	[preferencesView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
+}
+
+//_______________________________________________________________________________
+
+-(void) showPreferences
+{
+	if (preferencesView == NULL) [self initPreferences];
+	LKAnimation *animation = [LKTransition animation];
+	[animation setType: @"oglFlip"];
+	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
+	[animation setFillMode: @"extended"];
+	[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
+	[animation setTransitionFlags: 3];
+	[animation setSpeed: 0.25f];
+	[contentView addAnimation: animation forKey: 0];	
+	if (activeView == mainView)
+	{
+		[contentView transition:0 toView:preferencesView];
+		activeView = preferencesView;
+	}
+	else
+	{
+		[contentView transition:0 toView:mainView];
+		activeView = mainView;
+	}
 }
 
 @end

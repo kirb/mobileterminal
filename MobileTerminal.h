@@ -1,6 +1,7 @@
-// MobileTermina.h
+// MobileTerminal.h
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
+#import "Constants.h"
 #import "Log.h"
 
 @class PTYTextView;
@@ -11,9 +12,12 @@
 @class GestureView;
 @class PieView;
 @class MobileTerminal;
-@class StatusView;
 
 #define MAXTERMINALS 4
+
+@interface UIView (Color)
++ (CGColorRef)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
+@end
 
 //_______________________________________________________________________________
 
@@ -25,7 +29,6 @@
 @property(assign, readwrite) MobileTerminal * application;
 
 - (void) _handleOrientationChange:(id)view;
-- (void) animationWillStart:(NSString *)animationID context:(void *)context;
 - (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 
 @end
@@ -33,23 +36,21 @@
 //_______________________________________________________________________________
 
 @interface MobileTerminal : UIApplication
-
-// TODO?
-//<KeyboardInputProtocol, InputDelegateProtocol>
 {
-  MainWindow		* window;
+  MainWindow				*	window;
 	
-	UIView        * contentView;
-  UIView				* mainView;
-  PTYTextView		* textView;
-  UIScroller		* textScroller;
-  ShellKeyboard	* keyboardView;
-  GestureView		* gestureView;
-	StatusView    * statusView;
-
-  NSMutableArray* processes;
-  NSMutableArray* screens;
-  NSMutableArray* terminals;
+	UITransitionView	* contentView;
+  UIView						* mainView;
+  PTYTextView				* textView;
+  UIScroller				* textScroller;
+  ShellKeyboard			* keyboardView;
+  GestureView				* gestureView;
+	UIView						* preferencesView;
+	UIView            * activeView;
+	
+  NSMutableArray		* processes;
+  NSMutableArray		* screens;
+  NSMutableArray		* terminals;
   
   int numTerminals;
   int activeTerminal;	
@@ -78,6 +79,8 @@
 -(VT100Screen*) activeScreen;
 -(VT100Terminal*) activeTerminal;
 
+- (void) showPreferences;
+
 // Invoked by GestureMenu
 - (void) hideMenu;
 - (void) showMenu:(CGPoint)point;
@@ -85,7 +88,6 @@
 - (void) toggleKeyboard;
 
 // Invoked by SwitcherMenu
-- (void) closeTerminal;
 - (void) prevTerminal;
 - (void) nextTerminal;
 - (void) setActiveTerminal:(int)active;
