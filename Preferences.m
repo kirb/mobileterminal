@@ -4,19 +4,24 @@
 
 #import "Preferences.h"
 #import "MobileTerminal.h"
+#import "Settings.h"
 #import "Constants.h"
 #import "Log.h"
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
-UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img) 
+@implementation FontChooser
+
+-(void) tableSelectionDidChange:(id)event
 {
-	UIPreferencesTableCell* cell = [[[UIPreferencesTableCell alloc] init] retain];
-	[cell setTitle: title];
-	if (img)  [cell setIcon: img];	
-	return cell;
+	[super tableSelectionDidChange:event];
+	log(@"font selection changed");
+	if ([self delegate] && [[self delegate] respondsToSelector:@selector(selectedFontFamily:size:)])
+		[[self delegate] selectedFontFamily:[self selectedFamilyName] size:[self selectedSize]];
 }
+
+@end
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -39,7 +44,9 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 {
 	if ((self = [super init])) 
 	{
-		title = MakeTitleCell (title_, icon);
+		title = [[[UIPreferencesTableCell alloc] init] retain];
+		[title setTitle: title_];
+		if (icon)  [title setIcon: icon];			
 		titleHeight = ([title_ length] > 0) ? 40.0f : 14.0f;		
 		cells = [[NSMutableArray arrayWithCapacity:1] retain];
 	}
@@ -56,14 +63,14 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 
 //_______________________________________________________________________________
 
-- (void) addSwitch: (NSString*) label 
+- (id) addSwitch: (NSString*) label 
 {
-	[self addSwitch: label on: NO];
+	return [self addSwitch: label on: NO];
 }
 
 //_______________________________________________________________________________
 
-- (void) addSwitch: (NSString*) label on: (BOOL) on 
+- (id) addSwitch: (NSString*) label on: (BOOL) on 
 {
 	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
@@ -72,14 +79,23 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 	[sw setValue: on];
 	[cell setControl:sw];	
 	[cells addObject: cell];
+	return cell;
 }
 
 //_______________________________________________________________________________
 
--(void) addPageButton: (NSString*) label delegate:(id)delegate
+-(id) addPageButton: (NSString*) label delegate:(id)delegate
+{
+	return [self addPageButton:label value:nil delegate:delegate];
+}
+
+//_______________________________________________________________________________
+
+-(id) addPageButton: (NSString*) label value:(NSString*)value delegate:(id)delegate
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
+	[cell setValue: value];
 	[cell setShowDisclosure:YES];
 	[cell setDisclosureClickable: NO];
 	[cell setDisclosureStyle: 2];
@@ -88,11 +104,13 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 	
 	[[cell textField] setTapDelegate:delegate];
 	[cell setTapDelegate:delegate];
+	
+	return cell;
 }
 
 //_______________________________________________________________________________
 
--(void) addValueField: (NSString*) label value:(NSString*)value
+-(id) addValueField: (NSString*) label value:(NSString*)value
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
@@ -100,17 +118,19 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 	[[cell textField] setEnabled:NO];
 	[[cell textField] setHorizontallyCenterText:YES];
 	[cells addObject: cell];	
+	return cell;
 }
 
 //_______________________________________________________________________________
 
--(void) addTextField: (NSString*) label
+-(id) addTextField: (NSString*) label
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setValue: label];
 	[[cell textField] setHorizontallyCenterText:YES];
 	[[cell textField] setEnabled:NO];
 	[cells addObject: cell];	
+	return cell;
 }
 
 //_______________________________________________________________________________
@@ -156,102 +176,6 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
-@implementation TestViewController
-
-//_______________________________________________________________________________
-	
--(id) init
-{
-	self = [super init];
-	[[self view] setBackgroundColor:[UIView colorWithRed:1.0f green:0.1f blue:0.1f alpha:1.0f]];
-	[self _setNavigationTitle:@"Test"];
-	return self;
-}		
-
-@end
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
-@implementation AboutViewController
-
-//_______________________________________________________________________________
-
--(id) init
-{	
-	self = [super init];
-	[self _setNavigationTitle:@"About"];
-	return self;
-}
-
-//_______________________________________________________________________________
-
--(id) view
-{
-	PreferencesGroups * aboutGroups = [[[PreferencesGroups alloc] init] retain];
-	PreferencesGroup * group;
-	
-	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-	[group addValueField:@"Version" value:@"1.0"];
-	[aboutGroups addGroup:group];
-
-	group = [PreferencesGroup groupWithTitle:@"Test" icon:nil];
-	[group addPageButton:@"test page" delegate:self];
-	[aboutGroups addGroup:group];
-	
-	group = [PreferencesGroup groupWithTitle:@"Homepage" icon:nil];
-	[group addPageButton:@"code.google.com/p/mobileterminal" delegate:self];
-	[aboutGroups addGroup:group];
-	
-	group = [PreferencesGroup groupWithTitle:@"Contributors" icon:nil];
-	[group addValueField:@"" value:@"allen.porter"];
-	[group addValueField:@"" value:@"craigcbrunner"];
-	[group addValueField:@"" value:@"vaumnou"]; 
-	[group addValueField:@"" value:@"andrebragareis"];
-	[group addValueField:@"" value:@"aaron.krill"];
-	[group addValueField:@"" value:@"kai.cherry"];
-	[group addValueField:@"" value:@"elliot.kroo"];
-	[group addValueField:@"" value:@"validus"];
-	[group addValueField:@"" value:@"DylanRoss"];
-	[group addValueField:@"" value:@"lednerk"];
-	[group addValueField:@"" value:@"tsangk"];
-	[group addValueField:@"" value:@"joseph.jameson"];
-	[group addValueField:@"" value:@"gabe.schine"];
-	[group addValueField:@"" value:@"syngrease"];
-	[group addValueField:@"" value:@"maball"];
-	[group addValueField:@"" value:@"lennart"];
-	[group addValueField:@"" value:@"monsterkodi"];	
-	[aboutGroups addGroup:group];
-	
-	CGRect viewFrame = [[super view] bounds];
-	UIPreferencesTable * table = [[UIPreferencesTable alloc] initWithFrame:viewFrame];
-	[table setDataSource:aboutGroups];
-	[table reloadData];
-	
-	return table;
-}
-
-//_______________________________________________________________________________
-
-- (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
-{	
-	if ([[(UIPreferencesTextTableCell*)view title] isEqualToString:@"code.google.com/p/mobileterminal"])
-	{
-		[[MobileTerminal application] openURL:[NSURL URLWithString:@"http://code.google.com/p/mobileterminal/"]];	
-	}
-	else
-	{
-		UIView * v = [[UIView alloc] init];
-		[v  setBackgroundColor:[UIView colorWithRed:0.1f green:0.1f blue:1.0f alpha:1.0f]];
-		[[self navigationController] pushViewControllerWithView:v navigationTitle:@"Testasd"];
-	}
-}
-
-@end
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
 @implementation PreferencesController
 
 //_______________________________________________________________________________
@@ -261,81 +185,167 @@ UIPreferencesTableCell * MakeTitleCell (NSString* title, UIImage* img)
 	self = [super init];
 	application = app;
 	
-	// ------------------------------------------------------------- pref groups
-	
-	prefGroups = [[[PreferencesGroups alloc] init] retain];
-	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
-	[group addSwitch:@"Multiple Terminals"];
-	[prefGroups addGroup:group];
-	
-	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-	[group addPageButton:@"About" delegate:self];
-	[prefGroups addGroup:group];
-	
-	// ------------------------------------------------------------- pref table
-	
-	table = [[UIPreferencesTable alloc] initWithFrame: [[self view] bounds]];
-	[table setDataSource:prefGroups];
-	[table reloadData];
-	[[self view] addSubview:table];
-
 	// ------------------------------------------------------------- navigation controller
 
-	[self _setNavigationTitle:@"Settings"];
-
-	navController = [[[UINavigationController alloc] initWithRootViewController:self] retain];
-	navBar = [navController navigationBar];
-	[navBar setBarStyle:1];
-	//[navBar showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];
-	//[navBar setDelegate:self];
-	//[navController setDelegate:self];
+	[self pushViewControllerWithView:[self settingsView] navigationTitle:@"Settings"];
+	[[self navigationBar] setBarStyle:1];
+	[[self navigationBar] showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];
 	
 	return self;
 }
 
 //_______________________________________________________________________________
 
--(UIView *) navigationView
+-(id) settingsView
 {
-	return [navController view];
+	if (!settingsView)
+	{
+		// ------------------------------------------------------------- pref groups
+
+		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+		PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
+		[group addSwitch:@"Multiple Terminals"];
+		fontButton = [group addPageButton:@"Font" value:[[Settings sharedInstance] font] delegate:self];
+		[prefGroups addGroup:group];
+
+		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+		[group addPageButton:@"About" delegate:self];
+		[prefGroups addGroup:group];
+
+		// ------------------------------------------------------------- pref table
+
+		UIPreferencesTable * table = [[UIPreferencesTable alloc] initWithFrame: [[self view] bounds]];
+		[table setDataSource:prefGroups];
+		[table reloadData];
+		settingsView = table;
+	}
+	return settingsView;	
 }
 
 //_______________________________________________________________________________
 
 - (void) navigationBar: (id)bar buttonClicked: (int)button 
 {
-	log(@"button %d", button);
-	if (bar == navBar) 
+	switch (button)
 	{
-		switch (button)
-		{
-			case 1:
-				[application togglePreferences];
-				break;
-		}
+		case 1:
+			[application togglePreferences];
+			break;
 	}
+}
+
+//_______________________________________________________________________________
+
+-(id) aboutView
+{
+	if (!aboutView)
+	{
+		PreferencesGroups * aboutGroups = [[[PreferencesGroups alloc] init] retain];
+		PreferencesGroup * group;
+
+		group = [PreferencesGroup groupWithTitle:@"MobileTerminal" icon:nil];
+		[group addValueField:@"Version" value:@"1.0"];
+		[aboutGroups addGroup:group];
+
+		group = [PreferencesGroup groupWithTitle:@"Homepage" icon:nil];
+		[group addPageButton:@"code.google.com/p/mobileterminal" delegate:self];
+		[aboutGroups addGroup:group];
+
+		group = [PreferencesGroup groupWithTitle:@"Contributors" icon:nil];
+		[group addValueField:@"" value:@"allen.porter"];
+		[group addValueField:@"" value:@"craigcbrunner"];
+		[group addValueField:@"" value:@"vaumnou"]; 
+		[group addValueField:@"" value:@"andrebragareis"];
+		[group addValueField:@"" value:@"aaron.krill"];
+		[group addValueField:@"" value:@"kai.cherry"];
+		[group addValueField:@"" value:@"elliot.kroo"];
+		[group addValueField:@"" value:@"validus"];
+		[group addValueField:@"" value:@"DylanRoss"];
+		[group addValueField:@"" value:@"lednerk"];
+		[group addValueField:@"" value:@"tsangk"];
+		[group addValueField:@"" value:@"joseph.jameson"];
+		[group addValueField:@"" value:@"gabe.schine"];
+		[group addValueField:@"" value:@"syngrease"];
+		[group addValueField:@"" value:@"maball"];
+		[group addValueField:@"" value:@"lennart"];
+		[group addValueField:@"" value:@"monsterkodi"];	
+		[aboutGroups addGroup:group];
+
+		CGRect viewFrame = [[super view] bounds];
+		UIPreferencesTable * table = [[UIPreferencesTable alloc] initWithFrame:viewFrame];
+		[table setDataSource:aboutGroups];
+		[table reloadData];
+
+		aboutView = table;
+	}
+	return aboutView;
+}
+
+//_______________________________________________________________________________
+
+-(id) fontView
+{
+	if (!fontView)
+	{
+		FontChooser * fontChooser = [[FontChooser alloc] init];
+		[fontChooser initWithFrame:[[super view] bounds]];
+		[fontChooser setDelegate:self]; 
+		[fontChooser selectFamilyName:[[Settings sharedInstance] font]];
+		[fontChooser selectSize:[[Settings sharedInstance] fontSize]];
+		fontView = fontChooser;
+	}
+	
+	return fontView;
+}
+
+//_______________________________________________________________________________
+
+-(void)selectedFontFamily:(id)family size:(float)size
+{
+	log(@"select family %@ %f", family, size);
+	[[Settings sharedInstance] setFont:family];
 }
 
 //_______________________________________________________________________________
 
 - (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
 {
-	if ([[(UIPreferencesTextTableCell*)view title] isEqualToString:@"About"])
+	NSString * title = [(UIPreferencesTextTableCell*)view title];
+	if ([title isEqualToString:@"About"])
 	{
-		[navController pushViewController:[[AboutViewController alloc] init]];
+		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
+	}
+	else if ([title isEqualToString:@"code.google.com/p/mobileterminal"])
+	{
+		[[MobileTerminal application] openURL:[NSURL URLWithString:@"http://code.google.com/p/mobileterminal/"]];	
+	}
+	else if ([title isEqualToString:@"Font"])
+	{
+		[self pushViewControllerWithView:[self fontView] navigationTitle:@"Font"];
 	}
 }
 
-- (void) hideAds
+//_______________________________________________________________________________
+
+-(void) popViewController
 {
-	/*
-	CGRect fontChooserFrame = CGRectMake(0, navBarHeight, width, 200);
-	fontChooser = [UIFontChooser sharedFontChooser];
-	[fontChooser initWithFrame:fontChooserFrame];
-	[fontChooser setDelegate:self]; 	
-	[table addSubview:fontChooser];
+	if ([[self topViewController] view] == fontView)
+	{
+		[fontButton setValue:[[Settings sharedInstance] font]];
+	}
+	[super popViewController];
+}
+
+//_______________________________________________________________________________
+
+-(void)_didFinishPoppingViewController
+{
+	[super _didFinishPoppingViewController];
 	
-	return self;*/
+	if ([[self topViewController] view] == settingsView)
+	{
+		[[self navigationBar] showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];
+	}	
 }
 
 @end

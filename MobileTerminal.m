@@ -371,8 +371,6 @@
 	landscape = landscape_;
 	degrees = degrees_;
 	
-	//log(@"setLandscape %d", degrees);
-	
 	[self setStatusBarMode: [self statusBarMode]
 						 orientation: degrees
 								duration: 0.5 
@@ -449,9 +447,7 @@
 	activeTerminal = active;
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
 	
-	[textView setSource: [self activeScreen]];
-	
-	//[self setStatusBarCustomText:[NSString stringWithFormat:@"Terminal %d", activeTerminal+1]];
+	[textView setSource: [self activeScreen]];	
 }
 
 //_______________________________________________________________________________
@@ -518,8 +514,8 @@
 	[contentView addAnimation: animation forKey: 0];	
 	if (activeView == mainView)
 	{
-		[contentView transition:0 toView:[preferencesController navigationView]];
-		activeView = [preferencesController navigationView];
+		[contentView transition:0 toView:[preferencesController view]];
+		activeView = [preferencesController view];
 	}
 	else
 	{

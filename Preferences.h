@@ -9,8 +9,14 @@
 #import <UIKit/UIPreferencesTextTableCell.h>
 #import <UIKit/UISwitchControl.h>
 #import <UIKit/UINavigationController.h>
+#import <UIKit/UIFontChooser.h>
 
 @class MobileTerminal;
+
+//_______________________________________________________________________________
+
+@interface FontChooser : UIFontChooser {}
+@end
 
 //_______________________________________________________________________________
 
@@ -23,14 +29,15 @@
 	int tag;
 }
 
-+ (id) groupWithTitle: (NSString*) title icon: (UIImage*) icon;
-- (id) initWithTitle: (NSString*) title icon: (UIImage*) icon;
-- (void) addCell: (id) cell;
-- (void) addSwitch: (NSString*) label;
-- (void) addSwitch: (NSString*) label on: (BOOL) on;
-- (void) addPageButton: (NSString*) label delegate: (id) delegate;
-- (void) addValueField: (NSString*) label value:(NSString*)value;
-- (void) addTextField: (NSString*) label;
++ (id) groupWithTitle:(NSString*) title icon:(UIImage*)icon;
+- (id) initWithTitle:(NSString*) title icon:(UIImage*)icon;
+- (void) addCell:(id)cell;
+- (id) addSwitch:(NSString*)label;
+- (id) addSwitch:(NSString*)label on:(BOOL)on;
+- (id) addPageButton:(NSString*)label delegate:(id)delegate;
+- (id) addPageButton:(NSString*)label value:(NSString*)value delegate:(id)delegate;
+- (id) addValueField:(NSString*)label value:(NSString*)value;
+- (id) addTextField:(NSString*)label;
 
 - (int) rows;
 - (BOOL) boolValueForRow: (int) row;
@@ -63,35 +70,14 @@
 
 //_______________________________________________________________________________
 
-@interface TestViewController : UIViewController
+@interface PreferencesController : UINavigationController 
 {
-}
-
--(id) init;
-
-@end
-
-//_______________________________________________________________________________
-
-@interface AboutViewController : UIViewController
-{
-}
-
--(id) init;
-
-@end
-
-//_______________________________________________________________________________
-
-@interface PreferencesController : UIViewController 
-{
-	UINavigationController  * navController;
-	AboutViewController			* aboutViewController;
-	UINavigationBar					* navBar;
-	UIPreferencesTable			*	table;
-	UIFontChooser						* fontChooser;
-	PreferencesGroups				* prefGroups;
-	MobileTerminal					* application;
+	MobileTerminal	* application;
+	
+	UIView          * settingsView;
+	UIView					* aboutView;
+	UIView					* fontView;
+	id								fontButton;
 }
 
 -(id) initWithApplication:(MobileTerminal*)app;
