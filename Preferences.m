@@ -8,17 +8,241 @@
 #import "Constants.h"
 #import "Log.h"
 
+#import <UIKit/UISimpleTableCell.h> 
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation UIPickerTable (PickerTableExtensions)
+
+//_______________________________________________________________________________
+
+-(void) _selectRow:(int)row byExtendingSelection:(BOOL)extend withFade:(BOOL)fade scrollingToVisible:(BOOL)scroll withSelectionNotifications:(BOOL)notify 
+{
+	if (row >= 0)
+	{
+		[[[self selectedTableCell] iconImageView] setFrame:CGRectMake(0,0,0,0)];
+		[super _selectRow:row byExtendingSelection:extend withFade:fade scrollingToVisible:scroll withSelectionNotifications:notify];		
+		[[[self selectedTableCell] iconImageView] setFrame:CGRectMake(0,0,0,0)];
+	}
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation UIPickerView (PickerViewExtensions)
+
+-(float) tableRowHeight { return 22.0f; }
+-(id) delegate { return _delegate; }
+
+//_______________________________________________________________________________
+
+-(void) _sendSelectionChanged
+{
+	int c, r;
+	
+	for (c = 0; c < [self numberOfColumns]; c++)
+	{
+		UIPickerTable * table = [self tableForColumn:c];
+		for (r = 0; r < [table numberOfRows]; r++)
+		{
+			[[[table cellAtRow:r column:0] iconImageView] setFrame:CGRectMake(0,0,0,0)]; 
+		}
+	}
+	
+	if ([self delegate])
+	{
+		if ([[self delegate] respondsToSelector:@selector(fontSelectionDidChange)])
+		{
+			[[self delegate] performSelector:@selector(fontSelectionDidChange)];
+		}
+	}
+}
+
+@end
+
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
 @implementation FontChooser
 
--(void) tableSelectionDidChange:(id)event
+//_______________________________________________________________________________
+
+- (id) initWithFrame: (struct CGRect)rect
 {
-	[super tableSelectionDidChange:event];
+	self = [super initWithFrame:rect];
+	[self createFontList];
+	
+	fontPicker = [[UIPickerView alloc] initWithFrame: [self bounds]];
+	[fontPicker setDelegate: self];
+	
+	pickerTable = [fontPicker createTableWithFrame: [self bounds]];
+	[pickerTable setAllowsMultipleSelection: FALSE];
+	
+	UITableColumn * fontColumn = [[UITableColumn alloc] initWithTitle: @"Font" identifier:@"font" width: rect.size.width];
+	UITableColumn * sizeColumn = [[UITableColumn alloc] initWithTitle: @"Size" identifier:@"size" width: rect.size.width];
+	
+	[fontPicker columnForTable: fontColumn];
+	[fontPicker columnForTable: sizeColumn];
+	
+	[self addSubview:fontPicker];
+
+	return self;
+}
+
+//_______________________________________________________________________________
+
+- (void) setDelegate:(id) aDelegate
+{
+	delegate = aDelegate;
+}
+
+//_______________________________________________________________________________
+
+-(id) delegate
+{
+	return delegate;
+}
+
+//_______________________________________________________________________________
+
+- (void) createFontList
+{
+	NSFileManager * fm = [NSFileManager defaultManager];
+
+	fontNames = [[fm directoryContentsAtPath:@"/var/Fonts" matchingExtension:@"ttf" options:0 keepExtension:NO] retain];
+
+	fontSizes = [	[NSArray arrayWithObjects: 
+								[NSNumber numberWithInt: 7], [NSNumber numberWithInt: 8], 
+								[NSNumber numberWithInt: 9], [NSNumber numberWithInt:10], 
+								[NSNumber numberWithInt:11], [NSNumber numberWithInt:12], 
+								[NSNumber numberWithInt:13], [NSNumber numberWithInt:14],
+								[NSNumber numberWithInt:15], [NSNumber numberWithInt:16],
+								[NSNumber numberWithInt:17], [NSNumber numberWithInt:18],
+								[NSNumber numberWithInt:19], [NSNumber numberWithInt:20], nil] retain];
+}
+
+//_______________________________________________________________________________
+
+- (int) numberOfColumnsInPickerView:(UIPickerView*)picker
+{
+	return 2;
+}
+
+//_______________________________________________________________________________
+
+- (int) pickerView:(UIPickerView*)picker numberOfRowsInColumn:(int)col
+{
+	return (col == 0) ? [fontNames count] : [fontSizes count];
+}
+
+//_______________________________________________________________________________
+- (UIPickerTableCell*) pickerView:(UIPickerView*)picker tableCellForRow:(int)row inColumn:(int)col
+{
+	UIPickerTableCell * cell = [[UIPickerTableCell alloc] init];
+	
+	if (col == 0)
+	{
+		[cell setTitle:[fontNames objectAtIndex:row]];
+	}
+	else
+	{
+		[cell setTitle:[[fontSizes objectAtIndex: row] stringValue]];
+	}
+	
+	
+	[[cell titleTextLabel] setFont:[UISimpleTableCell defaultFont]];
+	[cell setSelectionStyle:0];
+	[cell setShowSelection:YES];
+	[[cell iconImageView] setFrame:CGRectMake(0,0,0,0)]; 
+	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(float)pickerView:(UIPickerView*)picker tableWidthForColumn: (int)col
+{
+	if (col == 0) return [self bounds].size.width-80.0f;
+	return 80.0f;
+}
+
+//_______________________________________________________________________________
+
+- (int) rowForSize: (int)fontSize
+{
+	int i;
+	for (i = 0; i < [fontSizes count]; i++)
+	{
+		if ([[fontSizes objectAtIndex:i] intValue] == fontSize)
+		{
+			return i;
+		}
+	}	
+	return 0;
+}
+
+//_______________________________________________________________________________
+
+- (int) rowForFont: (NSString*)fontName
+{
+	int i;
+	for (i = 0; i < [fontNames count]; i++)
+	{
+		if ([[fontNames objectAtIndex:i] isEqualToString:fontName])
+		{
+			return i;
+		}
+	}	
+	return 0;
+}
+
+//_______________________________________________________________________________
+
+- (void) selectFont: (NSString*)fontName
+{
+	selectedFont = fontName;
+	int row = [self rowForFont:fontName];
+	[fontPicker selectRow:row inColumn:0 animated:YES];
+	[[fontPicker tableForColumn:0] _selectRow:row byExtendingSelection:NO withFade:NO scrollingToVisible:YES withSelectionNotifications:YES];		
+}
+
+//_______________________________________________________________________________
+
+- (void) selectSize: (int)fontSize
+{
+	selectedSize = fontSize;
+	int row = [self rowForSize:fontSize];
+	[fontPicker selectRow:row inColumn:1 animated:YES];
+	[[fontPicker tableForColumn:1] _selectRow:row byExtendingSelection:NO withFade:NO scrollingToVisible:YES withSelectionNotifications:YES];		
+}
+
+//_______________________________________________________________________________
+
+- (NSString*) selectedFont
+{
+	int row = [fontPicker selectedRowForColumn:0];
+	return [fontNames objectAtIndex:row];
+}
+
+//_______________________________________________________________________________
+
+- (int) selectedSize
+{
+	int row = [fontPicker selectedRowForColumn:1];
+	log(@"row %d %d", row, [[fontSizes objectAtIndex:row] intValue]);
+	return [[fontSizes objectAtIndex:row] intValue];
+}
+
+//_______________________________________________________________________________
+
+-(void) fontSelectionDidChange
+{
 	log(@"font selection changed");
-	if ([self delegate] && [[self delegate] respondsToSelector:@selector(selectedFontFamily:size:)])
-		[[self delegate] selectedFontFamily:[self selectedFamilyName] size:[self selectedSize]];
+	if ([self delegate] && [[self delegate] respondsToSelector:@selector(selectedFont:size:)])
+		[[self delegate] selectedFont:[self selectedFont] size:[self selectedSize]];
 }
 
 @end
@@ -205,7 +429,7 @@
 		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
 		PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
 		[group addSwitch:@"Multiple Terminals"];
-		fontButton = [group addPageButton:@"Font" value:[[Settings sharedInstance] font] delegate:self];
+		fontButton = [group addPageButton:@"Font" value:[[Settings sharedInstance] fontDescription] delegate:self];
 		[prefGroups addGroup:group];
 
 		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
@@ -287,11 +511,8 @@
 {
 	if (!fontView)
 	{
-		FontChooser * fontChooser = [[FontChooser alloc] init];
-		[fontChooser initWithFrame:[[super view] bounds]];
+		FontChooser * fontChooser = [[FontChooser alloc] initWithFrame:[[super view] bounds]];
 		[fontChooser setDelegate:self]; 
-		[fontChooser selectFamilyName:[[Settings sharedInstance] font]];
-		[fontChooser selectSize:[[Settings sharedInstance] fontSize]];
 		fontView = fontChooser;
 	}
 	
@@ -300,10 +521,10 @@
 
 //_______________________________________________________________________________
 
--(void)selectedFontFamily:(id)family size:(float)size
+-(void)selectedFont:(id)font size:(int)size
 {
-	log(@"select family %@ %f", family, size);
-	[[Settings sharedInstance] setFont:family];
+	[[Settings sharedInstance] setFont:font];
+	[[Settings sharedInstance] setFontSize:size];
 }
 
 //_______________________________________________________________________________
@@ -331,7 +552,8 @@
 {
 	if ([[self topViewController] view] == fontView)
 	{
-		[fontButton setValue:[[Settings sharedInstance] font]];
+		[fontButton setValue:[[Settings sharedInstance] fontDescription]];
+		[[application textView] resetFont];
 	}
 	[super popViewController];
 }
@@ -345,6 +567,19 @@
 	if ([[self topViewController] view] == settingsView)
 	{
 		[[self navigationBar] showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];
+	}	
+}
+
+//_______________________________________________________________________________
+
+-(void)_didFinishPushingViewController
+{
+	[super _didFinishPushingViewController];
+	
+	if ([[self topViewController] view] == fontView)
+	{
+		[fontView selectFont:[[Settings sharedInstance] font]];
+		[fontView selectSize:[[Settings sharedInstance] fontSize]];
 	}	
 }
 

@@ -60,8 +60,9 @@
 
 @property BOOL landscape;
 @property int  degrees;
-@property (readonly) UIView * activeView;
-@property (readonly) UIView * mainView;
+@property (readonly) UIView				* activeView;
+@property (readonly) UIView				* mainView;
+@property (readonly) PTYTextView	* textView;
 
 + (MobileTerminal*) application;
 
@@ -83,6 +84,7 @@
 -(MainWindow*) window;
 -(UIView*) mainView;
 -(UIView*) activeView;
+-(PTYTextView*) textView;
 
 - (void) togglePreferences;
 

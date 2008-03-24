@@ -193,6 +193,7 @@
 -(MainWindow*) window { return window; }
 -(UIView*) mainView { return mainView; }
 -(UIView*) activeView { return activeView; }
+-(PTYTextView*) textView { return textView; }
 
 //_______________________________________________________________________________
 

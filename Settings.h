@@ -7,8 +7,8 @@
 {
   int width;
   int height;
+	int fontSize;
   NSString* font;
-	float fontSize;
   NSString* args;
 }
 
@@ -18,13 +18,14 @@
 
 - (int)width;
 - (int)height;
+- (int)fontSize;
 - (NSString*)font;
-- (float)fontSize;
 - (NSString*)arguments;
+- (NSString*)fontDescription;
 - (void)setWidth:(int)width;
 - (void)setHeight:(int)height;
 - (void)setFont:(NSString*)terminalFont;
-- (void)setFontSize:(float)fontSize;
+- (void)setFontSize:(int)fontSize;
 - (void)setArguments:(NSString*)arguments;
 
 @end

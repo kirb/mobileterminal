@@ -40,6 +40,7 @@
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect;
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect;
 - (void)refresh;
+- (void)resetFont;
 
 // Only draws tiles which are dirty
 - (void)updateIfNecessary;

@@ -17,7 +17,7 @@
   width = 45;
   height = 17;
   font = @"CourierNewBold";
-	fontSize = 8.0f;
+	fontSize = 8;
   args = nil;
   return self;
 }
@@ -37,9 +37,14 @@
   return font;
 }
 
--(float)fontSize
+- (int)fontSize
 {
 	return fontSize;
+}
+
+- (NSString*)fontDescription
+{
+	return [NSString stringWithFormat:@"%@ %d", font, fontSize];
 }
 
 - (NSString*)arguments
@@ -64,7 +69,7 @@
   [font retain];
 }
 
--(void)setFontSize:(float)size
+-(void)setFontSize:(int)size
 {
 	fontSize = size;
 }

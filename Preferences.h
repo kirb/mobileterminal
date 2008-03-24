@@ -9,13 +9,42 @@
 #import <UIKit/UIPreferencesTextTableCell.h>
 #import <UIKit/UISwitchControl.h>
 #import <UIKit/UINavigationController.h>
-#import <UIKit/UIFontChooser.h>
+#import <UIKit/UIPickerView.h>
+#import <UIKit/UIPickerTable.h>
+#import <UIKit/UIPickerTableCell.h>
 
 @class MobileTerminal;
 
 //_______________________________________________________________________________
 
-@interface FontChooser : UIFontChooser {}
+@interface UIPickerTable (PickerTableExtensions)
+@end
+
+@interface UIPickerView (PickerViewExtensions)
+@end
+
+//_______________________________________________________________________________
+
+@interface FontChooser : UIView
+{
+	id delegate;
+	
+	NSArray * fontNames;
+	NSArray * fontSizes;
+	
+	UIPickerView * fontPicker;
+	UIPickerTable * pickerTable;
+	
+	NSString * selectedFont;
+	int selectedSize;
+}
+
+- (id) initWithFrame: (struct CGRect)rect;
+- (void) selectFont: (NSString*)font;
+- (void) selectSize: (int)fontSize;
+- (void) createFontList;
+- (void) setDelegate:(id)delegate;
+
 @end
 
 //_______________________________________________________________________________

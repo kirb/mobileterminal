@@ -73,6 +73,14 @@ static PTYTextView* instance = nil;
 
 //_______________________________________________________________________________
 
+- (void) resetFont
+{
+	fontRef = nil;	
+	[self refresh];
+}
+
+//_______________________________________________________________________________
+
 - (void)dealloc
 {
 #if DEBUG_ALLOC
@@ -141,13 +149,22 @@ static PTYTextView* instance = nil;
 	//log(@"refresh %d %d", WIDTH, HEIGHT);
 
   CGRect frame = [self frame];
-  charWidth = floor(frame.size.width / WIDTH);
+  
 	
-	//log(@"charWidth %f frame.width %f", charWidth, frame.size.width);
-
-  float availableHeight = frame.size.height - [textScroller bottomBufferHeight];
-  lineHeight = floor(availableHeight / HEIGHT);
-
+	if (0) // old behaviour
+	{
+		float availableHeight = frame.size.height - [textScroller bottomBufferHeight];  
+		lineHeight = floor(availableHeight / HEIGHT);
+		charWidth = floor(frame.size.width / WIDTH);
+	}
+	else
+	{
+		int fs = [[Settings sharedInstance] fontSize];
+		lineHeight = fs + 3;
+		charWidth = (int)(fs*0.6);
+		//log(@"charWidth %f frame.width %f", charWidth, frame.size.width);
+	}
+	
 	[self setFirstTileSize:CGSizeMake(frame.size.width, lineHeight)];
 	[self setTileSize:CGSizeMake(frame.size.width, lineHeight)];
 	//[self removeAllTiles];
@@ -247,16 +264,19 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 
 - (void)setupTextForContext:(CGContextRef)context
 {
-  if (!fontRef) 
+	if (!fontRef) 
 	{		
 		const char* font = [[[Settings sharedInstance] font] cString];
     // First time through: cache the fontRef. This lookup is expensive.
-    fontSize = floor(lineHeight);
+    //fontSize = floor(lineHeight);
+		fontSize = [[Settings sharedInstance] fontSize];
     CGContextSelectFont(context, font, floor(lineHeight), kCGEncodingMacRoman);
     fontRef = (CGFontRef)CFRetain(CGContextGetFont(context));
-  } else {
-    CGContextSetFont(context,fontRef);
-    CGContextSetFontSize(context,fontSize);
+  } 
+	else 
+	{
+		CGContextSetFont(context, fontRef);
+		CGContextSetFontSize(context, fontSize);
   }
 
   CGContextSetRGBFillColor(context, 1, 1, 1, 1);
