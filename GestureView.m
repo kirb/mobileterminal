@@ -123,6 +123,11 @@ CGPoint start;
 
 - (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
 {
+	if (fingers == 1 && count == 1) // REMOVE ME! (for debug purposes only)
+	{
+		[delegate togglePreferences];
+	}
+	
 	if (fingers == 1 && count == 2)
 	{
 		[self stopToggleKeyboardTimer];

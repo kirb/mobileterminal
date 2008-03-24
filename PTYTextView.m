@@ -249,7 +249,7 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 {
   const char* font = [[[Settings sharedInstance] font] cString];
 
-  if(!fontRef) {
+  if (!fontRef) {
     // First time through: cache the fontRef. This lookup is expensive.
     fontSize = floor(lineHeight);
     CGContextSelectFont(context, font, floor(lineHeight), kCGEncodingMacRoman);

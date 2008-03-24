@@ -9,10 +9,13 @@
 /* Begin PBXFileReference section */
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C308937B0D969034009430B9 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
 		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
 		C37DAB700D93475A00FC5BC7 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Log.m; sourceTree = "<group>"; };
+		C39C17DA0D968CA600BB3EEC /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
+		C39C17DB0D968CA600BB3EEC /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Preferences.m; sourceTree = "<group>"; };
 		C3A4E5E30D91AA86009A610C /* charmaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = charmaps.h; sourceTree = "<group>"; };
 		C3A4E5E40D91AA86009A610C /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
 		C3A4E5E50D91AA86009A610C /* ColorMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ColorMap.m; sourceTree = "<group>"; };
@@ -73,6 +76,8 @@
 		C33DEA310D953AFE002261A5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C39C17DA0D968CA600BB3EEC /* Preferences.h */,
+				C39C17DB0D968CA600BB3EEC /* Preferences.m */,
 				C3A4E5E80D91AA86009A610C /* MobileTerminal.h */,
 				C3A4E5E90D91AA86009A610C /* MobileTerminal.m */,
 				C3A4E5E60D91AA86009A610C /* GestureView.h */,
@@ -99,6 +104,7 @@
 				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
 				C37DAB700D93475A00FC5BC7 /* Log.m */,
 				C3E137B20D95F931005B2F2D /* Constants.h */,
+				C308937B0D969034009430B9 /* Constants.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

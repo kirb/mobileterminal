@@ -1,7 +1,11 @@
-#import "Constants.h"
-#import <UIKit/UIKit.h>
 
-@interface PieView : UIImageView {
+#import <UIKit/UIKit.h>
+#import "Constants.h"
+
+//_______________________________________________________________________________
+
+@interface PieView : UIImageView 
+{
 	CGRect visibleFrame;
   CGPoint location;
   UIAnimator *anim;

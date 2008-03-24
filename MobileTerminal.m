@@ -11,23 +11,11 @@
 #import "VT100Screen.h"
 #import "GestureView.h"
 #import "PieView.h"
+#import "Preferences.h"
 
 #import <UIKit/UIView-Geometry.h>
 #import <LayerKit/LKAnimation.h>
 #import <CoreGraphics/CoreGraphics.h>
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
-@implementation UIView (Color)
-
-+ (CGColorRef)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
-{
-	float rgba[4] = {red, green, blue, alpha};
-	CGColorSpaceRef rgbColorSpace = (CGColorSpaceRef)[(id)CGColorSpaceCreateDeviceRGB() autorelease];
-	CGColorRef color = (CGColorRef)[(id)CGColorCreate(rgbColorSpace, rgba) autorelease];
-	return color;
-}
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -38,7 +26,7 @@
 {
 	int degrees = [[[notification userInfo] objectForKey:@"UIApplicationOrientationUserInfoKey"] intValue];	
 	//log(@"orientation changed: %d", degrees);
-	if (degrees == application.degrees) return;
+	if (degrees == application.degrees || application.activeView != application.mainView) return;
 	
 	BOOL landscape;
 		
@@ -164,6 +152,13 @@
 	[self setActiveTerminal:0];
 }
 
+//_______________________________________________________________________________
+
++ (MobileTerminal*) application
+{
+	return [[UIWindow keyWindow] application];
+}
+
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
 // to properly acheive focus on suspend and resume.
 
@@ -192,6 +187,12 @@
 	for (i = 0; i < MAXTERMINALS; i++)
 		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", i]];
 }
+
+//_______________________________________________________________________________
+
+-(MainWindow*) window { return window; }
+-(UIView*) mainView { return mainView; }
+-(UIView*) activeView { return activeView; }
 
 //_______________________________________________________________________________
 
@@ -360,7 +361,7 @@
 	else if (pos.x > width*3/4)
 		[self nextTerminal];
 	else
-		[self showPreferences];
+		[self togglePreferences];
 }	
 
 //_______________________________________________________________________________
@@ -492,22 +493,21 @@
 
 - (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context 
 {
-	log(@"animation did stop %@ finished %@", animationID, finished);
+	//log(@"animation did stop %@ finished %@", animationID, finished);
 	[self updateFrames:YES];
 }
 
 //_______________________________________________________________________________
 -(void) initPreferences
 {
-	preferencesView = [[[UIView alloc] initWithFrame:CGRectMake(0,0,320,480)] retain];
-	[preferencesView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
+	preferencesController = [[[PreferencesController alloc] initWithApplication:self] retain];
 }
 
 //_______________________________________________________________________________
 
--(void) showPreferences
+-(void) togglePreferences
 {
-	if (preferencesView == NULL) [self initPreferences];
+	if (preferencesController == NULL) [self initPreferences];
 	LKAnimation *animation = [LKTransition animation];
 	[animation setType: @"oglFlip"];
 	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
@@ -518,8 +518,8 @@
 	[contentView addAnimation: animation forKey: 0];	
 	if (activeView == mainView)
 	{
-		[contentView transition:0 toView:preferencesView];
-		activeView = preferencesView;
+		[contentView transition:0 toView:[preferencesController navigationView]];
+		activeView = [preferencesController navigationView];
 	}
 	else
 	{

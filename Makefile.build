@@ -18,6 +18,8 @@ Terminal: main.o \
 					SubProcess.o \
 					GestureView.o \
 					PieView.o \
+					Preferences.o \
+					Constants.o \
 					Log.o
 	$(CC) $(LDFLAGS) -o $@ $^
 

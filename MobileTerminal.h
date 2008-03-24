@@ -11,13 +11,10 @@
 @class VT100Terminal;
 @class GestureView;
 @class PieView;
+@class PreferencesController;
 @class MobileTerminal;
 
 #define MAXTERMINALS 4
-
-@interface UIView (Color)
-+ (CGColorRef)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
-@end
 
 //_______________________________________________________________________________
 
@@ -37,20 +34,20 @@
 
 @interface MobileTerminal : UIApplication
 {
-  MainWindow				*	window;
+  MainWindow						*	window;
 	
-	UITransitionView	* contentView;
-  UIView						* mainView;
-  PTYTextView				* textView;
-  UIScroller				* textScroller;
-  ShellKeyboard			* keyboardView;
-  GestureView				* gestureView;
-	UIView						* preferencesView;
-	UIView            * activeView;
+	UITransitionView			* contentView;
+  UIView								* mainView;
+  PTYTextView						* textView;
+  UIScroller						* textScroller;
+  ShellKeyboard					* keyboardView;
+  GestureView						* gestureView;
+	PreferencesController	* preferencesController;
+	UIView								* activeView;
 	
-  NSMutableArray		* processes;
-  NSMutableArray		* screens;
-  NSMutableArray		* terminals;
+  NSMutableArray				* processes;
+  NSMutableArray				* screens;
+  NSMutableArray				* terminals;
   
   int numTerminals;
   int activeTerminal;	
@@ -63,6 +60,10 @@
 
 @property BOOL landscape;
 @property int  degrees;
+@property (readonly) UIView * activeView;
+@property (readonly) UIView * mainView;
+
++ (MobileTerminal*) application;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)aNotification;
 - (void) applicationSuspend:(GSEvent *)event;
@@ -79,7 +80,11 @@
 -(VT100Screen*) activeScreen;
 -(VT100Terminal*) activeTerminal;
 
-- (void) showPreferences;
+-(MainWindow*) window;
+-(UIView*) mainView;
+-(UIView*) activeView;
+
+- (void) togglePreferences;
 
 // Invoked by GestureMenu
 - (void) hideMenu;

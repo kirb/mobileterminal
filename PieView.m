@@ -38,7 +38,7 @@
   [self setAlpha: 0.9f];
 
   anim = [[UIAnimator alloc] init];
-	timer = NULL;
+	timer = nil;
 	
   return self;
 }
@@ -51,16 +51,16 @@
 	[self stopTimer];
   location.x = (int)(p.x - visibleFrame.size.width*0.5f);
   location.y = (int)(p.y - visibleFrame.size.height*0.5f);;
-	timer = [NSTimer scheduledTimerWithTimeInterval:PIE_MENU_DELAY target:self selector:@selector(fadeIn) userInfo:NULL repeats:NO];
+	timer = [NSTimer scheduledTimerWithTimeInterval:PIE_MENU_DELAY target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
 }
 
 //_______________________________________________________________________________
 
 -(void) stopTimer
 {
-	if (timer != NULL) {
+	if (timer != nil) {
 		[timer invalidate];
-		timer = NULL;
+		timer = nil;
 	}
 }
 
