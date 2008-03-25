@@ -1,86 +1,123 @@
+//
+//  Settings.m
+//  Terminal
+
 #import "Settings.h"
+#import "Constants.h"
 
-@implementation Settings
+//_______________________________________________________________________________
+//_______________________________________________________________________________
 
-+ (Settings*)sharedInstance
-{
-  static Settings* instance = nil;
-  if (instance == nil) {
-    instance = [[Settings alloc] init];
-  }
-  return instance;
-}
+@implementation TerminalConfig
+
+//_______________________________________________________________________________
 
 - (id)init
 {
   self = [super init];
+	
   width = 45;
   height = 17;
+	fontSize = 12;
   font = @"CourierNewBold";
-	fontSize = 8;
   args = nil;
+	
   return self;
 }
 
-- (int)width
-{
-  return width;
-}
-
-- (int)height
-{
-  return height;
-}
-
-- (NSString*)font
-{
-  return font;
-}
-
-- (int)fontSize
-{
-	return fontSize;
-}
+//_______________________________________________________________________________
 
 - (NSString*)fontDescription
 {
 	return [NSString stringWithFormat:@"%@ %d", font, fontSize];
 }
 
-- (NSString*)arguments
+//_______________________________________________________________________________
+
+- (NSString*) font { return font; }
+- (void) setFont: (NSString*)str
 {
-  return args;
+	if (font != str)
+	{
+		[font release];
+		font = [str copy];
+	}
 }
 
-- (void)setWidth:(int)w
+//_______________________________________________________________________________
+
+- (NSString*) args { return args; }
+- (void) setArgs: (NSString*)str
 {
-  width = w;
+	if (args != str)
+	{
+		[args release];
+		args = [str copy];
+	}
 }
 
-- (void)setHeight:(int)h
-{
-  height = h;
-}
+//_______________________________________________________________________________
 
-- (void)setFont:(NSString*)terminalFont;
-{
-  [font release];
-  font = terminalFont;
-  [font retain];
-}
+@synthesize width;
+@synthesize height;
+@synthesize fontSize;
+@dynamic font;
+@dynamic args;
 
--(void)setFontSize:(int)size
-{
-	fontSize = size;
-}
+@end
 
-- (void)setArguments:(NSString*)arguments
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+
+@implementation Settings
+
+//_______________________________________________________________________________
+
++ (Settings*) sharedInstance
 {
-  if (args) {
-    [args release];
+  static Settings * instance = nil;
+  if (instance == nil) {
+    instance = [[Settings alloc] init];
   }
-  args = arguments;
-  [args retain];
+  return instance;
+}
+
+//_______________________________________________________________________________
+
+- (id)init
+{
+  self = [super init];
+
+	terminalConfigs = [NSArray arrayWithObjects:
+										 [[TerminalConfig alloc] init],
+										 [[TerminalConfig alloc] init],
+										 [[TerminalConfig alloc] init],
+										 [[TerminalConfig alloc] init], nil];
+	
+	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.01f);
+	multipleTerminals = YES;
+	
+  return self;
+}
+
+//_______________________________________________________________________________
+
+@synthesize gestureViewColor;
+@synthesize multipleTerminals;
+
+-(NSArray *) terminalConfigs { return terminalConfigs; }
+
+//_______________________________________________________________________________
+
+- (NSString*) arguments { return arguments; }
+- (void) setArguments: (NSString*)str
+{
+	if (arguments != str)
+	{
+		[arguments release];
+		arguments = [str copy];
+	}
 }
 
 @end

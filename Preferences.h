@@ -14,6 +14,7 @@
 #import <UIKit/UIPickerTableCell.h>
 
 @class MobileTerminal;
+@class TerminalConfig;
 
 //_______________________________________________________________________________
 
@@ -49,6 +50,35 @@
 
 //_______________________________________________________________________________
 
+@interface FontView : UIPreferencesTable
+{
+	FontChooser * fontChooser;
+}
+
+-(FontChooser*) fontChooser;
+-(id) initWithFrame:(CGRect)frame;
+-(void) selectFont:(NSString*)font size:(int)size;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface TerminalView : UIPreferencesTable
+{
+	id							 fontButton;
+	
+	TerminalConfig * config;
+	int							 terminalIndex;
+}
+
+-(void) fontChanged;
+-(id) initWithFrame:(CGRect)frame;
+-(void) setTerminalIndex:(int)terminal;
+
+@end
+
+//_______________________________________________________________________________
+
 @interface PreferencesGroup : NSObject 
 {
 	UIPreferencesTableCell * title;
@@ -61,10 +91,13 @@
 + (id) groupWithTitle:(NSString*) title icon:(UIImage*)icon;
 - (id) initWithTitle:(NSString*) title icon:(UIImage*)icon;
 - (void) addCell:(id)cell;
+- (id) removeCell:(id)cell;
 - (id) addSwitch:(NSString*)label;
+- (id) addSwitch:(NSString*)label target:(id)target action:(SEL)action;
 - (id) addSwitch:(NSString*)label on:(BOOL)on;
-- (id) addPageButton:(NSString*)label delegate:(id)delegate;
-- (id) addPageButton:(NSString*)label value:(NSString*)value delegate:(id)delegate;
+- (id) addSwitch:(NSString*)label on:(BOOL)on target:(id)target action:(SEL)action;
+- (id) addPageButton:(NSString*)label;
+- (id) addPageButton:(NSString*)label value:(NSString*)value;
 - (id) addValueField:(NSString*)label value:(NSString*)value;
 - (id) addTextField:(NSString*)label;
 
@@ -105,11 +138,26 @@
 	
 	UIView          * settingsView;
 	UIView					* aboutView;
-	UIView					* fontView;
-	id								fontButton;
+	FontView  			* fontView;
+	TerminalView    * terminalView;
+
+	UIPreferencesTextTableCell * terminalButton1;
+	UIPreferencesTextTableCell * terminalButton2;
+	UIPreferencesTextTableCell * terminalButton3;
+	UIPreferencesTextTableCell * terminalButton4;
+	
+	PreferencesGroup * terminalGroup;
+	
+	int               terminalIndex;
 }
 
--(id) initWithApplication:(MobileTerminal*)app;
++(PreferencesController*) sharedInstance;
+-(id) init;
+-(void) initViewStack;
+-(FontView*) fontView;
+-(TerminalView*) terminalView;
+-(id) settingsView;
+-(id) aboutView;
 
 @end
 

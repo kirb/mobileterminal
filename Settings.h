@@ -1,31 +1,50 @@
-// Settings.h
+//
+//  Settings.h
+//  Terminal
 
 #import <Foundation/Foundation.h>
 
-// TODO: Listeners for when settings change
-@interface Settings : NSObject
+//_______________________________________________________________________________
+
+@interface TerminalConfig : NSObject
 {
   int width;
   int height;
 	int fontSize;
-  NSString* font;
-  NSString* args;
+		
+  NSString * font;
+  NSString * args;	
 }
 
-+ (Settings*)sharedInstance;
+- (NSString*) fontDescription;
 
-- (id)init;
+@property int width;
+@property int height;
+@property int fontSize;
+@property (readwrite, copy) NSString * font;
+@property (readwrite, copy) NSString * args;
 
-- (int)width;
-- (int)height;
-- (int)fontSize;
-- (NSString*)font;
-- (NSString*)arguments;
-- (NSString*)fontDescription;
-- (void)setWidth:(int)width;
-- (void)setHeight:(int)height;
-- (void)setFont:(NSString*)terminalFont;
-- (void)setFontSize:(int)fontSize;
-- (void)setArguments:(NSString*)arguments;
+@end
+
+//_______________________________________________________________________________
+
+@interface Settings : NSObject
+{
+	NSString * arguments;
+	NSArray * terminalConfigs;
+	CGColorRef gestureViewColor;
+	BOOL multipleTerminals;
+}
+
+@property CGColorRef gestureViewColor;
+@property BOOL multipleTerminals;
+
++ (Settings*) sharedInstance;
+- (id) init;
+- (NSArray *) terminalConfigs;
+- (void) setArguments: (NSString*)arguments;
+- (NSString*) arguments;
+
+//_______________________________________________________________________________
 
 @end

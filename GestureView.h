@@ -14,8 +14,12 @@
 
 //_______________________________________________________________________________
 
-@interface GestureView : UIView {
+@interface GestureView : UIView 
+{
+	CGPoint mouseDownPos;
+
   id delegate;
+	
 	NSTimer *toggleKeyboardTimer;
 }
 

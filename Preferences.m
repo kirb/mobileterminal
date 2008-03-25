@@ -5,6 +5,7 @@
 #import "Preferences.h"
 #import "MobileTerminal.h"
 #import "Settings.h"
+#import "PTYTextView.h"
 #import "Constants.h"
 #import "Log.h"
 
@@ -242,7 +243,86 @@
 {
 	log(@"font selection changed");
 	if ([self delegate] && [[self delegate] respondsToSelector:@selector(selectedFont:size:)])
-		[[self delegate] selectedFont:[self selectedFont] size:[self selectedSize]];
+		[[self delegate] performSelector:@selector(selectedFont:size:) withObject:[self selectedFont] withObject:[NSNumber numberWithInt:[self selectedSize]]];
+		//[[self delegate] selectedFont:[self selectedFont] size:[self selectedSize]];
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation FontView
+
+//_______________________________________________________________________________
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+
+	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Font" icon:nil];
+	[prefGroups addGroup:group];
+	[self setDataSource:prefGroups];
+	[self reloadData];
+
+	CGRect chooserRect = CGRectMake(0, 50, frame.size.width, 240);
+	fontChooser = [[FontChooser alloc] initWithFrame:chooserRect];
+	[self addSubview:fontChooser];
+	return self;
+}
+
+//_______________________________________________________________________________
+
+- (void) selectFont:(NSString*)font size:(int)size
+{
+	[fontChooser selectFont:font];	
+	[fontChooser selectSize:size];
+}
+
+//_______________________________________________________________________________
+
+-(FontChooser*) fontChooser { return fontChooser; }; 
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation TerminalView
+
+//_______________________________________________________________________________
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	
+	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	
+	fontButton = [group addPageButton:@"Font"];
+
+	[prefGroups addGroup:group];
+	[self setDataSource:prefGroups];
+	[self reloadData];
+	
+	return self;
+}
+
+//_______________________________________________________________________________
+
+-(void) fontChanged
+{
+	[fontButton setValue:[config fontDescription]];
+}
+
+//_______________________________________________________________________________
+
+-(void) setTerminalIndex:(int)index
+{
+	terminalIndex = index;
+	config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
+	[self fontChanged];
 }
 
 @end
@@ -280,27 +360,49 @@
 
 //_______________________________________________________________________________
 
+- (void) removeCell:(id)cell
+{
+	[cells removeObject:cell];
+}
+
+//_______________________________________________________________________________
+
 - (void) addCell: (id) cell 
 {
-	[cells addObject: cell];
+	[cells addObject:cell];
 }
 
 //_______________________________________________________________________________
 
 - (id) addSwitch: (NSString*) label 
 {
-	return [self addSwitch: label on: NO];
+	return [self addSwitch:label on:NO target:nil action:nil];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*)label target:(id)target action:(SEL)action
+{
+	return [self addSwitch:label on:NO target:target action:action];
 }
 
 //_______________________________________________________________________________
 
 - (id) addSwitch: (NSString*) label on: (BOOL) on 
 {
+	return [self addSwitch:label on:on target:nil action:nil];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*) label on: (BOOL) on target:(id)target action:(SEL)action
+{
 	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
 	[cell setShowSelection:NO];
 	UISwitchControl * sw = [[UISwitchControl alloc] initWithFrame: CGRectMake(206.0f, 9.0f, 96.0f, 48.0f)];
-	[sw setValue: on];
+	[sw setValue: (on ? 1.0f : 0.0f)];
+	[sw addTarget:target action:action forEvents:64];
 	[cell setControl:sw];	
 	[cells addObject: cell];
 	return cell;
@@ -308,14 +410,14 @@
 
 //_______________________________________________________________________________
 
--(id) addPageButton: (NSString*) label delegate:(id)delegate
+-(id) addPageButton: (NSString*) label
 {
-	return [self addPageButton:label value:nil delegate:delegate];
+	return [self addPageButton:label value:nil];
 }
 
 //_______________________________________________________________________________
 
--(id) addPageButton: (NSString*) label value:(NSString*)value delegate:(id)delegate
+-(id) addPageButton: (NSString*) label value:(NSString*)value
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
@@ -326,8 +428,8 @@
 	[[cell textField] setEnabled:NO];
 	[cells addObject: cell];
 	
-	[[cell textField] setTapDelegate:delegate];
-	[cell setTapDelegate:delegate];
+	[[cell textField] setTapDelegate:[PreferencesController sharedInstance]];
+	[cell setTapDelegate:[PreferencesController sharedInstance]];
 	
 	return cell;
 }
@@ -404,18 +506,53 @@
 
 //_______________________________________________________________________________
 
--(id) initWithApplication: (MobileTerminal*) app
++ (PreferencesController*) sharedInstance
+{
+  static PreferencesController * instance = nil;
+  if (instance == nil) {
+    instance = [[PreferencesController alloc] init];
+  }
+  return instance;
+}
+
+//_______________________________________________________________________________
+
+-(id) init
 {
 	self = [super init];
-	application = app;
-	
-	// ------------------------------------------------------------- navigation controller
+	application = [MobileTerminal application];
+	return self;
+}
 
+//_______________________________________________________________________________
+
+-(void) initViewStack
+{	
 	[self pushViewControllerWithView:[self settingsView] navigationTitle:@"Settings"];
 	[[self navigationBar] setBarStyle:1];
-	[[self navigationBar] showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];
-	
-	return self;
+	[[self navigationBar] showLeftButton:@"Done" withStyle: 5 rightButton:nil withStyle: 0];	
+}
+
+//_______________________________________________________________________________
+-(void) multipleTerminalsSwitched:(UISwitchControl*)control
+{
+	BOOL multi = ([control value] == 1.0f);
+	[[Settings sharedInstance] setMultipleTerminals:multi];
+		
+	if (!multi)
+	{
+		[terminalGroup removeCell:terminalButton2];
+		[terminalGroup removeCell:terminalButton3];
+		[terminalGroup removeCell:terminalButton4];
+		[settingsView reloadData];
+	}
+	else
+	{
+		[terminalGroup addCell:terminalButton2];
+		[terminalGroup addCell:terminalButton3];
+		[terminalGroup addCell:terminalButton4];
+		[settingsView reloadData];
+	}	
 }
 
 //_______________________________________________________________________________
@@ -427,13 +564,23 @@
 		// ------------------------------------------------------------- pref groups
 
 		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
-		PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
-		[group addSwitch:@"Multiple Terminals"];
-		fontButton = [group addPageButton:@"Font" value:[[Settings sharedInstance] fontDescription] delegate:self];
-		[prefGroups addGroup:group];
-
-		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-		[group addPageButton:@"About" delegate:self];
+		terminalGroup = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
+																				
+		BOOL multi = [[Settings sharedInstance] multipleTerminals];
+		[terminalGroup addSwitch:@"Multiple Terminals" 
+									on:multi
+							target:self 
+							action:@selector(multipleTerminalsSwitched:)];
+				
+		terminalButton1 = [terminalGroup addPageButton:@"Terminal 1"];
+		terminalButton2 = [terminalGroup addPageButton:@"Terminal 2"];
+		terminalButton3 = [terminalGroup addPageButton:@"Terminal 3"];
+		terminalButton4 = [terminalGroup addPageButton:@"Terminal 4"];
+		
+		[prefGroups addGroup:terminalGroup];
+				
+		PreferencesGroup *group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+		[group addPageButton:@"About"];
 		[prefGroups addGroup:group];
 
 		// ------------------------------------------------------------- pref table
@@ -441,6 +588,7 @@
 		UIPreferencesTable * table = [[UIPreferencesTable alloc] initWithFrame: [[self view] bounds]];
 		[table setDataSource:prefGroups];
 		[table reloadData];
+		[table enableRowDeletion:YES animated:YES];
 		settingsView = table;
 	}
 	return settingsView;	
@@ -472,7 +620,7 @@
 		[aboutGroups addGroup:group];
 
 		group = [PreferencesGroup groupWithTitle:@"Homepage" icon:nil];
-		[group addPageButton:@"code.google.com/p/mobileterminal" delegate:self];
+		[group addPageButton:@"code.google.com/p/mobileterminal"];
 		[aboutGroups addGroup:group];
 
 		group = [PreferencesGroup groupWithTitle:@"Contributors" icon:nil];
@@ -507,13 +655,12 @@
 
 //_______________________________________________________________________________
 
--(id) fontView
+-(FontView*) fontView
 {
 	if (!fontView)
 	{
-		FontChooser * fontChooser = [[FontChooser alloc] initWithFrame:[[super view] bounds]];
-		[fontChooser setDelegate:self]; 
-		fontView = fontChooser;
+		fontView = [[FontView alloc] initWithFrame:[[super view] bounds]];
+		[[fontView fontChooser] setDelegate:self]; 
 	}
 	
 	return fontView;
@@ -521,10 +668,24 @@
 
 //_______________________________________________________________________________
 
--(void)selectedFont:(id)font size:(int)size
+-(TerminalView*) terminalView
 {
-	[[Settings sharedInstance] setFont:font];
-	[[Settings sharedInstance] setFontSize:size];
+	if (!terminalView)
+	{
+		terminalView = [[TerminalView alloc] initWithFrame:[[super view] bounds]];
+	}
+	
+	return terminalView;
+}
+
+//_______________________________________________________________________________
+
+-(void)selectedFont:(id)font size:(NSNumber *)size
+{
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
+
+	[config setFont:font];
+	[config setFontSize:[size intValue]];
 }
 
 //_______________________________________________________________________________
@@ -532,6 +693,7 @@
 - (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
 {
 	NSString * title = [(UIPreferencesTextTableCell*)view title];
+	
 	if ([title isEqualToString:@"About"])
 	{
 		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
@@ -544,6 +706,13 @@
 	{
 		[self pushViewControllerWithView:[self fontView] navigationTitle:@"Font"];
 	}
+	else
+	{
+		terminalIndex = [[title substringFromIndex:9] intValue] - 1;
+		log(@"terminalIndex %@ %d", title, terminalIndex);
+		[[self terminalView] setTerminalIndex:terminalIndex];
+		[self pushViewControllerWithView:[self terminalView] navigationTitle:title];
+	}
 }
 
 //_______________________________________________________________________________
@@ -552,7 +721,7 @@
 {
 	if ([[self topViewController] view] == fontView)
 	{
-		[fontButton setValue:[[Settings sharedInstance] fontDescription]];
+		[terminalView fontChanged];
 		[[application textView] resetFont];
 	}
 	[super popViewController];
@@ -578,8 +747,9 @@
 	
 	if ([[self topViewController] view] == fontView)
 	{
-		[fontView selectFont:[[Settings sharedInstance] font]];
-		[fontView selectSize:[[Settings sharedInstance] fontSize]];
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+
+		[fontView selectFont:[config font] size:[config fontSize]];
 	}	
 }
 

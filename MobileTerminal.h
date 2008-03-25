@@ -35,15 +35,18 @@
 @interface MobileTerminal : UIApplication
 {
   MainWindow						*	window;
-	
+
+  ShellKeyboard					* keyboardView;	
 	UITransitionView			* contentView;
   UIView								* mainView;
+
+	UIView								* activeView;
+
   PTYTextView						* textView;
   UIScroller						* textScroller;
-  ShellKeyboard					* keyboardView;
   GestureView						* gestureView;
+	
 	PreferencesController	* preferencesController;
-	UIView								* activeView;
 	
   NSMutableArray				* processes;
   NSMutableArray				* screens;

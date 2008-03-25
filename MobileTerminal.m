@@ -353,16 +353,23 @@
 
 //_______________________________________________________________________________
 
-- (void) statusBarMouseDown:(GSEvent*)event
+- (void) statusBarMouseUp:(GSEvent*)event
 {
 	CGPoint pos = GSEventGetLocationInWindow(event);
 	float width = landscape ? window.frame.size.height : window.frame.size.width;
 	if (pos.x > width/2 && pos.x < width*3/4)
+	{
 		[self prevTerminal];
+	}
 	else if (pos.x > width*3/4)
+	{
 		[self nextTerminal];
+	}
 	else
-		[self togglePreferences];
+	{
+		if (activeView == mainView)
+			[self togglePreferences];
+	}
 }	
 
 //_______________________________________________________________________________
@@ -495,16 +502,15 @@
 }
 
 //_______________________________________________________________________________
--(void) initPreferences
-{
-	preferencesController = [[[PreferencesController alloc] initWithApplication:self] retain];
-}
-
-//_______________________________________________________________________________
 
 -(void) togglePreferences
 {
-	if (preferencesController == NULL) [self initPreferences];
+	if (preferencesController == nil) 
+	{
+		preferencesController = [PreferencesController sharedInstance];
+		[preferencesController initViewStack];
+	}
+
 	LKAnimation *animation = [LKTransition animation];
 	[animation setType: @"oglFlip"];
 	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];

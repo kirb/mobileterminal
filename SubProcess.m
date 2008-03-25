@@ -54,11 +54,12 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   // Clean up when ^C is pressed during debugging from a console
   signal(SIGINT, &signal_handler);
 
-  Settings* settings = [Settings sharedInstance];
-
   struct winsize win;
-  win.ws_col = [settings width];
-  win.ws_row = [settings height];
+	
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+	
+  win.ws_col = [config width];
+  win.ws_row = [config height];
 
   pid = forkpty(&fd, NULL, NULL, &win);
 	

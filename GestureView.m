@@ -3,18 +3,20 @@
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import "MobileTerminal.h"
+#import "Settings.h"
 
 @implementation GestureView
 
 //_______________________________________________________________________________
 
-- (id)initWithFrame:(CGRect)rect
-           delegate:(id)inputDelegate
+- (id)initWithFrame:(CGRect)rect delegate:(id)inputDelegate
 {
   self = [super initWithFrame:rect];
   delegate = inputDelegate;
 	[super setTapDelegate: self];
 	
+	[self setBackgroundColor:[Settings sharedInstance].gestureViewColor];
+	 
 	toggleKeyboardTimer = NULL;
 	
   return self;
@@ -22,14 +24,10 @@
 
 //_______________________________________________________________________________
 
-CGPoint start;
-
-//_______________________________________________________________________________
-
 - (void)mouseDown:(GSEvent *)event
 {
-	start = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
-  [delegate showMenu:start];
+	mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
+  [delegate showMenu:mouseDownPos];
 }
 
 //_______________________________________________________________________________
@@ -39,7 +37,7 @@ CGPoint start;
 	[delegate hideMenu];
 	
   CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
-  CGPoint vector = CGPointMake(end.x - start.x, end.y - start.y);
+  CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
 
   float absx = (vector.x > 0) ? vector.x : -vector.x;
   float absy = (vector.y > 0) ? vector.y : -vector.y;
@@ -91,8 +89,6 @@ CGPoint start;
 			[delegate handleInputFromMenu:characters];
     }
   }
-
-	//[super mouseUp:event];
 }
 
 //_______________________________________________________________________________
@@ -113,7 +109,8 @@ CGPoint start;
 
 -(void) stopToggleKeyboardTimer
 {
-	if (toggleKeyboardTimer != NULL) {
+	if (toggleKeyboardTimer != NULL) 
+	{
 		[toggleKeyboardTimer invalidate];
 		toggleKeyboardTimer = NULL;
 	}
@@ -123,10 +120,11 @@ CGPoint start;
 
 - (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
 {
+	/*
 	if (fingers == 1 && count == 1) // REMOVE ME! (for debug purposes only)
 	{
 		[delegate togglePreferences];
-	}
+	}*/
 	
 	if (fingers == 1 && count == 2)
 	{
@@ -151,6 +149,8 @@ CGPoint start;
 	return YES;
 }
 
+//_______________________________________________________________________________
+
 - (int)swipe:(int)direction withEvent:(GSEvent *)event
 {
 	//log(@"swipeStarted %d %@", direction, event);
@@ -164,13 +164,20 @@ CGPoint start;
   return NO;
 }
 
+//_______________________________________________________________________________
+
 - (BOOL)isOpaque
 {
   return NO;
 }
 
+//_______________________________________________________________________________
+
+/*
 - (void)drawRect: (CGRect *)rect
 {
 }
+*/
+//_______________________________________________________________________________
 
 @end

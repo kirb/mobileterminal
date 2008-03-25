@@ -160,8 +160,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   bell =  NO;
   scrollUpLines = 0;
 
-  Settings* settings = [Settings sharedInstance];
-  [self initScreenWithWidth:[settings width] Height:[settings height]];
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+  [self initScreenWithWidth:[config width] Height:[config height]];
 
   return self;
 }

@@ -159,7 +159,8 @@ static PTYTextView* instance = nil;
 	}
 	else
 	{
-		int fs = [[Settings sharedInstance] fontSize];
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+		int fs = [config fontSize];
 		lineHeight = fs + 3;
 		charWidth = (int)(fs*0.6);
 		//log(@"charWidth %f frame.width %f", charWidth, frame.size.width);
@@ -266,10 +267,11 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 {
 	if (!fontRef) 
 	{		
-		const char* font = [[[Settings sharedInstance] font] cString];
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+		const char * font = [config.font cString];
     // First time through: cache the fontRef. This lookup is expensive.
     //fontSize = floor(lineHeight);
-		fontSize = [[Settings sharedInstance] fontSize];
+		fontSize = config.fontSize;
     CGContextSelectFont(context, font, floor(lineHeight), kCGEncodingMacRoman);
     fontRef = (CGFontRef)CFRetain(CGContextGetFont(context));
   } 
