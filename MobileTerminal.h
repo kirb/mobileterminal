@@ -17,6 +17,7 @@
 @class PieView;
 @class PreferencesController;
 @class MobileTerminal;
+@class Settings;
 
 #define MAXTERMINALS 4
 
@@ -41,7 +42,9 @@
   NSMutableArray				* terminals;
   NSMutableArray				* textviews;
   NSMutableArray				* scrollers;
-  
+
+  Settings              * settings;
+	
   int numTerminals;
   int activeTerminal;	
 
@@ -91,6 +94,8 @@
 // Invoked by SwitcherMenu
 - (void) prevTerminal;
 - (void) nextTerminal;
+- (void) createTerminals;
+- (void) destroyTerminals;
 - (void) setActiveTerminal:(int)active;
 
 @end

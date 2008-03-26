@@ -42,6 +42,7 @@
 @property BOOL multipleTerminals;
 
 + (Settings*) sharedInstance;
+
 - (id) init;
 
 - (void) registerDefaults;

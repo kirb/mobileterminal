@@ -31,8 +31,9 @@
 {
 	log(@"applicationDidFinishLaunching");
 	
-	[[Settings sharedInstance] registerDefaults];
-	[[Settings sharedInstance] readUserDefaults];
+	settings = [[Settings sharedInstance] retain];
+	[settings registerDefaults];
+	[settings readUserDefaults];
 
 	activeTerminal = 0;
   controlKeyMode = NO;
@@ -46,8 +47,8 @@
   terminals = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
 	scrollers = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
 	textviews = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-  
-	for (numTerminals = 0; numTerminals < MAXTERMINALS; numTerminals++)
+  	
+	for (numTerminals = 0; numTerminals < ([settings multipleTerminals] ? MAXTERMINALS : 1); numTerminals++)
 	{
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
 		VT100Screen   * screen   = [[VT100Screen alloc] init];
@@ -147,7 +148,7 @@
 	int i;
 	shouldQuit = YES;
 	
-	[[Settings sharedInstance] writeUserDefaults];
+	[settings writeUserDefaults];
 	
 	for (i = 0; i < [processes count]; i++) {
 		if ([ [processes objectAtIndex: i] isRunning]) {
@@ -173,7 +174,7 @@
 {
 	int i;
 	
-	[[Settings sharedInstance] writeUserDefaults];
+	[settings writeUserDefaults];
 	
 	for (i = 0; i < [processes count]; i++) {
 		[[processes objectAtIndex: i] close];
@@ -315,15 +316,23 @@
 
 - (void) statusBarMouseUp:(GSEvent*)event
 {
-	CGPoint pos = GSEventGetLocationInWindow(event);
-	float width = landscape ? window.frame.size.height : window.frame.size.width;
-	if (pos.x > width/2 && pos.x < width*3/4)
+	if (numTerminals > 1)
 	{
-		[self prevTerminal];
-	}
-	else if (pos.x > width*3/4)
-	{
-		[self nextTerminal];
+		CGPoint pos = GSEventGetLocationInWindow(event);
+		float width = landscape ? window.frame.size.height : window.frame.size.width;
+		if (pos.x > width/2 && pos.x < width*3/4)
+		{
+			[self prevTerminal];
+		}
+		else if (pos.x > width*3/4)
+		{
+			[self nextTerminal];
+		}
+		else
+		{
+			if (activeView == mainView)
+				[self togglePreferences];
+		}
 	}
 	else
 	{
@@ -394,7 +403,7 @@
 	[[self textScroller] setContentSize:textFrame.size];
 	[gestureView setFrame:gestureFrame];
 	
-	for (i = 0; i < MAXTERMINALS; i++)
+	for (i = 0; i < numTerminals; i++)
 	{
 		[[processes objectAtIndex:i] setWidth:width    height:height];
 		[[screens   objectAtIndex:i] resizeWidth:width height:height];
@@ -413,9 +422,11 @@
 {
 	[[self textScroller] removeFromSuperview];
 
-	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
+	if (numTerminals > 1)
+		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
 	activeTerminal = active;
-	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
+	if (numTerminals > 1)
+		[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
 
 	[mainView addSubview:[self textScroller]];
 	[mainView bringSubviewToFront:gestureView];
@@ -442,6 +453,56 @@
 	[self setActiveTerminal:active];
 }
 
+//_______________________________________________________________________________
+
+-(void) createTerminals
+{
+	for (numTerminals = 1; numTerminals < MAXTERMINALS; numTerminals++)
+	{
+		VT100Terminal * terminal = [[VT100Terminal alloc] init];
+		VT100Screen   * screen   = [[VT100Screen alloc] init];
+		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
+		UIScroller    * scroller = [[UIScroller alloc] init];
+		
+		[screens   addObject: screen];
+		[terminals addObject: terminal];
+		[processes addObject: process];
+		[scrollers addObject: scroller];
+		
+		[screen setTerminal:terminal];
+		[terminal setScreen:screen];		
+		
+		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
+																												 source: screen
+																											 scroller: scroller];		
+		[textviews addObject:textview];
+	}	
+	
+	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
+}
+
+//_______________________________________________________________________________
+
+-(void) destroyTerminals
+{
+	[self setActiveTerminal:0];
+	
+	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"]];
+	
+	for (numTerminals = MAXTERMINALS; numTerminals > 1; numTerminals--)
+	{
+		SubProcess * process = [processes lastObject];
+		[process closeSession];
+		[[textviews lastObject] removeFromSuperview];
+		
+		[screens   removeLastObject];
+		[terminals removeLastObject];
+		[processes removeLastObject];
+		[scrollers removeLastObject];
+		[textviews removeLastObject];
+	}
+}
+	
 //_______________________________________________________________________________
 
 -(SubProcess*) activeProcess
@@ -489,6 +550,7 @@
 	[animation setFillMode: @"extended"];
 	[animation setSpeed: 0.25f];
 	[contentView addAnimation:(id)animation forKey:@"flip"];	
+	
 	if (activeView == mainView)
 	{
 		[contentView transition:0 toView:[preferencesController view]];
@@ -499,7 +561,16 @@
 		[contentView transition:0 toView:mainView];
 		activeView = mainView;
 		
-		[[Settings sharedInstance] writeUserDefaults];
+		[settings writeUserDefaults];
+		
+		if (numTerminals > 1 && ![settings multipleTerminals])
+		{
+			[self destroyTerminals];
+		}
+		else if (numTerminals == 1 && [settings multipleTerminals])
+		{
+			[self createTerminals];
+		}
 	}
 }
 

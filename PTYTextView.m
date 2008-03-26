@@ -17,17 +17,6 @@
 
 @implementation PTYTextView
 
-/*
-+ (PTYTextView*)sharedInstance
-{
-  if (instance == nil) {
-    [NSException raise:@"Uninitialized"
-                format:@"sharedInstance was not initalized yet"];
-  }
-  return instance;
-}
-*/
-
 + (Class)tileClass
 {
   return [PTYTile class];
@@ -42,13 +31,8 @@
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
 #endif
-	/*
-  if (instance != nil) {
-    [NSException raise:@"Unsupported" format:@"Only one PTYTextView"];
-  }*/
 	
   self = [super initWithFrame:frame];
-  //instance = self;
   CURSOR = YES;
   dataSource = screen;
 
