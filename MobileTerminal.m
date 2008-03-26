@@ -44,26 +44,30 @@
 	processes = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
   screens   = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
   terminals = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
+	scrollers = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
+	textviews = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
   
 	for (numTerminals = 0; numTerminals < MAXTERMINALS; numTerminals++)
 	{
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
 		VT100Screen   * screen   = [[VT100Screen alloc] init];
-		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];  
+		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
+		UIScroller    * scroller = [[UIScroller alloc] init];
 		
 		[screens   addObject: screen];
 		[terminals addObject: terminal];
 		[processes addObject: process];
-
+		[scrollers addObject: scroller];
+		
 		[screen setTerminal:terminal];
 		[terminal setScreen:screen];		
+		
+		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
+																												 source: screen
+																											 scroller: scroller];		
+		[textviews addObject:textview];
 	}
 	
-  textScroller = [[UIScroller alloc] init];
-  textView = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
-																				 source: [self activeScreen]
-																			 scroller: textScroller];
-
   keyboardView = [[[ShellKeyboard alloc] initWithFrame:CGRectMake(0.0f, 244.0f, 320.0f, 460.0f-244.0f)] retain];
   [keyboardView setInputDelegate:self];
 
@@ -71,12 +75,12 @@
   gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
-  [mainView addSubview:textScroller];
+	[mainView setBackgroundColor:[UIView colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f]];
+  [mainView addSubview:[scrollers objectAtIndex:0]];
   [mainView addSubview:gestureView];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:[PieView sharedInstance]];
-	[mainView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
 	activeView = mainView;
 
 	contentView = [[UITransitionView alloc] initWithFrame: frame];
@@ -113,7 +117,8 @@
 -(MainWindow*) window { return window; }
 -(UIView*) mainView { return mainView; }
 -(UIView*) activeView { return activeView; }
--(PTYTextView*) textView { return textView; }
+-(PTYTextView*) textView { return [textviews objectAtIndex:activeTerminal]; }
+-(UIScroller*) textScroller { return [scrollers objectAtIndex:activeTerminal]; }
 
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
 // to properly acheive focus on suspend and resume.
@@ -210,10 +215,11 @@
     }
   }
 	
-  if (tid == activeTerminal) {
-		[textView performSelectorOnMainThread:@selector(updateAndScrollToEnd)
-															 withObject:nil
-														waitUntilDone:NO];
+  if (tid == activeTerminal) 
+	{
+		[[self textView] performSelectorOnMainThread:@selector(updateAndScrollToEnd)
+																			withObject:nil
+																	 waitUntilDone:NO];
 	}	
 }
 
@@ -383,9 +389,9 @@
 		height = landscape ? 23 : 32;
 	}
 	
-	[textView setFrame:textFrame];
-	[textScroller setFrame:textScrollerFrame];
-	[textScroller setContentSize:textFrame.size];
+	[[self textView] setFrame:textFrame];
+	[[self textScroller] setFrame:textScrollerFrame];
+	[[self textScroller] setContentSize:textFrame.size];
 	[gestureView setFrame:gestureFrame];
 	
 	for (i = 0; i < MAXTERMINALS; i++)
@@ -396,8 +402,8 @@
 	
 	if (needsRefresh) 
 	{
-		[textView refresh];	
-		[textView updateIfNecessary];
+		[[self textView] refresh];	
+		[[self textView] updateIfNecessary];
 	}
 }
 
@@ -405,11 +411,16 @@
 
 -(void) setActiveTerminal:(int)active
 {
+	[[self textScroller] removeFromSuperview];
+
 	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
 	activeTerminal = active;
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
+
+	[mainView addSubview:[self textScroller]];
+	[mainView bringSubviewToFront:gestureView];
 	
-	[textView setSource: [self activeScreen]];	
+	[self updateFrames:YES];
 }
 
 //_______________________________________________________________________________

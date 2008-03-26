@@ -28,7 +28,7 @@
   float fontSize;
 }
 
-+ (PTYTextView*)sharedInstance;
+//+ (PTYTextView*)sharedInstance;
 + (Class)tileClass;
 
 - (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller;

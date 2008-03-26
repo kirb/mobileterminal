@@ -32,8 +32,6 @@
 
 	UIView								* activeView;
 
-  PTYTextView						* textView;
-  UIScroller						* textScroller;
   GestureView						* gestureView;
 	
 	PreferencesController	* preferencesController;
@@ -41,6 +39,8 @@
   NSMutableArray				* processes;
   NSMutableArray				* screens;
   NSMutableArray				* terminals;
+  NSMutableArray				* textviews;
+  NSMutableArray				* scrollers;
   
   int numTerminals;
   int activeTerminal;	
@@ -78,6 +78,7 @@
 -(UIView*) mainView;
 -(UIView*) activeView;
 -(PTYTextView*) textView;
+-(UIScroller*) textScroller;
 
 - (void) togglePreferences;
 

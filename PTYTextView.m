@@ -13,10 +13,11 @@
 #include <sys/time.h>
 #include <math.h>
 
-static PTYTextView* instance = nil;
+//static PTYTextView* instance = nil;
 
 @implementation PTYTextView
 
+/*
 + (PTYTextView*)sharedInstance
 {
   if (instance == nil) {
@@ -25,6 +26,7 @@ static PTYTextView* instance = nil;
   }
   return instance;
 }
+*/
 
 + (Class)tileClass
 {
@@ -40,11 +42,13 @@ static PTYTextView* instance = nil;
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
 #endif
+	/*
   if (instance != nil) {
     [NSException raise:@"Unsupported" format:@"Only one PTYTextView"];
-  }
+  }*/
+	
   self = [super initWithFrame:frame];
-  instance = self;
+  //instance = self;
   CURSOR = YES;
   dataSource = screen;
 
@@ -149,7 +153,6 @@ static PTYTextView* instance = nil;
 	//log(@"refresh %d %d", WIDTH, HEIGHT);
 
   CGRect frame = [self frame];
-  
 	
 	if (0) // old behaviour
 	{
@@ -263,6 +266,8 @@ static PTYTextView* instance = nil;
 //XXX: put me in a standard header somewhere
 extern CGFontRef CGContextGetFont(CGContextRef);
 
+//_______________________________________________________________________________
+
 - (void)setupTextForContext:(CGContextRef)context
 {
 	if (!fontRef) 
@@ -288,6 +293,8 @@ extern CGFontRef CGContextGetFont(CGContextRef);
   CGAffineTransform translate = CGAffineTransformMake(1, 0, 0, -1, 0, 1.0);
   CGContextSetTextMatrix(context, translate);
 }
+
+//_______________________________________________________________________________
 
 - (void)drawBox:(CGContextRef)context
           color:(CGColorRef)color
