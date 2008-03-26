@@ -12,6 +12,8 @@
 		C308937B0D969034009430B9 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
+		C354D5EE0D99C1420021EF06 /* MainWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainWindow.h; sourceTree = "<group>"; };
+		C354D5EF0D99C1420021EF06 /* MainWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainWindow.m; sourceTree = "<group>"; };
 		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
 		C37DAB700D93475A00FC5BC7 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Log.m; sourceTree = "<group>"; };
 		C39C17DA0D968CA600BB3EEC /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
@@ -76,6 +78,8 @@
 		C33DEA310D953AFE002261A5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C3A4E5F00D91AA86009A610C /* Settings.h */,
+				C3A4E5F10D91AA86009A610C /* Settings.m */,
 				C39C17DA0D968CA600BB3EEC /* Preferences.h */,
 				C39C17DB0D968CA600BB3EEC /* Preferences.m */,
 				C3A4E5E80D91AA86009A610C /* MobileTerminal.h */,
@@ -96,8 +100,6 @@
 				C3A4E5F50D91AA86009A610C /* SubProcess.m */,
 				C3A4E5EA0D91AA86009A610C /* PieView.h */,
 				C3A4E5EB0D91AA86009A610C /* PieView.m */,
-				C3A4E5F00D91AA86009A610C /* Settings.h */,
-				C3A4E5F10D91AA86009A610C /* Settings.m */,
 				C3A4E5E30D91AA86009A610C /* charmaps.h */,
 				C3A4E5E40D91AA86009A610C /* ColorMap.h */,
 				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
@@ -105,6 +107,8 @@
 				C37DAB700D93475A00FC5BC7 /* Log.m */,
 				C3E137B20D95F931005B2F2D /* Constants.h */,
 				C308937B0D969034009430B9 /* Constants.m */,
+				C354D5EE0D99C1420021EF06 /* MainWindow.h */,
+				C354D5EF0D99C1420021EF06 /* MainWindow.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

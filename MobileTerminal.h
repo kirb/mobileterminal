@@ -1,7 +1,11 @@
+//
 // MobileTerminal.h
+// Terminal
+
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import "Constants.h"
+#import "MainWindow.h"
 #import "Log.h"
 
 @class PTYTextView;
@@ -15,20 +19,6 @@
 @class MobileTerminal;
 
 #define MAXTERMINALS 4
-
-//_______________________________________________________________________________
-
-@interface MainWindow : UIWindow
-{
-	MobileTerminal * application;
-}
-
-@property(assign, readwrite) MobileTerminal * application;
-
-- (void) _handleOrientationChange:(id)view;
-- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
-
-@end
 
 //_______________________________________________________________________________
 

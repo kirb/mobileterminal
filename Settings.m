@@ -4,6 +4,7 @@
 
 #import "Settings.h"
 #import "Constants.h"
+#import <Foundation/NSUserDefaults.h>
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -95,7 +96,7 @@
 										 [[TerminalConfig alloc] init],
 										 [[TerminalConfig alloc] init], nil];
 	
-	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.01f);
+	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.005f);
 	multipleTerminals = YES;
 	
   return self;
@@ -105,6 +106,37 @@
 
 @synthesize gestureViewColor;
 @synthesize multipleTerminals;
+
+//_______________________________________________________________________________
+
+-(void) registerDefaults
+{
+	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
+	NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:10];
+	[d setObject:[NSNumber numberWithBool:YES] forKey:@"multipleTerminals"];
+	[defaults registerDefaults:d];
+}
+
+//_______________________________________________________________________________
+
+-(void) readUserDefaults
+{
+	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
+
+	multipleTerminals = [defaults boolForKey:@"multipleTerminals"];
+}
+
+//_______________________________________________________________________________
+
+-(void) writeUserDefaults
+{
+	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
+	
+	[defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
+	[defaults synchronize];
+}
+
+//_______________________________________________________________________________
 
 -(NSArray *) terminalConfigs { return terminalConfigs; }
 

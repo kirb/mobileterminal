@@ -10,6 +10,7 @@ all:	Terminal
 
 Terminal: main.o \
 					MobileTerminal.o \
+					MainWindow.o \
 					VT100Screen.o VT100Terminal.o \
 					PTYTextView.o PTYTile.o \
 					ColorMap.o \

@@ -113,7 +113,27 @@
 {
 	NSFileManager * fm = [NSFileManager defaultManager];
 
-	fontNames = [[fm directoryContentsAtPath:@"/var/Fonts" matchingExtension:@"ttf" options:0 keepExtension:NO] retain];
+	// hack to make compiler happy
+	// what could have been easy like:
+	//		fontNames = [[fm directoryContentsAtPath:@"/var/Fonts" matchingExtension:@"ttf" options:0 keepExtension:NO] retain];
+	// now becomes:
+	SEL sel = @selector(directoryContentsAtPath:matchingExtension:options:keepExtension:);
+	NSMethodSignature * sig = [[fm class] instanceMethodSignatureForSelector:sel];
+	NSInvocation * invocation = [NSInvocation invocationWithMethodSignature:sig];
+	NSString * path = @"/var/Fonts";
+	NSString * ext = @"ttf";
+	int options = 0;
+	BOOL keep = NO;
+	[invocation setArgument:&path atIndex:2];
+	[invocation setArgument:&ext atIndex:3];
+	[invocation setArgument:&options atIndex:4];
+	[invocation setArgument:&keep atIndex:5];
+	[invocation setTarget:fm];
+	[invocation setSelector:sel];
+	[invocation invoke];
+	[invocation getReturnValue:&fontNames];
+	[fontNames retain];
+	// hack ends here
 
 	fontSizes = [	[NSArray arrayWithObjects: 
 								[NSNumber numberWithInt: 7], [NSNumber numberWithInt: 8], 
@@ -206,7 +226,7 @@
 {
 	selectedFont = fontName;
 	int row = [self rowForFont:fontName];
-	[fontPicker selectRow:row inColumn:0 animated:YES];
+	[fontPicker selectRow:row inColumn:0 animated:NO];
 	[[fontPicker tableForColumn:0] _selectRow:row byExtendingSelection:NO withFade:NO scrollingToVisible:YES withSelectionNotifications:YES];		
 }
 
@@ -216,7 +236,7 @@
 {
 	selectedSize = fontSize;
 	int row = [self rowForSize:fontSize];
-	[fontPicker selectRow:row inColumn:1 animated:YES];
+	[fontPicker selectRow:row inColumn:1 animated:NO];
 	[[fontPicker tableForColumn:1] _selectRow:row byExtendingSelection:NO withFade:NO scrollingToVisible:YES withSelectionNotifications:YES];		
 }
 
@@ -557,7 +577,7 @@
 
 //_______________________________________________________________________________
 
--(id) settingsView
+-(UIPreferencesTable*) settingsView
 {
 	if (!settingsView)
 	{
@@ -573,9 +593,17 @@
 							action:@selector(multipleTerminalsSwitched:)];
 				
 		terminalButton1 = [terminalGroup addPageButton:@"Terminal 1"];
+
 		terminalButton2 = [terminalGroup addPageButton:@"Terminal 2"];
 		terminalButton3 = [terminalGroup addPageButton:@"Terminal 3"];
 		terminalButton4 = [terminalGroup addPageButton:@"Terminal 4"];
+
+		if (!multi)
+		{
+			[terminalGroup removeCell:terminalButton2];
+			[terminalGroup removeCell:terminalButton3];
+			[terminalGroup removeCell:terminalButton4];
+		}
 		
 		[prefGroups addGroup:terminalGroup];
 				
@@ -747,7 +775,7 @@
 	
 	if ([[self topViewController] view] == fontView)
 	{
-		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 
 		[fontView selectFont:[config font] size:[config fontSize]];
 	}	

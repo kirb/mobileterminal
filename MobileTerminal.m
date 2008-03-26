@@ -12,65 +12,11 @@
 #import "GestureView.h"
 #import "PieView.h"
 #import "Preferences.h"
+#import "Settings.h"
 
 #import <UIKit/UIView-Geometry.h>
 #import <LayerKit/LKAnimation.h>
 #import <CoreGraphics/CoreGraphics.h>
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
-@implementation MainWindow
-
--(void) _handleOrientationChange:(id)notification
-{
-	int degrees = [[[notification userInfo] objectForKey:@"UIApplicationOrientationUserInfoKey"] intValue];	
-	//log(@"orientation changed: %d", degrees);
-	if (degrees == application.degrees || application.activeView != application.mainView) return;
-	
-	BOOL landscape;
-		
-	struct CGAffineTransform transEnd;
-	switch(degrees) 
-	{
-		case  90: transEnd = CGAffineTransformMake(0,  1, -1, 0, 0, 0); landscape = true;  break;
-		case -90: transEnd = CGAffineTransformMake(0, -1,  1, 0, 0, 0); landscape = true;  break;
-		case   0: transEnd = CGAffineTransformMake(1,  0,  0, 1, 0, 0); landscape = false; break;
-		default:  return;
-	}
-		
-	CGSize screenSize = [UIHardware mainScreenSize];
-	CGRect contentBounds;
-
-	if (landscape)
-		contentBounds = CGRectMake(0, 0, screenSize.height, screenSize.width);
-	else
-		contentBounds = CGRectMake(0, 0, screenSize.width, screenSize.height);
-		
-	[UIView beginAnimations:@"rotation"];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-	[(UIView*)[self contentView] setTransform:transEnd];
-	[[self contentView] setBounds:contentBounds];
-	[UIView endAnimations];
-	
-	[application setLandscape:landscape degrees:degrees]; 
-}
-
-//_______________________________________________________________________________
-
-- (void) setApplication:(MobileTerminal*)app { application = app; }
-- (MobileTerminal*) application { return application; }
-
-//_______________________________________________________________________________
-
-- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context 
-{
-	//log(@"stop %@ finished %@", animationID, finished);
-	[application updateFrames:YES];
-}
-
-@end
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -84,6 +30,9 @@
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
 	log(@"applicationDidFinishLaunching");
+	
+	[[Settings sharedInstance] registerDefaults];
+	[[Settings sharedInstance] readUserDefaults];
 
 	activeTerminal = 0;
   controlKeyMode = NO;
@@ -159,8 +108,31 @@
 	return [[UIWindow keyWindow] application];
 }
 
+//_______________________________________________________________________________
+
+-(MainWindow*) window { return window; }
+-(UIView*) mainView { return mainView; }
+-(UIView*) activeView { return activeView; }
+-(PTYTextView*) textView { return textView; }
+
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
 // to properly acheive focus on suspend and resume.
+
+//_______________________________________________________________________________
+
+- (void)applicationResume:(GSEvent *)event
+{
+	if (keyboardShown)
+	{
+		[mainView addSubview:keyboardView];
+	}
+	
+	[mainView addSubview:[keyboardView inputView]];
+	[[keyboardView inputView] becomeFirstResponder];
+	
+	[self setActiveTerminal:0];
+	[self setLandscape: landscape degrees: degrees];
+}
 
 //_______________________________________________________________________________
 
@@ -169,6 +141,8 @@
 	BOOL shouldQuit;
 	int i;
 	shouldQuit = YES;
+	
+	[[Settings sharedInstance] writeUserDefaults];
 	
 	for (i = 0; i < [processes count]; i++) {
 		if ([ [processes objectAtIndex: i] isRunning]) {
@@ -190,32 +164,12 @@
 
 //_______________________________________________________________________________
 
--(MainWindow*) window { return window; }
--(UIView*) mainView { return mainView; }
--(UIView*) activeView { return activeView; }
--(PTYTextView*) textView { return textView; }
-
-//_______________________________________________________________________________
-
-- (void)applicationResume:(GSEvent *)event
-{
-	if (keyboardShown)
-	{
-		[mainView addSubview:keyboardView];
-	}
-	
-	[mainView addSubview:[keyboardView inputView]];
-	[[keyboardView inputView] becomeFirstResponder];
-	
-	[self setActiveTerminal:0];
-	[self setLandscape: landscape degrees: degrees];
-}
-
-//_______________________________________________________________________________
-
 - (void)applicationExited:(GSEvent *)event
 {
 	int i;
+	
+	[[Settings sharedInstance] writeUserDefaults];
+	
 	for (i = 0; i < [processes count]; i++) {
 		[[processes objectAtIndex: i] close];
 	}	
@@ -511,14 +465,18 @@
 		[preferencesController initViewStack];
 	}
 
-	LKAnimation *animation = [LKTransition animation];
-	[animation setType: @"oglFlip"];
+	LKAnimation * animation = [LKTransition animation];
+	// to make the compiler not complain
+	//[animation setType: @"oglFlip"];
+	//[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
+	//[animation setTransitionFlags: 3];
+	[animation performSelector:@selector(setType:) withObject:@"oglFlip"];
+	[animation performSelector:@selector(setSubtype:) withObject:(activeView == mainView) ? @"fromRight" : @"fromLeft"];
+	[animation performSelector:@selector(setTransitionFlags:) withObject:[NSNumber numberWithInt:3]];
 	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
 	[animation setFillMode: @"extended"];
-	[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
-	[animation setTransitionFlags: 3];
 	[animation setSpeed: 0.25f];
-	[contentView addAnimation: animation forKey: 0];	
+	[contentView addAnimation:(id)animation forKey:@"flip"];	
 	if (activeView == mainView)
 	{
 		[contentView transition:0 toView:[preferencesController view]];

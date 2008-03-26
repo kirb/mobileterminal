@@ -36,11 +36,18 @@
 	BOOL multipleTerminals;
 }
 
+//_______________________________________________________________________________
+
 @property CGColorRef gestureViewColor;
 @property BOOL multipleTerminals;
 
 + (Settings*) sharedInstance;
 - (id) init;
+
+- (void) registerDefaults;
+- (void) readUserDefaults;
+- (void) writeUserDefaults;
+
 - (NSArray *) terminalConfigs;
 - (void) setArguments: (NSString*)arguments;
 - (NSString*) arguments;

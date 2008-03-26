@@ -91,7 +91,7 @@
 + (id) groupWithTitle:(NSString*) title icon:(UIImage*)icon;
 - (id) initWithTitle:(NSString*) title icon:(UIImage*)icon;
 - (void) addCell:(id)cell;
-- (id) removeCell:(id)cell;
+- (void) removeCell:(id)cell;
 - (id) addSwitch:(NSString*)label;
 - (id) addSwitch:(NSString*)label target:(id)target action:(SEL)action;
 - (id) addSwitch:(NSString*)label on:(BOOL)on;
@@ -134,12 +134,12 @@
 
 @interface PreferencesController : UINavigationController 
 {
-	MobileTerminal	* application;
+	MobileTerminal			* application;
 	
-	UIView          * settingsView;
-	UIView					* aboutView;
-	FontView  			* fontView;
-	TerminalView    * terminalView;
+	UIPreferencesTable	* settingsView;
+	UIView							* aboutView;
+	FontView						* fontView;
+	TerminalView				* terminalView;
 
 	UIPreferencesTextTableCell * terminalButton1;
 	UIPreferencesTextTableCell * terminalButton2;
@@ -156,7 +156,7 @@
 -(void) initViewStack;
 -(FontView*) fontView;
 -(TerminalView*) terminalView;
--(id) settingsView;
+-(UIPreferencesTable*) settingsView;
 -(id) aboutView;
 
 @end
