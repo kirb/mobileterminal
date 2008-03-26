@@ -419,6 +419,7 @@
 
 	[mainView addSubview:[self textScroller]];
 	[mainView bringSubviewToFront:gestureView];
+	[mainView bringSubviewToFront:[PieView sharedInstance]];
 	
 	[self updateFrames:YES];
 }

@@ -11,7 +11,6 @@
 - (void)drawRect:(CGRect)rect
 {
   //[[PTYTextView sharedInstance] drawTileFrame:[self frame] tileRect:rect];
-	log(@"drawRect %@", [self superview]);
 	[(PTYTextView*)[self superview] drawTileFrame:[self frame] tileRect:rect];
 }
 
