@@ -4,6 +4,7 @@
 
 #import "Settings.h"
 #import "Constants.h"
+#import "MobileTerminal.h"
 #import <Foundation/NSUserDefaults.h>
 
 //_______________________________________________________________________________
@@ -111,9 +112,22 @@
 
 -(void) registerDefaults
 {
+	int i;
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:10];
+	NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:2];
 	[d setObject:[NSNumber numberWithBool:YES] forKey:@"multipleTerminals"];
+	NSMutableArray * tcs = [NSMutableArray arrayWithCapacity:MAXTERMINALS];
+	for (i = 0; i < MAXTERMINALS; i++)
+	{
+		NSMutableDictionary * tc = [NSMutableDictionary dictionaryWithCapacity:10];		
+		[tc setObject:[NSNumber numberWithInt:45] forKey:@"width"];
+		[tc setObject:[NSNumber numberWithInt:17] forKey:@"height"];
+		[tc setObject:[NSNumber numberWithInt:12] forKey:@"fontSize"];
+		[tc setObject:@"CourierNewBold" forKey:@"font"];
+		[tc setObject:@"" forKey:@"args"];
+		[tcs addObject:tc];
+	}
+	[d setObject:tcs forKey:@"terminals"];
 	[defaults registerDefaults:d];
 }
 
@@ -121,7 +135,19 @@
 
 -(void) readUserDefaults
 {
+	int i;
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
+	NSArray * tcs = [defaults arrayForKey:@"terminals"];
+	for (i = 0; i < MAXTERMINALS; i++)
+	{
+		TerminalConfig * config = [terminalConfigs objectAtIndex:i];
+		NSDictionary * tc = [tcs objectAtIndex:i];
+		config.width = [[tc objectForKey:@"width"] intValue];
+		config.height = [[tc objectForKey:@"height"] intValue];
+		config.fontSize = [[tc objectForKey:@"fontSize"] intValue];
+		config.font = [tc objectForKey:@"font"];
+		config.args = [tc objectForKey:@"args"];
+	}
 
 	multipleTerminals = [defaults boolForKey:@"multipleTerminals"];
 }
@@ -130,8 +156,21 @@
 
 -(void) writeUserDefaults
 {
+	int i;
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
-	
+	NSMutableArray * tcs = [NSMutableArray arrayWithCapacity:MAXTERMINALS];
+	for (i = 0; i < MAXTERMINALS; i++)
+	{
+		TerminalConfig * config = [terminalConfigs objectAtIndex:i];
+		NSMutableDictionary * tc = [NSMutableDictionary dictionaryWithCapacity:10];		
+		[tc setObject:[NSNumber numberWithInt:config.width] forKey:@"width"];
+		[tc setObject:[NSNumber numberWithInt:config.height] forKey:@"height"];
+		[tc setObject:[NSNumber numberWithInt:config.fontSize] forKey:@"fontSize"];
+		[tc setObject:config.font forKey:@"font"];
+		[tc setObject:config.args ? config.args : @"" forKey:@"args"];
+		[tcs addObject:tc];
+	}
+	[defaults setObject:tcs forKey:@"terminals"];
 	[defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
 	[defaults synchronize];
 }

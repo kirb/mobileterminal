@@ -486,6 +486,8 @@
 	{
 		[contentView transition:0 toView:mainView];
 		activeView = mainView;
+		
+		[[Settings sharedInstance] writeUserDefaults];
 	}
 }
 
