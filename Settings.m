@@ -21,6 +21,7 @@
   width = 45;
   height = 17;
 	fontSize = 12;
+	fontWidth = 0.6f;
   font = @"CourierNewBold";
   args = nil;
 	
@@ -63,6 +64,7 @@
 @synthesize width;
 @synthesize height;
 @synthesize fontSize;
+@synthesize fontWidth;
 @dynamic font;
 @dynamic args;
 
@@ -123,6 +125,7 @@
 		[tc setObject:[NSNumber numberWithInt:45] forKey:@"width"];
 		[tc setObject:[NSNumber numberWithInt:17] forKey:@"height"];
 		[tc setObject:[NSNumber numberWithInt:12] forKey:@"fontSize"];
+		[tc setObject:[NSNumber numberWithFloat:0.6f] forKey:@"fontWidth"];
 		[tc setObject:@"CourierNewBold" forKey:@"font"];
 		[tc setObject:@"" forKey:@"args"];
 		[tcs addObject:tc];
@@ -145,6 +148,7 @@
 		config.width = [[tc objectForKey:@"width"] intValue];
 		config.height = [[tc objectForKey:@"height"] intValue];
 		config.fontSize = [[tc objectForKey:@"fontSize"] intValue];
+		config.fontWidth = [[tc objectForKey:@"fontWidth"] floatValue];
 		config.font = [tc objectForKey:@"font"];
 		config.args = [tc objectForKey:@"args"];
 	}
@@ -166,6 +170,7 @@
 		[tc setObject:[NSNumber numberWithInt:config.width] forKey:@"width"];
 		[tc setObject:[NSNumber numberWithInt:config.height] forKey:@"height"];
 		[tc setObject:[NSNumber numberWithInt:config.fontSize] forKey:@"fontSize"];
+		[tc setObject:[NSNumber numberWithFloat:config.fontWidth] forKey:@"fontWidth"];
 		[tc setObject:config.font forKey:@"font"];
 		[tc setObject:config.args ? config.args : @"" forKey:@"args"];
 		[tcs addObject:tc];

@@ -104,6 +104,8 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 @end
 
+//_______________________________________________________________________________
+
 @implementation VT100Screen
 
 #define DEFAULT_WIDTH     80
@@ -115,7 +117,9 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 #define TABSIZE     8
 
-- (id)init
+//_______________________________________________________________________________
+
+- (id)initWithIdentifier:(int)identifier
 {
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
@@ -159,8 +163,10 @@ static __inline__ screen_char_t *incrementLinePointer(
   newIconTitle = nil;
   bell =  NO;
   scrollUpLines = 0;
+	
+	termid = identifier;
 
-	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
   [self initScreenWithWidth:[config width] Height:[config height]];
 
   return self;

@@ -76,6 +76,7 @@
 -(SubProcess*) activeProcess;
 -(VT100Screen*) activeScreen;
 -(VT100Terminal*) activeTerminal;
+-(NSArray*) textviews;
 
 -(MainWindow*) window;
 -(UIView*) mainView;

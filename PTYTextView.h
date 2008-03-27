@@ -6,6 +6,8 @@
 
 @class VT100Screen;
 
+//_______________________________________________________________________________
+
 @interface PTYTextView : UITiledView
 {
   BOOL CURSOR;
@@ -18,6 +20,8 @@
 
   int margin;
   int vmargin;
+	
+	int termid;
 
   // data source
   VT100Screen *dataSource;
@@ -28,10 +32,11 @@
   float fontSize;
 }
 
-//+ (PTYTextView*)sharedInstance;
+//_______________________________________________________________________________
+
 + (Class)tileClass;
 
-- (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller;
+- (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller identifier:(int)index;
 - (void)dealloc;
 
 - (void)setSource:(VT100Screen*)screen;

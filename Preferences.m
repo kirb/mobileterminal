@@ -83,10 +83,8 @@
 	[pickerTable setAllowsMultipleSelection: FALSE];
 	
 	UITableColumn * fontColumn = [[UITableColumn alloc] initWithTitle: @"Font" identifier:@"font" width: rect.size.width];
-	UITableColumn * sizeColumn = [[UITableColumn alloc] initWithTitle: @"Size" identifier:@"size" width: rect.size.width];
 	
 	[fontPicker columnForTable: fontColumn];
-	[fontPicker columnForTable: sizeColumn];
 	
 	[self addSubview:fontPicker];
 
@@ -134,29 +132,20 @@
 	[invocation getReturnValue:&fontNames];
 	[fontNames retain];
 	// hack ends here
-
-	fontSizes = [	[NSArray arrayWithObjects: 
-								[NSNumber numberWithInt: 7], [NSNumber numberWithInt: 8], 
-								[NSNumber numberWithInt: 9], [NSNumber numberWithInt:10], 
-								[NSNumber numberWithInt:11], [NSNumber numberWithInt:12], 
-								[NSNumber numberWithInt:13], [NSNumber numberWithInt:14],
-								[NSNumber numberWithInt:15], [NSNumber numberWithInt:16],
-								[NSNumber numberWithInt:17], [NSNumber numberWithInt:18],
-								[NSNumber numberWithInt:19], [NSNumber numberWithInt:20], nil] retain];
 }
 
 //_______________________________________________________________________________
 
 - (int) numberOfColumnsInPickerView:(UIPickerView*)picker
 {
-	return 2;
+	return 1;
 }
 
 //_______________________________________________________________________________
 
 - (int) pickerView:(UIPickerView*)picker numberOfRowsInColumn:(int)col
 {
-	return (col == 0) ? [fontNames count] : [fontSizes count];
+	return [fontNames count];
 }
 
 //_______________________________________________________________________________
@@ -168,11 +157,6 @@
 	{
 		[cell setTitle:[fontNames objectAtIndex:row]];
 	}
-	else
-	{
-		[cell setTitle:[[fontSizes objectAtIndex: row] stringValue]];
-	}
-	
 	
 	[[cell titleTextLabel] setFont:[UISimpleTableCell defaultFont]];
 	[cell setSelectionStyle:0];
@@ -186,23 +170,7 @@
 
 -(float)pickerView:(UIPickerView*)picker tableWidthForColumn: (int)col
 {
-	if (col == 0) return [self bounds].size.width-80.0f;
-	return 80.0f;
-}
-
-//_______________________________________________________________________________
-
-- (int) rowForSize: (int)fontSize
-{
-	int i;
-	for (i = 0; i < [fontSizes count]; i++)
-	{
-		if ([[fontSizes objectAtIndex:i] intValue] == fontSize)
-		{
-			return i;
-		}
-	}	
-	return 0;
+	return [self bounds].size.width-40.0f;
 }
 
 //_______________________________________________________________________________
@@ -232,16 +200,6 @@
 
 //_______________________________________________________________________________
 
-- (void) selectSize: (int)fontSize
-{
-	selectedSize = fontSize;
-	int row = [self rowForSize:fontSize];
-	[fontPicker selectRow:row inColumn:1 animated:NO];
-	[[fontPicker tableForColumn:1] _selectRow:row byExtendingSelection:NO withFade:NO scrollingToVisible:YES withSelectionNotifications:YES];		
-}
-
-//_______________________________________________________________________________
-
 - (NSString*) selectedFont
 {
 	int row = [fontPicker selectedRowForColumn:0];
@@ -250,21 +208,10 @@
 
 //_______________________________________________________________________________
 
-- (int) selectedSize
-{
-	int row = [fontPicker selectedRowForColumn:1];
-	log(@"row %d %d", row, [[fontSizes objectAtIndex:row] intValue]);
-	return [[fontSizes objectAtIndex:row] intValue];
-}
-
-//_______________________________________________________________________________
-
 -(void) fontSelectionDidChange
 {
-	log(@"font selection changed");
-	if ([self delegate] && [[self delegate] respondsToSelector:@selector(selectedFont:size:)])
-		[[self delegate] performSelector:@selector(selectedFont:size:) withObject:[self selectedFont] withObject:[NSNumber numberWithInt:[self selectedSize]]];
-		//[[self delegate] selectedFont:[self selectedFont] size:[self selectedSize]];
+	if ([self delegate] && [[self delegate] respondsToSelector:@selector(setFont:)])
+			[[self delegate] performSelector:@selector(setFont:) withObject:[self selectedFont]];
 }
 
 @end
@@ -281,23 +228,54 @@
 	self = [super initWithFrame:frame];
 
 	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
-	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"Font" icon:nil];
+	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 	[prefGroups addGroup:group];
-	[self setDataSource:prefGroups];
-	[self reloadData];
+	group.titleHeight = 220;
 
-	CGRect chooserRect = CGRectMake(0, 50, frame.size.width, 240);
+	CGRect chooserRect = CGRectMake(0, 0, frame.size.width, 210);
 	fontChooser = [[FontChooser alloc] initWithFrame:chooserRect];
 	[self addSubview:fontChooser];
+	
+	UIPreferencesControlTableCell * cell;
+	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	cell = [group addIntValueSlider:@"Size" range:NSMakeRange(7, 13) target:self action:@selector(sizeSelected:)];
+	sizeSlider = [cell control];
+	cell = [group addFloatValueSlider:@"Width" minValue:0.5f maxValue:1.0f target:self action:@selector(widthSelected:)];
+	widthSlider = [cell control];
+	[prefGroups addGroup:group];
+
+	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	[group addSwitch:@"Monospace"];
+	[prefGroups addGroup:group];
+	
+	[self setDataSource:prefGroups];
+	[self reloadData];
+	
 	return self;
 }
 
 //_______________________________________________________________________________
 
-- (void) selectFont:(NSString*)font size:(int)size
+- (void) selectFont:(NSString*)font size:(int)size width:(float)width
 {
 	[fontChooser selectFont:font];	
-	[fontChooser selectSize:size];
+	[sizeSlider setValue:(float)size];
+	[widthSlider setValue:width];
+}
+
+//_______________________________________________________________________________
+
+- (void) sizeSelected:(UISliderControl*)control
+{
+	[control setValue:floor([control value])]; 
+	[[PreferencesController sharedInstance] setFontSize:(int)[control value]];
+}
+
+//_______________________________________________________________________________
+
+- (void) widthSelected:(UISliderControl*)control
+{
+	[[PreferencesController sharedInstance] setFontWidth:[control value]];
 }
 
 //_______________________________________________________________________________
@@ -424,6 +402,51 @@
 	[sw setValue: (on ? 1.0f : 0.0f)];
 	[sw addTarget:target action:action forEvents:64];
 	[cell setControl:sw];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (id) addIntValueSlider: (NSString*)label range:(NSRange)range target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
+	[sc addTarget:target action:action forEvents:7|64];
+
+	[sc setAllowsTickMarkValuesOnly:YES];
+	[sc setNumberOfTickMarks:range.length+1];
+	[sc setMinValue:range.location];
+	[sc setMaxValue:NSMaxRange(range)];
+	[sc setValue:range.location];
+	[sc setShowValue:YES];
+	[sc setContinuous:NO];
+		
+	[cell setControl:sc];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (id) addFloatValueSlider: (NSString*)label minValue:(float)minValue maxValue:(float)maxValue target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
+	[sc addTarget:target action:action forEvents:7|64];
+	
+	[sc setAllowsTickMarkValuesOnly:NO];
+	[sc setMinValue:minValue];
+	[sc setMaxValue:maxValue];
+	[sc setValue:minValue];
+	[sc setShowValue:YES];
+	[sc setContinuous:YES];
+	
+	[cell setControl:sc];	
 	[cells addObject: cell];
 	return cell;
 }
@@ -708,12 +731,29 @@
 
 //_______________________________________________________________________________
 
--(void)selectedFont:(id)font size:(NSNumber *)size
+-(void)setFontSize:(int)size
 {
 	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 
+	[config setFontSize:size];
+}
+
+//_______________________________________________________________________________
+
+-(void)setFontWidth:(float)width
+{
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
+	
+	[config setFontWidth:width];
+}
+
+//_______________________________________________________________________________
+
+-(void)setFont:(NSString*)font
+{
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
+	
 	[config setFont:font];
-	[config setFontSize:[size intValue]];
 }
 
 //_______________________________________________________________________________
@@ -737,7 +777,7 @@
 	else
 	{
 		terminalIndex = [[title substringFromIndex:9] intValue] - 1;
-		log(@"terminalIndex %@ %d", title, terminalIndex);
+		//log(@"terminalIndex %@ %d", title, terminalIndex);
 		[[self terminalView] setTerminalIndex:terminalIndex];
 		[self pushViewControllerWithView:[self terminalView] navigationTitle:title];
 	}
@@ -750,7 +790,8 @@
 	if ([[self topViewController] view] == fontView)
 	{
 		[terminalView fontChanged];
-		[[application textView] resetFont];
+		if (terminalIndex < [[application textviews] count])
+			[[[application textviews] objectAtIndex:terminalIndex] resetFont];
 	}
 	[super popViewController];
 }
@@ -777,7 +818,7 @@
 	{
 		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 
-		[fontView selectFont:[config font] size:[config fontSize]];
+		[fontView selectFont:[config font] size:[config fontSize] width:[config fontWidth]];
 	}	
 }
 
@@ -846,7 +887,7 @@
 
 - (float) preferencesTable: (UIPreferencesTable*)table heightForRow: (int)row inGroup: (int)group withProposedHeight: (float)proposed  
 {
-	if (row == -1) 
+	if (row == -1)
 	{
 		return [[groups objectAtIndex: group] titleHeight];
 	} 

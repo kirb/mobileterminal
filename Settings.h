@@ -11,6 +11,7 @@
   int width;
   int height;
 	int fontSize;
+	float fontWidth;
 		
   NSString * font;
   NSString * args;	
@@ -21,6 +22,7 @@
 @property int width;
 @property int height;
 @property int fontSize;
+@property float fontWidth;
 @property (readwrite, copy) NSString * font;
 @property (readwrite, copy) NSString * args;
 

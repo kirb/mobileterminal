@@ -56,7 +56,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 
   struct winsize win;
 	
-	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:tid];
 	
   win.ws_col = [config width];
   win.ws_row = [config height];

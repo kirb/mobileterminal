@@ -31,18 +31,15 @@
 	id delegate;
 	
 	NSArray * fontNames;
-	NSArray * fontSizes;
 	
 	UIPickerView * fontPicker;
 	UIPickerTable * pickerTable;
 	
 	NSString * selectedFont;
-	int selectedSize;
 }
 
 - (id) initWithFrame: (struct CGRect)rect;
 - (void) selectFont: (NSString*)font;
-- (void) selectSize: (int)fontSize;
 - (void) createFontList;
 - (void) setDelegate:(id)delegate;
 
@@ -53,11 +50,15 @@
 @interface FontView : UIPreferencesTable
 {
 	FontChooser * fontChooser;
+	UISliderControl * sizeSlider;
+	UISliderControl * widthSlider;
 }
 
 -(FontChooser*) fontChooser;
 -(id) initWithFrame:(CGRect)frame;
--(void) selectFont:(NSString*)font size:(int)size;
+-(void) selectFont:(NSString*)font size:(int)size width:(float)width;
+-(void) sizeSelected:(UISliderControl*)control;
+-(void) widthSelected:(UISliderControl*)control;
 
 @end
 
@@ -96,6 +97,8 @@
 - (id) addSwitch:(NSString*)label target:(id)target action:(SEL)action;
 - (id) addSwitch:(NSString*)label on:(BOOL)on;
 - (id) addSwitch:(NSString*)label on:(BOOL)on target:(id)target action:(SEL)action;
+- (id) addIntValueSlider:(NSString*)label range:(NSRange)range target:(id)target action:(SEL)action;
+- (id) addFloatValueSlider: (NSString*)label minValue:(float)minValue maxValue:(float)maxValue target:(id)target action:(SEL)action;
 - (id) addPageButton:(NSString*)label;
 - (id) addPageButton:(NSString*)label value:(NSString*)value;
 - (id) addValueField:(NSString*)label value:(NSString*)value;
@@ -106,7 +109,7 @@
 - (UIPreferencesTableCell*) row: (int) row;
 - (NSString*) stringValueForRow: (int) row;
 
-@property (readonly) float titleHeight;
+@property (readwrite) float titleHeight;
 @property (readonly) UIPreferencesTableCell * title;
 @end
 
@@ -154,9 +157,14 @@
 +(PreferencesController*) sharedInstance;
 -(id) init;
 -(void) initViewStack;
--(FontView*) fontView;
 -(TerminalView*) terminalView;
 -(UIPreferencesTable*) settingsView;
+
+-(FontView*) fontView;
+-(void)setFontSize:(int)size;
+-(void)setFontWidth:(float)width;
+-(void)setFont:(NSString*)font;
+
 -(id) aboutView;
 
 @end

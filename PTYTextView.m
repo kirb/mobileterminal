@@ -27,10 +27,13 @@
 - (id)initWithFrame:(CGRect)frame 
 						 source:(VT100Screen*)screen
            scroller:(UIScroller*)scroller
+				 identifier:(int)identifier
 {
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
 #endif
+	
+	termid = identifier;
 	
   self = [super initWithFrame:frame];
   CURSOR = YES;
@@ -146,11 +149,12 @@
 	}
 	else
 	{
-		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
-		int fs = [config fontSize];
-		lineHeight = fs + 3;
-		charWidth = (int)(fs*0.6);
-		//log(@"charWidth %f frame.width %f", charWidth, frame.size.width);
+		//log(@"termid %d", termid);
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
+		lineHeight = [config fontSize] + 3.0f;
+		charWidth = [config fontSize]*[config fontWidth];
+		//log(@"size %d width %f", [config fontSize], [config fontWidth]);
+		//log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
 	}
 	
 	[self setFirstTileSize:CGSizeMake(frame.size.width, lineHeight)];
@@ -256,7 +260,7 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 {
 	if (!fontRef) 
 	{		
-		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:0];
+		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
 		const char * font = [config.font cString];
     // First time through: cache the fontRef. This lookup is expensive.
     //fontSize = floor(lineHeight);

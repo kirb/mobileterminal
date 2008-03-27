@@ -51,7 +51,7 @@
 	for (numTerminals = 0; numTerminals < ([settings multipleTerminals] ? MAXTERMINALS : 1); numTerminals++)
 	{
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
-		VT100Screen   * screen   = [[VT100Screen alloc] init];
+		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
 		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
 		UIScroller    * scroller = [[UIScroller alloc] init];
 		
@@ -65,7 +65,8 @@
 		
 		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
 																												 source: screen
-																											 scroller: scroller];		
+																											 scroller: scroller
+																										 identifier: numTerminals];		
 		[textviews addObject:textview];
 	}
 	
@@ -474,7 +475,8 @@
 		
 		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
 																												 source: screen
-																											 scroller: scroller];		
+																											 scroller: scroller
+																										 identifier: numTerminals];		
 		[textviews addObject:textview];
 	}	
 	
@@ -518,6 +520,11 @@
 -(VT100Terminal*) activeTerminal
 {
 	return [terminals objectAtIndex: activeTerminal];
+}
+
+-(NSArray *) textviews
+{
+	return textviews;
 }
 
 //_______________________________________________________________________________

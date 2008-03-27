@@ -34,6 +34,9 @@ typedef struct screen_char_t
   unsigned int fg_color; // foreground color
 } screen_char_t;
 
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
 #define TABWINDOW	300
 
 @interface VT100Screen : NSObject
@@ -54,9 +57,10 @@ typedef struct screen_char_t
   BOOL PLAYBELL;
   BOOL SHOWBELL;
 
-
   BOOL blinkingCursor;
   PTYTextView *display;
+	
+	int termid;
 
   // single buffer that holds both scrollback and screen contents
   screen_char_t *buffer_lines;
@@ -103,8 +107,9 @@ typedef struct screen_char_t
   BOOL printPending;
 }
 
+//_______________________________________________________________________________
 
-- (id)init;
+- (id)initWithIdentifier:(int)identifier;
 - (void)dealloc;
 
 - (void)initScreenWithWidth:(int)width Height:(int)height;
