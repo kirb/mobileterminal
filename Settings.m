@@ -18,8 +18,8 @@
 {
   self = [super init];
 	
+  autosize = YES;
   width = 45;
-  height = 17;
 	fontSize = 12;
 	fontWidth = 0.6f;
   font = @"CourierNewBold";
@@ -62,7 +62,7 @@
 //_______________________________________________________________________________
 
 @synthesize width;
-@synthesize height;
+@synthesize autosize;
 @synthesize fontSize;
 @synthesize fontWidth;
 @dynamic font;
@@ -122,8 +122,8 @@
 	for (i = 0; i < MAXTERMINALS; i++)
 	{
 		NSMutableDictionary * tc = [NSMutableDictionary dictionaryWithCapacity:10];		
+		[tc setObject:[NSNumber numberWithBool:YES] forKey:@"autosize"];
 		[tc setObject:[NSNumber numberWithInt:45] forKey:@"width"];
-		[tc setObject:[NSNumber numberWithInt:17] forKey:@"height"];
 		[tc setObject:[NSNumber numberWithInt:12] forKey:@"fontSize"];
 		[tc setObject:[NSNumber numberWithFloat:0.6f] forKey:@"fontWidth"];
 		[tc setObject:@"CourierNewBold" forKey:@"font"];
@@ -145,8 +145,8 @@
 	{
 		TerminalConfig * config = [terminalConfigs objectAtIndex:i];
 		NSDictionary * tc = [tcs objectAtIndex:i];
+		config.autosize = [[tc objectForKey:@"autosize"] boolValue];
 		config.width = [[tc objectForKey:@"width"] intValue];
-		config.height = [[tc objectForKey:@"height"] intValue];
 		config.fontSize = [[tc objectForKey:@"fontSize"] intValue];
 		config.fontWidth = [[tc objectForKey:@"fontWidth"] floatValue];
 		config.font = [tc objectForKey:@"font"];
@@ -167,8 +167,8 @@
 	{
 		TerminalConfig * config = [terminalConfigs objectAtIndex:i];
 		NSMutableDictionary * tc = [NSMutableDictionary dictionaryWithCapacity:10];		
+		[tc setObject:[NSNumber numberWithBool:config.autosize] forKey:@"autosize"];
 		[tc setObject:[NSNumber numberWithInt:config.width] forKey:@"width"];
-		[tc setObject:[NSNumber numberWithInt:config.height] forKey:@"height"];
 		[tc setObject:[NSNumber numberWithInt:config.fontSize] forKey:@"fontSize"];
 		[tc setObject:[NSNumber numberWithFloat:config.fontWidth] forKey:@"fontWidth"];
 		[tc setObject:config.font forKey:@"font"];

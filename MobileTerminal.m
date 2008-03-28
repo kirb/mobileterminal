@@ -23,7 +23,7 @@
 
 @implementation MobileTerminal
 
-@synthesize landscape, degrees;
+@synthesize landscape, degrees, controlKeyMode;
 
 //_______________________________________________________________________________
 
@@ -315,6 +315,15 @@
 
 //_______________________________________________________________________________
 
+-(void) setControlKeyMode:(BOOL)mode
+{
+	log(@"setControlMode: %d", mode);
+	controlKeyMode = mode;
+	[[self textView] refreshCursorRow];
+}
+
+//_______________________________________________________________________________
+
 - (void) statusBarMouseUp:(GSEvent*)event
 {
 	if (numTerminals > 1)
@@ -364,7 +373,9 @@
 	CGRect textFrame;
 	CGRect textScrollerFrame;
 	CGRect gestureFrame;
-	int width, height, i;
+	int columns, rows, i;
+	
+	//log(@"----------------- updateFrames needsRefresh %d", needsRefresh);
 
 	struct CGSize size = [UIHardware mainScreenSize];
 	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
@@ -376,38 +387,44 @@
 
 	[mainView setFrame:contentRect];
 		
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:activeTerminal];
+
+	float availableWidth = mainView.bounds.size.width;
+	float availableHeight= mainView.bounds.size.height;
+	
 	if (keyboardShown) 
 	{
-		gestureFrame			= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40.0f, mainView.bounds.size.height-keybSize.height);
-		textScrollerFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height-keybSize.height);
-		textFrame					= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height-keybSize.height);
-		
-		width  = landscape ? 67 : 45;
-		height = landscape ?  8 : 17;
-		
-		CGRect keybFrame = CGRectMake(0, mainView.bounds.size.height - keybSize.height, mainView.bounds.size.width, keybSize.height);
-		
-		[keyboardView setFrame:keybFrame];
-	} 
-	else 
-	{
-		gestureFrame			= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width-40.0f, mainView.bounds.size.height);
-		textScrollerFrame = CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height);
-		textFrame					= CGRectMake(0.0f, 0.0f, mainView.bounds.size.width, mainView.bounds.size.height);
-		
-		width  = landscape ? 67 : 45;
-		height = landscape ? 23 : 32;
+		availableHeight -= keybSize.height;
+		[keyboardView setFrame:CGRectMake(0, mainView.bounds.size.height - keybSize.height, availableWidth, keybSize.height)];
 	}
+			
+	float lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
+	float charWidth  = [config fontSize]*[config fontWidth];
 	
-	[[self textView] setFrame:textFrame];
+	rows = availableHeight / lineHeight;
+	
+	if ([config autosize])
+	{
+		columns = availableWidth / charWidth;
+	}
+	else
+	{
+		columns = [config width];
+	}
+
+	textFrame				  = CGRectMake(0.0f, 0.0f, columns * charWidth, rows * lineHeight);
+	gestureFrame			= CGRectMake(0.0f, 0.0f, availableWidth-40.0f, availableHeight-(columns * charWidth > availableWidth ? 40.0f : 0));
+	textScrollerFrame = CGRectMake(0.0f, 0.0f, availableWidth, availableHeight);
+
+	[[self textView]     setFrame:textFrame];
 	[[self textScroller] setFrame:textScrollerFrame];
 	[[self textScroller] setContentSize:textFrame.size];
-	[gestureView setFrame:gestureFrame];
+	[gestureView         setFrame:gestureFrame];
 	
 	for (i = 0; i < numTerminals; i++)
 	{
-		[[processes objectAtIndex:i] setWidth:width    height:height];
-		[[screens   objectAtIndex:i] resizeWidth:width height:height];
+		[[processes objectAtIndex:i] setWidth:columns    height:rows];
+		[[screens   objectAtIndex:i] resizeWidth:columns height:rows];
 	}
 	
 	if (needsRefresh) 

@@ -118,7 +118,7 @@
 	SEL sel = @selector(directoryContentsAtPath:matchingExtension:options:keepExtension:);
 	NSMethodSignature * sig = [[fm class] instanceMethodSignatureForSelector:sel];
 	NSInvocation * invocation = [NSInvocation invocationWithMethodSignature:sig];
-	NSString * path = @"/var/Fonts";
+	NSString * path = @"/var/Fonts/Cache";
 	NSString * ext = @"ttf";
 	int options = 0;
 	BOOL keep = NO;
@@ -244,9 +244,11 @@
 	widthSlider = [cell control];
 	[prefGroups addGroup:group];
 
+	/*
 	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 	[group addSwitch:@"Monospace"];
 	[prefGroups addGroup:group];
+	 */
 	
 	[self setDataSource:prefGroups];
 	[self reloadData];
@@ -299,8 +301,14 @@
 	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 	
 	fontButton = [group addPageButton:@"Font"];
-
 	[prefGroups addGroup:group];
+	
+	sizeGroup = [PreferencesGroup groupWithTitle:@"Size" icon:nil];
+	autosizeSwitch = [[sizeGroup addSwitch:@"Auto Adjust" target:self action:@selector(autosizeSwitched:)] control];
+	widthCell = [sizeGroup addIntValueSlider:@"Width" range:NSMakeRange(40, 60) target:self action:@selector(widthSelected:)];
+  widthSlider = [widthCell control];
+	[prefGroups addGroup:sizeGroup];	
+	
 	[self setDataSource:prefGroups];
 	[self reloadData];
 	
@@ -321,223 +329,50 @@
 	terminalIndex = index;
 	config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 	[self fontChanged];
-}
-
-@end
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
-@implementation PreferencesGroup
-
-@synthesize title;
-@synthesize titleHeight;
-
-//_______________________________________________________________________________
-
-+ (id) groupWithTitle: (NSString*) title icon: (UIImage*) icon 
-{
-	return [[PreferencesGroup alloc] initWithTitle: title icon: icon];
-}
-
-//_______________________________________________________________________________
-
-- (id) initWithTitle: (NSString*) title_ icon: (UIImage*) icon 
-{
-	if ((self = [super init])) 
+	log(@"terminalIndex %d", terminalIndex);
+	log(@"config autosize %d", [config autosize]);
+	log(@"autosizeSwitch %@", autosizeSwitch);
+	[autosizeSwitch setValue:([config autosize] ? 1.0f : 0.0f)];
+	log(@"config autosize %d", [config autosize]);
+	log(@"widthCell superview %@", [widthCell superview]);
+	if ([config autosize] && [widthCell superview] != nil)
 	{
-		title = [[[UIPreferencesTableCell alloc] init] retain];
-		[title setTitle: title_];
-		if (icon)  [title setIcon: icon];			
-		titleHeight = ([title_ length] > 0) ? 40.0f : 14.0f;		
-		cells = [[NSMutableArray arrayWithCapacity:1] retain];
+		log(@"del widthCell");
+		[sizeGroup removeCell:widthCell];
 	}
-	
-	return self;
-}
-
-//_______________________________________________________________________________
-
-- (void) removeCell:(id)cell
-{
-	[cells removeObject:cell];
-}
-
-//_______________________________________________________________________________
-
-- (void) addCell: (id) cell 
-{
-	[cells addObject:cell];
-}
-
-//_______________________________________________________________________________
-
-- (id) addSwitch: (NSString*) label 
-{
-	return [self addSwitch:label on:NO target:nil action:nil];
-}
-
-//_______________________________________________________________________________
-
-- (id) addSwitch: (NSString*)label target:(id)target action:(SEL)action
-{
-	return [self addSwitch:label on:NO target:target action:action];
-}
-
-//_______________________________________________________________________________
-
-- (id) addSwitch: (NSString*) label on: (BOOL) on 
-{
-	return [self addSwitch:label on:on target:nil action:nil];
-}
-
-//_______________________________________________________________________________
-
-- (id) addSwitch: (NSString*) label on: (BOOL) on target:(id)target action:(SEL)action
-{
-	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setTitle: label];
-	[cell setShowSelection:NO];
-	UISwitchControl * sw = [[UISwitchControl alloc] initWithFrame: CGRectMake(206.0f, 9.0f, 96.0f, 48.0f)];
-	[sw setValue: (on ? 1.0f : 0.0f)];
-	[sw addTarget:target action:action forEvents:64];
-	[cell setControl:sw];	
-	[cells addObject: cell];
-	return cell;
-}
-
-//_______________________________________________________________________________
-
-- (id) addIntValueSlider: (NSString*)label range:(NSRange)range target:(id)target action:(SEL)action
-{
-	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setTitle: label];
-	[cell setShowSelection:NO];
-	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
-	[sc addTarget:target action:action forEvents:7|64];
-
-	[sc setAllowsTickMarkValuesOnly:YES];
-	[sc setNumberOfTickMarks:range.length+1];
-	[sc setMinValue:range.location];
-	[sc setMaxValue:NSMaxRange(range)];
-	[sc setValue:range.location];
-	[sc setShowValue:YES];
-	[sc setContinuous:NO];
-		
-	[cell setControl:sc];	
-	[cells addObject: cell];
-	return cell;
-}
-
-//_______________________________________________________________________________
-
-- (id) addFloatValueSlider: (NSString*)label minValue:(float)minValue maxValue:(float)maxValue target:(id)target action:(SEL)action
-{
-	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setTitle: label];
-	[cell setShowSelection:NO];
-	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
-	[sc addTarget:target action:action forEvents:7|64];
-	
-	[sc setAllowsTickMarkValuesOnly:NO];
-	[sc setMinValue:minValue];
-	[sc setMaxValue:maxValue];
-	[sc setValue:minValue];
-	[sc setShowValue:YES];
-	[sc setContinuous:YES];
-	
-	[cell setControl:sc];	
-	[cells addObject: cell];
-	return cell;
-}
-
-//_______________________________________________________________________________
-
--(id) addPageButton: (NSString*) label
-{
-	return [self addPageButton:label value:nil];
-}
-
-//_______________________________________________________________________________
-
--(id) addPageButton: (NSString*) label value:(NSString*)value
-{
-	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setTitle: label];
-	[cell setValue: value];
-	[cell setShowDisclosure:YES];
-	[cell setDisclosureClickable: NO];
-	[cell setDisclosureStyle: 2];
-	[[cell textField] setEnabled:NO];
-	[cells addObject: cell];
-	
-	[[cell textField] setTapDelegate:[PreferencesController sharedInstance]];
-	[cell setTapDelegate:[PreferencesController sharedInstance]];
-	
-	return cell;
-}
-
-//_______________________________________________________________________________
-
--(id) addValueField: (NSString*) label value:(NSString*)value
-{
-	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setTitle: label];
-	[cell setValue: value];
-	[[cell textField] setEnabled:NO];
-	[[cell textField] setHorizontallyCenterText:YES];
-	[cells addObject: cell];	
-	return cell;
-}
-
-//_______________________________________________________________________________
-
--(id) addTextField: (NSString*) label
-{
-	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setValue: label];
-	[[cell textField] setHorizontallyCenterText:YES];
-	[[cell textField] setEnabled:NO];
-	[cells addObject: cell];	
-	return cell;
-}
-
-//_______________________________________________________________________________
-
-- (int) rows 
-{
-	return [cells count];
-}
-
-//_______________________________________________________________________________
-
-- (UIPreferencesTableCell*) row: (int) row 
-{
-	if (row == -1) 
+	else if (![config autosize] && [widthCell superview] == nil)
 	{
-		return nil;
-	} 
-	else 
-	{
-		return [cells objectAtIndex:row];
+		log(@"add widthCell");
+		[sizeGroup addCell:widthCell];
 	}
+	[self reloadData];		
 }
 
 //_______________________________________________________________________________
 
-- (NSString*) stringValueForRow: (int) row 
+- (void) autosizeSwitched:(UISliderControl*)control
 {
-	UIPreferencesTextTableCell* cell = (UIPreferencesTextTableCell*)[self row: row];
-	return [[cell textField] text];
+	BOOL autosize = ([control value] == 1.0f);
+	log(@"autosizeSwitched %d", autosize);
+	[config setAutosize:autosize];
+	if (autosize)
+	{
+		[sizeGroup removeCell:widthCell];
+	}
+	else
+	{
+		[sizeGroup addCell:widthCell];
+	}
+	[self reloadData];		
 }
 
 //_______________________________________________________________________________
 
-- (BOOL) boolValueForRow: (int) row 
+- (void) widthSelected:(UISliderControl*)control
 {
-	UIPreferencesControlTableCell * cell = (UIPreferencesControlTableCell*)[self row: row];
-	UISwitchControl * sw = [cell control];
-	return [sw value] == 1.0f;
+	[control setValue:floor([control value])];
+	[config setWidth:(int)[control value]];
+	log(@"widthSelected %@", control);
 }
 
 @end
@@ -902,6 +737,223 @@
 - (UIPreferencesTableCell*) preferencesTable: (UIPreferencesTable*)table cellForRow: (int)row inGroup: (int)group 
 {
 	return [[groups objectAtIndex: group] row: row];
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation PreferencesGroup
+
+@synthesize title;
+@synthesize titleHeight;
+
+//_______________________________________________________________________________
+
++ (id) groupWithTitle: (NSString*) title icon: (UIImage*) icon 
+{
+	return [[PreferencesGroup alloc] initWithTitle: title icon: icon];
+}
+
+//_______________________________________________________________________________
+
+- (id) initWithTitle: (NSString*) title_ icon: (UIImage*) icon 
+{
+	if ((self = [super init])) 
+	{
+		title = [[[UIPreferencesTableCell alloc] init] retain];
+		[title setTitle: title_];
+		if (icon)  [title setIcon: icon];			
+		titleHeight = ([title_ length] > 0) ? 40.0f : 14.0f;		
+		cells = [[NSMutableArray arrayWithCapacity:1] retain];
+	}
+	
+	return self;
+}
+
+//_______________________________________________________________________________
+
+- (void) removeCell:(id)cell
+{
+	[cells removeObject:cell];
+}
+
+//_______________________________________________________________________________
+
+- (void) addCell: (id) cell 
+{
+	[cells addObject:cell];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*) label 
+{
+	return [self addSwitch:label on:NO target:nil action:nil];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*)label target:(id)target action:(SEL)action
+{
+	return [self addSwitch:label on:NO target:target action:action];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*) label on: (BOOL) on 
+{
+	return [self addSwitch:label on:on target:nil action:nil];
+}
+
+//_______________________________________________________________________________
+
+- (id) addSwitch: (NSString*) label on: (BOOL) on target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISwitchControl * sw = [[UISwitchControl alloc] initWithFrame: CGRectMake(206.0f, 9.0f, 96.0f, 48.0f)];
+	[sw setValue: (on ? 1.0f : 0.0f)];
+	[sw addTarget:target action:action forEvents:64];
+	[cell setControl:sw];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (id) addIntValueSlider: (NSString*)label range:(NSRange)range target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
+	[sc addTarget:target action:action forEvents:7|64];
+	
+	[sc setAllowsTickMarkValuesOnly:YES];
+	[sc setNumberOfTickMarks:range.length+1];
+	[sc setMinValue:range.location];
+	[sc setMaxValue:NSMaxRange(range)];
+	[sc setValue:range.location];
+	[sc setShowValue:YES];
+	[sc setContinuous:NO];
+	
+	[cell setControl:sc];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (id) addFloatValueSlider: (NSString*)label minValue:(float)minValue maxValue:(float)maxValue target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISliderControl * sc = [[UISliderControl alloc] initWithFrame: CGRectMake(100.0f, 1.0f, 200.0f, 40.0f)];
+	[sc addTarget:target action:action forEvents:7|64];
+	
+	[sc setAllowsTickMarkValuesOnly:NO];
+	[sc setMinValue:minValue];
+	[sc setMaxValue:maxValue];
+	[sc setValue:minValue];
+	[sc setShowValue:YES];
+	[sc setContinuous:YES];
+	
+	[cell setControl:sc];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(id) addPageButton: (NSString*) label
+{
+	return [self addPageButton:label value:nil];
+}
+
+//_______________________________________________________________________________
+
+-(id) addPageButton: (NSString*) label value:(NSString*)value
+{
+	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setValue: value];
+	[cell setShowDisclosure:YES];
+	[cell setDisclosureClickable: NO];
+	[cell setDisclosureStyle: 2];
+	[[cell textField] setEnabled:NO];
+	[cells addObject: cell];
+	
+	[[cell textField] setTapDelegate:[PreferencesController sharedInstance]];
+	[cell setTapDelegate:[PreferencesController sharedInstance]];
+	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(id) addValueField: (NSString*) label value:(NSString*)value
+{
+	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setValue: value];
+	[[cell textField] setEnabled:NO];
+	[[cell textField] setHorizontallyCenterText:YES];
+	[cells addObject: cell];	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(id) addTextField: (NSString*) label
+{
+	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setValue: label];
+	[[cell textField] setHorizontallyCenterText:YES];
+	[[cell textField] setEnabled:NO];
+	[cells addObject: cell];	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (int) rows 
+{
+	return [cells count];
+}
+
+//_______________________________________________________________________________
+
+- (UIPreferencesTableCell*) row: (int) row 
+{
+	if (row == -1) 
+	{
+		return nil;
+	} 
+	else 
+	{
+		return [cells objectAtIndex:row];
+	}
+}
+
+//_______________________________________________________________________________
+
+- (NSString*) stringValueForRow: (int) row 
+{
+	UIPreferencesTextTableCell* cell = (UIPreferencesTextTableCell*)[self row: row];
+	return [[cell textField] text];
+}
+
+//_______________________________________________________________________________
+
+- (BOOL) boolValueForRow: (int) row 
+{
+	UIPreferencesControlTableCell * cell = (UIPreferencesControlTableCell*)[self row: row];
+	UISwitchControl * sw = [cell control];
+	return [sw value] == 1.0f;
 }
 
 @end

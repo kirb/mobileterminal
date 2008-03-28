@@ -78,8 +78,10 @@
       case 1: // Tab
         characters = @"\x09";
         break;
-      case 3:  // ^D
-        characters = @"\x04";
+      case 3:  //^ // ^D
+        //characters = @"\x04";
+				if (![[MobileTerminal application] controlKeyMode])
+					[[MobileTerminal application] setControlKeyMode:YES];
         break;
     }
     if (characters) 

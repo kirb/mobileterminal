@@ -15,6 +15,7 @@
 
 @class MobileTerminal;
 @class TerminalConfig;
+@class PreferencesGroup;
 
 //_______________________________________________________________________________
 
@@ -67,7 +68,12 @@
 @interface TerminalView : UIPreferencesTable
 {
 	id							 fontButton;
-	
+
+	UISliderControl * widthSlider;
+	UIPreferencesControlTableCell * widthCell;
+	UISliderControl * autosizeSwitch;
+	PreferencesGroup * sizeGroup;
+
 	TerminalConfig * config;
 	int							 terminalIndex;
 }
@@ -75,6 +81,8 @@
 -(void) fontChanged;
 -(id) initWithFrame:(CGRect)frame;
 -(void) setTerminalIndex:(int)terminal;
+-(void) autosizeSwitched:(UISliderControl*)control;
+-(void) widthSelected:(UISliderControl*)control;
 
 @end
 

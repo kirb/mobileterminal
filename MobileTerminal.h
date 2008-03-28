@@ -56,6 +56,7 @@
 
 @property BOOL landscape;
 @property int  degrees;
+@property BOOL controlKeyMode;
 @property (readonly) UIView				* activeView;
 @property (readonly) UIView				* mainView;
 @property (readonly) PTYTextView	* textView;

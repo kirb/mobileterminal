@@ -28,6 +28,7 @@
 #define DEBUG_METHOD_TRACE 0
 
 #import "VT100Screen.h"
+#import "Constants.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -108,8 +109,6 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 @implementation VT100Screen
 
-#define DEFAULT_WIDTH     80
-#define DEFAULT_HEIGHT    25
 #define DEFAULT_SCROLLBACK 1000
 
 #define MIN_WIDTH     10
@@ -127,8 +126,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   if ((self = [super init]) == nil)
     return nil;
 
-  WIDTH = DEFAULT_WIDTH;
-  HEIGHT = DEFAULT_HEIGHT;
+  WIDTH = DEFAULT_TERMINAL_WIDTH;
+  HEIGHT = DEFAULT_TERMINAL_HEIGHT;
 
   CURSOR_X = CURSOR_Y = 0;
   SAVE_CURSOR_X = SAVE_CURSOR_Y = 0;
@@ -167,7 +166,7 @@ static __inline__ screen_char_t *incrementLinePointer(
 	termid = identifier;
 
 	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
-  [self initScreenWithWidth:[config width] Height:[config height]];
+  [self initScreenWithWidth:[config width] Height:DEFAULT_TERMINAL_HEIGHT];
 
   return self;
 }

@@ -10,6 +10,7 @@
 #include <util.h>
 #include <sys/ioctl.h>
 #import "Settings.h"
+#import "Constants.h"
 #import "Log.h"
 
 @implementation SubProcess
@@ -59,10 +60,10 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:tid];
 	
   win.ws_col = [config width];
-  win.ws_row = [config height];
+  win.ws_row = DEFAULT_TERMINAL_HEIGHT;
 
   pid = forkpty(&fd, NULL, NULL, &win);
-	
+	//log(@"pid %d", pid);
   if (pid == -1) 
 	{
     perror("forkpty");

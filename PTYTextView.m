@@ -4,6 +4,7 @@
 
 #import "PTYTextView.h"
 #import <UIKit/NSString-UIStringDrawing.h>
+#import "MobileTerminal.h"
 #import "VT100Screen.h"
 #import "ColorMap.h"
 #import "PTYTile.h"
@@ -105,19 +106,22 @@
   // Expand the height, and cause scroll
   int newHeight = lines * lineHeight;
   CGRect frame = [self frame];
-  if (frame.size.height != newHeight) {
+  if (frame.size.height != newHeight) 
+	{
     frame.size.height = newHeight;
     [self setFrame:frame];
     [textScroller setContentSize:frame.size];
   }
   int startIndex = 0;
-  if (lines > height) {
+  if (lines > height) 
+	{
     startIndex = lines - height;
   }
 	
   // Check for dirty on-screen rows; scroll back is not updated
   int row;
-  for (row = 0; row < height; row++) {
+  for (row = 0; row < height; row++) 
+	{
 		CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight,
 														 [self frame].size.width, lineHeight);
 		[self setNeedsDisplayInRect:rect];
@@ -143,7 +147,7 @@
 	
 	if (0) // old behaviour
 	{
-		float availableHeight = frame.size.height - [textScroller bottomBufferHeight];  
+		float availableHeight = frame.size.height;  
 		lineHeight = floor(availableHeight / HEIGHT);
 		charWidth = floor(frame.size.width / WIDTH);
 	}
@@ -151,7 +155,7 @@
 	{
 		//log(@"termid %d", termid);
 		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
-		lineHeight = [config fontSize] + 3.0f;
+		lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
 		charWidth = [config fontSize]*[config fontWidth];
 		//log(@"size %d width %f", [config fontSize], [config fontWidth]);
 		//log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
@@ -230,8 +234,7 @@
   if (lines > height) {
     scrollIndex = lines - height;
   }
-  float visiblePoint =
-    [self frame].size.height + [textScroller bottomBufferHeight];
+  float visiblePoint = [self frame].size.height;
   CGRect visibleRect = CGRectMake(0, visiblePoint, 0, 0);
   [textScroller scrollRectToVisible:visibleRect animated:YES];
   [dataSource releaseLock];
@@ -331,13 +334,15 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect
 {
+	//log(@"drawRow %d", row);
+	//logRect(@"tileRect", rect);
+	
   CGContextRef context = UICurrentContext();
   rect.origin.x += margin;
 
   [dataSource acquireLock];
 
-  CGRect charRect = CGRectMake(rect.origin.x, rect.origin.y,
-                               charWidth, lineHeight);
+  CGRect charRect = CGRectMake(rect.origin.x, rect.origin.y, charWidth, lineHeight);
 
   // Draw background for each column in the row
   int width = [dataSource width];
@@ -345,18 +350,19 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 		
   screen_char_t * theLine = [dataSource getLineAtIndex:row];
 	
-	/*
+	// ---------- debug output
 	NSMutableString * line = [NSMutableString stringWithCapacity:width];
-  for (column = 0; column < width; column++) {
+  for (column = 0; column < width; column++) 
+	{
     char c = 0xff & theLine[column].ch;
     if (c == 0) c = ' ';
 		[line appendFormat:@"%c", c];
 	}
 	//logRect(@"   ", rect);		
-	log(@"width %02d row %02d [%@]", width, row, line);
-	*/
+	//log(@"width %02d row %02d [%@]", width, row, line);
+	// ---------- debug output end
 
-  // Avoid painting each black squdraware individually. First paint the whole 
+  // Avoid painting each black square individually. First paint the whole 
   // row with the background color  
 	
   [self drawBox:context 
@@ -400,16 +406,41 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   if (lines > height) {
     cursorY += (lines - height);
   }
-  if (CURSOR && row == cursorY) {
+	
+  if (CURSOR && row == cursorY) 
+	{
+		//log(@"control cursor row %d lines %d", row, lines);
+
     int cursorX = [dataSource cursorX] - 1;
     CGRect cursorRect = CGRectMake(rect.origin.x, rect.origin.y,
                                    charWidth, lineHeight);
     cursorRect.origin.x += cursorX * charWidth;
     CGColorRef cursorColor = [[ColorMap sharedInstance] defaultCursorColor];
+		if ([[MobileTerminal application] controlKeyMode])
+		{
+			//log(@"control cursor color");
+			cursorColor = [[ColorMap sharedInstance] colorForCode:10];
+		}
     [self drawBox:context color:cursorColor boxRect:cursorRect];
   }
 
   [dataSource releaseLock];
+}
+
+//_______________________________________________________________________________
+
+- (CGRect) rectForRow:(int)row
+{
+	return CGRectMake(0, row*lineHeight, self.frame.size.width, lineHeight);
+}
+
+//_______________________________________________________________________________
+
+- (void) refreshCursorRow
+{
+	int row = [dataSource cursorY]-1;
+	//log(@"refreshCursorRow %d", row);
+	[self drawRow:row tileRect:CGRectMake(0, 0, self.frame.size.width, lineHeight)];
 }
 
 @end

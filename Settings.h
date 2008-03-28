@@ -9,9 +9,9 @@
 @interface TerminalConfig : NSObject
 {
   int width;
-  int height;
 	int fontSize;
 	float fontWidth;
+	BOOL autosize;
 		
   NSString * font;
   NSString * args;	
@@ -19,8 +19,8 @@
 
 - (NSString*) fontDescription;
 
+@property BOOL autosize;
 @property int width;
-@property int height;
 @property int fontSize;
 @property float fontWidth;
 @property (readwrite, copy) NSString * font;
