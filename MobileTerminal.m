@@ -31,6 +31,8 @@
 {
 	log(@"applicationDidFinishLaunching");
 	
+	int i;
+	
 	settings = [[Settings sharedInstance] retain];
 	[settings registerDefaults];
 	[settings readUserDefaults];
@@ -78,7 +80,8 @@
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
 	[mainView setBackgroundColor:[UIView colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f]];
-  [mainView addSubview:[scrollers objectAtIndex:0]];
+	for (i = 0; i < numTerminals; i++)
+		[mainView addSubview:[scrollers objectAtIndex:i]];
   [mainView addSubview:gestureView];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
@@ -101,8 +104,11 @@
 
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
-			
-	[self updateFrames:YES];
+		
+	for (i = 1; i < numTerminals; i++)
+	{
+		[self setActiveTerminal:i];
+	}
 	
 	[self setActiveTerminal:0];
 }
@@ -445,20 +451,54 @@
 
 -(void) setActiveTerminal:(int)active
 {
+	[self setActiveTerminal:active direction:0];
+}
+
+//_______________________________________________________________________________
+
+-(void) setActiveTerminal:(int)active direction:(int)direction
+{
 	[[self textView] willSlideOut];
-	[[self textScroller] removeFromSuperview];
-
-	if (numTerminals > 1)
-		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
-	activeTerminal = active;
-	if (numTerminals > 1)
-		[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] removeOnAbnormalExit:YES];
-
-	[mainView addSubview:[self textScroller]];
-	[mainView bringSubviewToFront:gestureView];
-	[mainView bringSubviewToFront:[PieView sharedInstance]];
 	
+	logRect(@"mainView rect", [mainView frame]);
+	
+	if (direction)
+	{
+		[UIView beginAnimations:@"slideOut"];
+		//[UIView setAnimationDelegate:self];
+		//[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * -320,0)];
+		[UIView endAnimations];
+	}
+	else
+	{
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-320,0)];
+	}
+	
+	if (numTerminals > 1) [self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
+	
+	activeTerminal = active;
+	
+	if (numTerminals > 1)	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] 
+																removeOnAbnormalExit:YES];
+	
+	if (direction)
+	{
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * 320,0)];
+		
+		[UIView beginAnimations:@"slideIn"];
+		//[UIView setAnimationDelegate:self];
+		//[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(0,0)];
+		[UIView endAnimations];
+	}
+	else
+	{
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(0,0)];
+	}
+		
 	[self updateFrames:YES];
+	
 	[[self textView] willSlideIn];
 }
 
@@ -468,7 +508,7 @@
 {
 	int active = activeTerminal - 1;
 	if (active < 0) active = numTerminals-1;
-	[self setActiveTerminal:active];
+	[self setActiveTerminal:active direction:-1];
 }
 
 //_______________________________________________________________________________
@@ -477,7 +517,7 @@
 {
 	int active = activeTerminal + 1;
 	if (active >= numTerminals) active = 0;
-	[self setActiveTerminal:active];
+	[self setActiveTerminal:active direction:1];
 }
 
 //_______________________________________________________________________________

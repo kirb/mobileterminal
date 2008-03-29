@@ -99,5 +99,6 @@
 - (void) createTerminals;
 - (void) destroyTerminals;
 - (void) setActiveTerminal:(int)active;
+- (void) setActiveTerminal:(int)active direction:(int)direction;
 
 @end
