@@ -333,14 +333,15 @@
 	log(@"config autosize %d", [config autosize]);
 	log(@"autosizeSwitch %@", autosizeSwitch);
 	[autosizeSwitch setValue:([config autosize] ? 1.0f : 0.0f)];
+	[widthSlider setValue:[config width]];
 	log(@"config autosize %d", [config autosize]);
 	log(@"widthCell superview %@", [widthCell superview]);
-	if ([config autosize] && [widthCell superview] != nil)
+	if ([config autosize])
 	{
 		log(@"del widthCell");
 		[sizeGroup removeCell:widthCell];
 	}
-	else if (![config autosize] && [widthCell superview] == nil)
+	else if (![config autosize])
 	{
 		log(@"add widthCell");
 		[sizeGroup addCell:widthCell];
@@ -372,7 +373,8 @@
 {
 	[control setValue:floor([control value])];
 	[config setWidth:(int)[control value]];
-	log(@"widthSelected %@", control);
+	log(@"widthSelected %d", (int)[control value]);
+	[config setWidth:(int)[control value]];
 }
 
 @end
@@ -776,14 +778,16 @@
 
 - (void) removeCell:(id)cell
 {
-	[cells removeObject:cell];
+	if ([cells containsObject:cell])
+		[cells removeObject:cell];
 }
 
 //_______________________________________________________________________________
 
 - (void) addCell: (id) cell 
 {
-	[cells addObject:cell];
+	if (![cells containsObject:cell])
+		[cells addObject:cell];
 }
 
 //_______________________________________________________________________________

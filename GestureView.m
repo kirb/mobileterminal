@@ -18,6 +18,7 @@
 	[self setBackgroundColor:[Settings sharedInstance].gestureViewColor];
 	 
 	toggleKeyboardTimer = NULL;
+	gestureMode = NO;
 	
   return self;
 }
@@ -35,6 +36,17 @@
 - (void)mouseUp:(GSEvent*)event
 {
 	[delegate hideMenu];
+
+	if (gestureMode) 
+	{
+		gestureMode = NO;
+		
+		log(@"finger count %d", gestureFingers);
+		
+		CGPoint vector = CGPointMake(gestureEnd.x - gestureStart.x, gestureEnd.y - gestureStart.y);	
+		log(@"vectore %f %f", vector.x, vector.y);
+		return;
+	}
 	
   CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
@@ -104,7 +116,24 @@
 
 - (void)gestureStarted:(GSEvent *)event
 {
-	//[super gestureStarted:event];
+	[delegate hideMenu];
+	gestureMode = YES;
+	gestureStart = GSEventGetInnerMostPathPosition(event); 
+}
+
+//_______________________________________________________________________________
+
+- (void)gestureChanged:(GSEvent *)event
+{
+}
+
+//_______________________________________________________________________________
+
+- (void)gestureEnded:(GSEvent *)event
+{
+	[delegate hideMenu];
+	gestureEnd = GSEventGetInnerMostPathPosition(event); 
+	gestureFingers = ((GSEventStruct*)event)->numPoints;
 }
 
 //_______________________________________________________________________________
@@ -122,12 +151,6 @@
 
 - (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
 {
-	/*
-	if (fingers == 1 && count == 1) // REMOVE ME! (for debug purposes only)
-	{
-		[delegate togglePreferences];
-	}*/
-	
 	if (fingers == 1 && count == 2)
 	{
 		[self stopToggleKeyboardTimer];
@@ -148,6 +171,7 @@
 
 - (BOOL)canHandleSwipes
 {
+	log(@"can handle swipes");
 	return YES;
 }
 
@@ -155,7 +179,7 @@
 
 - (int)swipe:(int)direction withEvent:(GSEvent *)event
 {
-	//log(@"swipeStarted %d %@", direction, event);
+	log(@"swipeStarted %d %@", direction, event);
 	return direction;
 }
 
@@ -173,13 +197,6 @@
   return NO;
 }
 
-//_______________________________________________________________________________
-
-/*
-- (void)drawRect: (CGRect *)rect
-{
-}
-*/
 //_______________________________________________________________________________
 
 @end
