@@ -179,7 +179,8 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     return;
 
   ioctl(fd, TIOCGWINSZ, &winsize);
-  if (winsize.ws_col != width || winsize.ws_row != height) {
+  if (winsize.ws_col != width || winsize.ws_row != height) 
+	{
     winsize.ws_col = width;
     winsize.ws_row = height;
     ioctl(fd, TIOCSWINSZ, &winsize);

@@ -27,6 +27,8 @@
   VT100Screen *dataSource;
   UIScroller *textScroller;
 
+	CGPoint scrollOffset;
+	
   // cached font details
   CGFontRef fontRef;
   float fontSize;
@@ -48,9 +50,11 @@
 - (void)refreshCursorRow;
 - (void)resetFont;
 
-// Only draws tiles which are dirty
 - (void)updateIfNecessary;
 - (void)updateAndScrollToEnd;
+
+- (void)willSlideIn;
+- (void)willSlideOut;
 
 - (void)drawBox:(CGContextRef)context
           color:(CGColorRef)color

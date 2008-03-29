@@ -29,11 +29,7 @@
 						 source:(VT100Screen*)screen
            scroller:(UIScroller*)scroller
 				 identifier:(int)identifier
-{
-#if DEBUG_ALLOC
-  NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
-#endif
-	
+{	
 	termid = identifier;
 	
   self = [super initWithFrame:frame];
@@ -145,25 +141,15 @@
 
   CGRect frame = [self frame];
 	
-	if (0) // old behaviour
-	{
-		float availableHeight = frame.size.height;  
-		lineHeight = floor(availableHeight / HEIGHT);
-		charWidth = floor(frame.size.width / WIDTH);
-	}
-	else
-	{
-		//log(@"termid %d", termid);
-		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
-		lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
-		charWidth = [config fontSize]*[config fontWidth];
-		//log(@"size %d width %f", [config fontSize], [config fontWidth]);
-		//log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
-	}
+	//log(@"termid %d", termid);
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
+	lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
+	charWidth = [config fontSize]*[config fontWidth];
+	//log(@"size %d width %f", [config fontSize], [config fontWidth]);
+	//log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
 	
 	[self setFirstTileSize:CGSizeMake(frame.size.width, lineHeight)];
 	[self setTileSize:CGSizeMake(frame.size.width, lineHeight)];
-	//[self removeAllTiles];
 	[self setNeedsLayout];
 	
 	//log(@"lineHeight %f frame.height %f", lineHeight, frame.size.height);
@@ -200,17 +186,20 @@
   // Check for dirty on-screen rows; scroll back is not updated
   int row;
   int column;
-  for (row = 0; row < height; row++) {
+  for (row = 0; row < height; row++) 
+	{
     BOOL redraw_row = NO;
     const char* dirty = [dataSource dirty] + row * width;
-    for (column = 0; column < width; column++) {
+    for (column = 0; column < width; column++) 
+		{
       char c = dirty[column];
       if (c) {
         redraw_row = YES;
         break;
       }
     }
-    if (redraw_row) {
+    if (redraw_row) 
+		{
       CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight,
                                [self frame].size.width, lineHeight);
       [self setNeedsDisplayInRect:rect];
@@ -236,8 +225,25 @@
   }
   float visiblePoint = [self frame].size.height;
   CGRect visibleRect = CGRectMake(0, visiblePoint, 0, 0);
+	//logRect(@"visibleRect", visibleRect);
   [textScroller scrollRectToVisible:visibleRect animated:YES];
   [dataSource releaseLock];
+}
+
+//_______________________________________________________________________________
+
+- (void) willSlideOut
+{
+	scrollOffset = [textScroller offset];
+	//logPoint(@"scrollOffset", scrollOffset);
+}
+
+//_______________________________________________________________________________
+
+- (void) willSlideIn
+{
+	[textScroller setOffset:scrollOffset];
+	//logPoint(@"scrollOffset", scrollOffset);
 }
 
 //_______________________________________________________________________________

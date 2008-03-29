@@ -1,3 +1,5 @@
+- internally converts keyboard character LF to CR (makes nano and pico work) 
+
 - long swipe left: start of line (ctrl-a)
 - long swipe right: end og line (ctrl-e)
 - bigger gesture view area 

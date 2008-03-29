@@ -4,6 +4,7 @@
 #import <GraphicsServices/GraphicsServices.h>
 #import "MobileTerminal.h"
 #import "Settings.h"
+#include <math.h>
 
 @implementation GestureView
 
@@ -33,6 +34,14 @@
 
 //_______________________________________________________________________________
 
+-(int) zoneForVector:(CGPoint)vector
+{
+  float theta = atan2(-vector.y, vector.x);
+	return ((7-(lround(theta/M_PI_4)+4)%8)+7)%8;
+}
+
+//_______________________________________________________________________________
+
 - (void)mouseUp:(GSEvent*)event
 {
 	[delegate hideMenu];
@@ -41,61 +50,87 @@
 	{
 		gestureMode = NO;
 		
-		log(@"finger count %d", gestureFingers);
+		//log(@"finger count %d", gestureFingers);
 		
 		CGPoint vector = CGPointMake(gestureEnd.x - gestureStart.x, gestureEnd.y - gestureStart.y);	
-		log(@"vectore %f %f", vector.x, vector.y);
+		float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
+		//log(@"vector %f %f length %f", vector.x, vector.y, r);
+		if (r < 30) 
+		{
+			if (gestureFingers == 3)
+				[[MobileTerminal application] toggleKeyboard];			
+			return;
+		}
+		else if (r > 30)
+		{
+			int zone = [self zoneForVector:vector];
+			//log(@"zone %d", zone);
+			if (gestureFingers == 2)
+			{
+				switch (zone)
+				{
+					case ZONE_W: [[MobileTerminal application] nextTerminal]; break;
+					case ZONE_E: [[MobileTerminal application] prevTerminal]; break;
+					case ZONE_S: [[MobileTerminal application] handleKeyPress:0x0d]; break;
+				}
+			}
+			else if (gestureFingers == 3)
+			{
+				switch (zone)
+				{
+					case ZONE_W: [[MobileTerminal application] togglePreferences]; break;
+				}
+			}
+		}
+		
 		return;
 	}
 	
   CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
 
-  float absx = (vector.x > 0) ? vector.x : -vector.x;
-  float absy = (vector.y > 0) ? vector.y : -vector.y;
-  float r = (absx > absy) ? absx : absy;
-  float theta = atan2(-vector.y, vector.x);
-  int zone = (int)((theta / (2 * 3.1415f * 0.125f)) + 0.5f + 4.0f);
+  float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
+
+	int zone = [self zoneForVector:vector];
   if (r > 30.0f) 
 	{
     NSString *characters = nil;
 		
     switch (zone) 
 		{
-      case 0:
-      case 8:  // Left
+      case ZONE_W:  // Left
 				if (r < 150.0f)
 					characters = @"\x1B[D";
 				else
 					characters = @"\x1"; // ctrl-a
         break;
-      case 2:  // Down
+      case ZONE_S:  // Down
         characters = @"\x1B[B";
         break;
-      case 4:  // Right
+      case ZONE_E:  // Right
 				if (r < 150.0f)
 					characters = @"\x1B[C";
 				else
 					characters = @"\x5"; // ctrl-e
         break;
-      case 6:  // Up
+      case ZONE_N:  // Up
         characters = @"\x1B[A";
         break;
-      case 5:  // ^C
+      case ZONE_NE:  // ^C
         characters = @"\x03";
         break;
-      case 7:  // ^[
+      case ZONE_NW:  // ^[
         characters = @"\x1B";
         break;
-      case 1: // Tab
+      case ZONE_SW: // Tab
         characters = @"\x09";
         break;
-      case 3:  //^ // ^D
-        //characters = @"\x04";
+      case ZONE_SE:  //^
 				if (![[MobileTerminal application] controlKeyMode])
 					[[MobileTerminal application] setControlKeyMode:YES];
         break;
     }
+		
     if (characters) 
 		{
 			//log(@"zone %d %f", zone, r);
@@ -114,11 +149,31 @@
 
 //_______________________________________________________________________________
 
+-(CGPoint)gestureCenter:(GSEvent *)event
+{
+	float cx = 0, cy = 0;
+	int i;
+	for (i = 0; i < ((GSEventStruct*)event)->numPoints; i++)
+	{
+		//log(@"p %d %f %f", i, ((GSEventStruct*)event)->points[i].x, ((GSEventStruct*)event)->points[i].y);
+		cx += ((GSEventStruct*)event)->points[i].x;
+		cy += ((GSEventStruct*)event)->points[i].y;
+	}		
+	cx /= ((GSEventStruct*)event)->numPoints;
+	cy /= ((GSEventStruct*)event)->numPoints;
+	return CGPointMake(cx,cy);
+}
+
+//_______________________________________________________________________________
+
 - (void)gestureStarted:(GSEvent *)event
 {
 	[delegate hideMenu];
 	gestureMode = YES;
-	gestureStart = GSEventGetInnerMostPathPosition(event); 
+	//gestureStart = GSEventGetInnerMostPathPosition(event); 
+	gestureStart = [self gestureCenter:event]; 
+	
+	//logPoint(@"start", gestureStart);
 }
 
 //_______________________________________________________________________________
@@ -132,8 +187,11 @@
 - (void)gestureEnded:(GSEvent *)event
 {
 	[delegate hideMenu];
-	gestureEnd = GSEventGetInnerMostPathPosition(event); 
+	//gestureEnd = GSEventGetInnerMostPathPosition(event); 
+	gestureEnd = [self gestureCenter:event];
 	gestureFingers = ((GSEventStruct*)event)->numPoints;
+
+	//logPoint(@"end", gestureEnd);
 }
 
 //_______________________________________________________________________________

@@ -14,6 +14,30 @@
 
 #define TERMINAL_LINE_SPACING   3.0f
 
+// gesture pie zones
+
+enum {
+	ZONE_N,
+	ZONE_NE,
+	ZONE_E,
+	ZONE_SE,
+	ZONE_S,
+	ZONE_SW,
+	ZONE_W,
+	ZONE_NW
+};
+
+/*
+#define ZONE_N								0
+#define ZONE_NE								1
+#define ZONE_E								2
+#define ZONE_SE								3
+#define ZONE_S								4
+#define ZONE_SW								5
+#define ZONE_W								6
+#define ZONE_NW								7
+*/
+
 //_______________________________________________________________________________
 
 CGColorRef colorWithRGBA(float red, float green, float blue, float alpha);

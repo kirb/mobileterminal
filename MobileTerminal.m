@@ -230,28 +230,38 @@
 // Process input from the keyboard
 - (void)handleKeyPress:(unichar)c
 {
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s: 0x%x (c=0x%02x)", __PRETTY_FUNCTION__, self, c);
-#endif
+  //log(@"c=0x%02x)", c);
 
-  if (!controlKeyMode) {
-    if (c == 0x2022) {
+  if (!controlKeyMode) 
+	{
+    if (c == 0x2022) 
+		{
       controlKeyMode = YES;
       return;
     }
-  } else {
+		else if (c == 0x0a) // LF from keyboard RETURN
+		{
+			c = 0x0d; // convert to CR
+		}
+  } 
+	else 
+	{
     // was in ctrl key mode, got another key
-    if (c < 0x60 && c > 0x40) {
+    if (c < 0x60 && c > 0x40) 
+		{
       // Uppercase
       c -= 0x40;
-    } else if (c < 0x7B && c > 0x60) {
+    } 
+		else if (c < 0x7B && c > 0x60) 
+		{
       // Lowercase
       c -= 0x60;
     }
     controlKeyMode = NO;
   }
   // Not sure if this actually matches anything.  Maybe support high bits later?
-  if ((c & 0xff00) != 0) {
+  if ((c & 0xff00) != 0) 
+	{
     NSLog(@"Unsupported unichar: %x", c);
     return;
   }
@@ -373,7 +383,7 @@
 	CGRect textFrame;
 	CGRect textScrollerFrame;
 	CGRect gestureFrame;
-	int columns, rows, i;
+	int columns, rows;
 	
 	//log(@"----------------- updateFrames needsRefresh %d", needsRefresh);
 
@@ -421,12 +431,9 @@
 	[[self textScroller] setContentSize:textFrame.size];
 	[gestureView         setFrame:gestureFrame];
 	
-	for (i = 0; i < numTerminals; i++)
-	{
-		[[processes objectAtIndex:i] setWidth:columns    height:rows];
-		[[screens   objectAtIndex:i] resizeWidth:columns height:rows];
-	}
-	
+	[[self activeProcess] setWidth:columns    height:rows];
+	[[self activeScreen]  resizeWidth:columns height:rows];
+		
 	if (needsRefresh) 
 	{
 		[[self textView] refresh];	
@@ -438,6 +445,7 @@
 
 -(void) setActiveTerminal:(int)active
 {
+	[[self textView] willSlideOut];
 	[[self textScroller] removeFromSuperview];
 
 	if (numTerminals > 1)
@@ -451,6 +459,7 @@
 	[mainView bringSubviewToFront:[PieView sharedInstance]];
 	
 	[self updateFrames:YES];
+	[[self textView] willSlideIn];
 }
 
 //_______________________________________________________________________________
