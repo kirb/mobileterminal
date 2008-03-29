@@ -25,11 +25,23 @@
 
 @synthesize landscape, degrees, controlKeyMode;
 
+static MobileTerminal * application;
+
+//_______________________________________________________________________________
+
++ (MobileTerminal*) application
+{
+	return application;
+	//return [[UIWindow keyWindow] application];
+}
+
 //_______________________________________________________________________________
 
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
 	log(@"applicationDidFinishLaunching");
+	
+	application = self;
 	
 	int i;
 	
@@ -38,9 +50,14 @@
 	[settings readUserDefaults];
 
 	activeTerminal = 0;
+	lastTerminal = -1;
+	
   controlKeyMode = NO;
   keyboardShown = YES;
 
+	degrees = 0;
+	landscape = NO;
+	
 	CGSize screenSize = [UIHardware mainScreenSize];
   CGRect frame = CGRectMake(0, 0, screenSize.width, screenSize.height);
 
@@ -79,7 +96,7 @@
   gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
-	[mainView setBackgroundColor:[UIView colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f]];
+	[mainView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
 	for (i = 0; i < numTerminals; i++)
 		[mainView addSubview:[scrollers objectAtIndex:i]];
   [mainView addSubview:gestureView];
@@ -91,8 +108,7 @@
 	contentView = [[UITransitionView alloc] initWithFrame: frame];
 	[contentView addSubview:mainView];
 	
-	window = [[MainWindow alloc] initWithFrame: frame];
-	window.application = self;
+	window = [[UIWindow alloc] initWithFrame: frame];
 	[window setContentView: contentView]; 
 	[window orderFront: self];
 	[window makeKey: self];
@@ -111,18 +127,12 @@
 	}
 	
 	[self setActiveTerminal:0];
+	
+	log(@"app init finished");
 }
 
 //_______________________________________________________________________________
 
-+ (MobileTerminal*) application
-{
-	return [[UIWindow keyWindow] application];
-}
-
-//_______________________________________________________________________________
-
--(MainWindow*) window { return window; }
 -(UIView*) mainView { return mainView; }
 -(UIView*) activeView { return activeView; }
 -(PTYTextView*) textView { return [textviews objectAtIndex:activeTerminal]; }
@@ -144,7 +154,7 @@
 	[[keyboardView inputView] becomeFirstResponder];
 	
 	[self setActiveTerminal:0];
-	[self setLandscape: landscape degrees: degrees];
+	[self updateStatusBar];
 }
 
 //_______________________________________________________________________________
@@ -278,13 +288,6 @@
 
 //_______________________________________________________________________________
 
-- (void) deviceOrientationChanged: (GSEvent*)event 
-{
-	// keep me!
-}
-
-//_______________________________________________________________________________
-
 -(CGPoint) viewPointForWindowPoint:(CGPoint)point
 {
 	return [mainView convertPoint:point fromView:window];
@@ -333,7 +336,7 @@
 
 -(void) setControlKeyMode:(BOOL)mode
 {
-	log(@"setControlMode: %d", mode);
+	// log(@"setControlMode: %d", mode);
 	controlKeyMode = mode;
 	[[self textView] refreshCursorRow];
 }
@@ -369,11 +372,54 @@
 
 //_______________________________________________________________________________
 
-- (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_
+- (void) deviceOrientationChanged: (GSEvent*)event 
 {
-	landscape = landscape_;
-	degrees = degrees_;
-	
+	switch ([UIHardware deviceOrientation:YES])
+	{
+		case 1: [self setOrientation:  0]; break;
+		case 3: [self setOrientation: 90]; break;
+		case 4: [self setOrientation:-90]; break;
+	}
+}
+
+//_______________________________________________________________________________
+-(void) setOrientation:(int)angle
+{
+	log(@"angle %d", angle);
+	if (degrees == angle || activeView != mainView) return;
+
+	struct CGAffineTransform transEnd;
+	switch(angle) 
+	{
+		case  90: transEnd = CGAffineTransformMake(0,  1, -1, 0, 0, 0); landscape = true;  break;
+		case -90: transEnd = CGAffineTransformMake(0, -1,  1, 0, 0, 0); landscape = true;  break;
+		case   0: transEnd = CGAffineTransformMake(1,  0,  0, 1, 0, 0); landscape = false; break;
+		default:  return;
+	}
+
+	CGSize screenSize = [UIHardware mainScreenSize];
+	CGRect contentBounds;
+
+	if (landscape)
+		contentBounds = CGRectMake(0, 0, screenSize.height, screenSize.width);
+	else
+		contentBounds = CGRectMake(0, 0, screenSize.width, screenSize.height);
+
+	[UIView beginAnimations:@"screenRotation"];
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
+	[contentView setTransform:transEnd];
+	[contentView setBounds:contentBounds];
+	[UIView endAnimations];
+
+	degrees = angle;
+	[self updateStatusBar];
+}
+
+//_______________________________________________________________________________
+
+-(void) updateStatusBar
+{
 	[self setStatusBarMode: [self statusBarMode]
 						 orientation: degrees
 								duration: 0.5 
@@ -458,13 +504,15 @@
 
 -(void) setActiveTerminal:(int)active direction:(int)direction
 {
+	lastTerminal = activeTerminal;
+	
 	[[self textView] willSlideOut];
 		
 	if (direction)
 	{
 		[UIView beginAnimations:@"slideOut"];
-		//[UIView setAnimationDelegate:self];
-		//[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
+		[UIView setAnimationDelegate:self];
+		[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-direction * [mainView frame].size.width,0)];
 		[UIView endAnimations];
 	}
@@ -498,6 +546,18 @@
 	[self updateFrames:YES];
 	
 	[[self textView] willSlideIn];
+}
+
+//_______________________________________________________________________________
+
+- (void) animationDidStop:(NSString*)animationID finished:(NSNumber*)finished context:(void*)context 
+{
+	//log(@"animation did stop %@ finished %@", animationID, finished);
+	// move old terminal away, so it won't appear on screen rotation
+	if ([animationID isEqualToString:@"slideOut"])
+		[[scrollers objectAtIndex:lastTerminal] setPosition:CGPointMake(1000,0)];
+	else if ([animationID isEqualToString:@"screenRotation"])
+		[self updateFrames:YES];
 }
 
 //_______________________________________________________________________________
@@ -571,36 +631,6 @@
 	
 //_______________________________________________________________________________
 
--(SubProcess*) activeProcess
-{
-	return [processes objectAtIndex: activeTerminal];
-}
-
--(VT100Screen*) activeScreen
-{
-	return [screens objectAtIndex: activeTerminal];
-}
-
--(VT100Terminal*) activeTerminal
-{
-	return [terminals objectAtIndex: activeTerminal];
-}
-
--(NSArray *) textviews
-{
-	return textviews;
-}
-
-//_______________________________________________________________________________
-
-- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context 
-{
-	//log(@"animation did stop %@ finished %@", animationID, finished);
-	[self updateFrames:YES];
-}
-
-//_______________________________________________________________________________
-
 -(void) togglePreferences
 {
 	if (preferencesController == nil) 
@@ -624,6 +654,7 @@
 	
 	if (activeView == mainView)
 	{
+		if (landscape) [self setOrientation:0];
 		[contentView transition:0 toView:[preferencesController view]];
 		activeView = [preferencesController view];
 	}
@@ -643,6 +674,28 @@
 			[self createTerminals];
 		}
 	}
+}
+
+//_______________________________________________________________________________
+
+-(SubProcess*) activeProcess
+{
+	return [processes objectAtIndex: activeTerminal];
+}
+
+-(VT100Screen*) activeScreen
+{
+	return [screens objectAtIndex: activeTerminal];
+}
+
+-(VT100Terminal*) activeTerminal
+{
+	return [terminals objectAtIndex: activeTerminal];
+}
+
+-(NSArray *) textviews
+{
+	return textviews;
 }
 
 @end

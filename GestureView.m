@@ -170,7 +170,6 @@
 {
 	[delegate hideMenu];
 	gestureMode = YES;
-	//gestureStart = GSEventGetInnerMostPathPosition(event); 
 	gestureStart = [delegate viewPointForWindowPoint:[self gestureCenter:event]]; 
 	
 	//logPoint(@"start", gestureStart);
@@ -222,22 +221,6 @@
 	[self stopToggleKeyboardTimer];
 	[delegate hideMenu];
 	[delegate toggleKeyboard];	
-}
-
-//_______________________________________________________________________________
-
-- (BOOL)canHandleSwipes
-{
-	log(@"can handle swipes");
-	return YES;
-}
-
-//_______________________________________________________________________________
-
-- (int)swipe:(int)direction withEvent:(GSEvent *)event
-{
-	log(@"swipeStarted %d %@", direction, event);
-	return direction;
 }
 
 //_______________________________________________________________________________

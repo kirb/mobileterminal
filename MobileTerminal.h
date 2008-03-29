@@ -5,7 +5,6 @@
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import "Constants.h"
-#import "MainWindow.h"
 #import "Log.h"
 
 @class PTYTextView;
@@ -25,7 +24,7 @@
 
 @interface MobileTerminal : UIApplication
 {
-  MainWindow						*	window;
+  UIWindow	  					*	window;
 
   ShellKeyboard					* keyboardView;	
 	UITransitionView			* contentView;
@@ -47,6 +46,7 @@
 	
   int numTerminals;
   int activeTerminal;	
+	int lastTerminal;
 
   BOOL controlKeyMode;
   BOOL keyboardShown;
@@ -70,8 +70,9 @@
 - (void) handleStreamOutput:(const char*)c length:(unsigned int)len identifier:(int)tid;
 - (void) handleKeyPress:(unichar)c;
 
+- (void) updateStatusBar;
 - (void) updateFrames:(BOOL)needsRefresh;
-- (void) setLandscape:(BOOL)landscape_ degrees:(int)degrees_;
+- (void) setOrientation:(int)degrees;
 - (CGPoint) viewPointForWindowPoint:(CGPoint)point;
 
 -(SubProcess*) activeProcess;
@@ -79,7 +80,6 @@
 -(VT100Terminal*) activeTerminal;
 -(NSArray*) textviews;
 
--(MainWindow*) window;
 -(UIView*) mainView;
 -(UIView*) activeView;
 -(PTYTextView*) textView;
