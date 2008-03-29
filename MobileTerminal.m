@@ -1,5 +1,6 @@
 // MobileTerminal.h
 #define DEBUG_METHOD_TRACE    0
+#define RETURN_KEY_WORKAROUND
 
 #import "MobileTerminal.h"
 #import <Foundation/Foundation.h>
@@ -134,6 +135,12 @@
     if (c == 0x2022) {
       controlKeyMode = YES;
       return;
+#ifdef RETURN_KEY_WORKAROUND
+    } else if (c == '\n') {
+	// The return key is generating LF instead of CR
+	// Work around by mapping it back here
+	c = '\r';
+#endif
     }
   } else {
     // was in ctrl key mode, got another key
