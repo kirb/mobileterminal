@@ -318,9 +318,7 @@ static __inline__ screen_char_t *incrementLinePointer(
 	{
     return;
   }
-	
-	log(@"+++++++++++ resize %d %d %d %d", width, height, WIDTH, HEIGHT);
-	
+		
   [self acquireLock];
 
   total_height = max_scrollback_lines + HEIGHT;

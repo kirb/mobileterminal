@@ -171,7 +171,7 @@
 	[delegate hideMenu];
 	gestureMode = YES;
 	//gestureStart = GSEventGetInnerMostPathPosition(event); 
-	gestureStart = [self gestureCenter:event]; 
+	gestureStart = [delegate viewPointForWindowPoint:[self gestureCenter:event]]; 
 	
 	//logPoint(@"start", gestureStart);
 }
@@ -187,8 +187,7 @@
 - (void)gestureEnded:(GSEvent *)event
 {
 	[delegate hideMenu];
-	//gestureEnd = GSEventGetInnerMostPathPosition(event); 
-	gestureEnd = [self gestureCenter:event];
+	gestureEnd = [delegate viewPointForWindowPoint:[self gestureCenter:event]];
 	gestureFingers = ((GSEventStruct*)event)->numPoints;
 
 	//logPoint(@"end", gestureEnd);

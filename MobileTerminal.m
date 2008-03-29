@@ -459,20 +459,18 @@
 -(void) setActiveTerminal:(int)active direction:(int)direction
 {
 	[[self textView] willSlideOut];
-	
-	logRect(@"mainView rect", [mainView frame]);
-	
+		
 	if (direction)
 	{
 		[UIView beginAnimations:@"slideOut"];
 		//[UIView setAnimationDelegate:self];
 		//[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * -320,0)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-direction * [mainView frame].size.width,0)];
 		[UIView endAnimations];
 	}
 	else
 	{
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-320,0)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-[mainView frame].size.width,0)];
 	}
 	
 	if (numTerminals > 1) [self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
@@ -484,7 +482,7 @@
 	
 	if (direction)
 	{
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * 320,0)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * [mainView frame].size.width,0)];
 		
 		[UIView beginAnimations:@"slideIn"];
 		//[UIView setAnimationDelegate:self];
