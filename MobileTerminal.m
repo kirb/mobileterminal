@@ -99,10 +99,10 @@ static MobileTerminal * application;
 	[mainView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
 	for (i = 0; i < numTerminals; i++)
 		[mainView addSubview:[scrollers objectAtIndex:i]];
-  [mainView addSubview:gestureView];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:[PieView sharedInstance]];
+  [mainView addSubview:gestureView];
 	activeView = mainView;
 
 	contentView = [[UITransitionView alloc] initWithFrame: frame];
@@ -121,14 +121,19 @@ static MobileTerminal * application;
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
 		
-	for (i = 1; i < numTerminals; i++)
+	if (numTerminals > 1)
 	{
-		[self setActiveTerminal:i];
+		for (i = numTerminals-1; i >= 0; i--)
+		{
+			[self setActiveTerminal:i];
+		}
 	}
-	
-	[self setActiveTerminal:0];
-	
-	log(@"app init finished");
+	else
+	{
+		[self updateFrames:YES];
+	}
+		
+	//log(@"app init finished");
 }
 
 //_______________________________________________________________________________
@@ -385,7 +390,6 @@ static MobileTerminal * application;
 //_______________________________________________________________________________
 -(void) setOrientation:(int)angle
 {
-	log(@"angle %d", angle);
 	if (degrees == angle || activeView != mainView) return;
 
 	struct CGAffineTransform transEnd;
@@ -504,6 +508,7 @@ static MobileTerminal * application;
 
 -(void) setActiveTerminal:(int)active direction:(int)direction
 {
+	log(@"setActiveTerminal %d", active);
 	lastTerminal = activeTerminal;
 	
 	[[self textView] willSlideOut];
@@ -533,8 +538,6 @@ static MobileTerminal * application;
 		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * [mainView frame].size.width,0)];
 		
 		[UIView beginAnimations:@"slideIn"];
-		//[UIView setAnimationDelegate:self];
-		//[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(0,0)];
 		[UIView endAnimations];
 	}
@@ -564,6 +567,7 @@ static MobileTerminal * application;
 
 -(void) prevTerminal
 {
+	if (numTerminals < 2) return;
 	int active = activeTerminal - 1;
 	if (active < 0) active = numTerminals-1;
 	[self setActiveTerminal:active direction:-1];
@@ -573,6 +577,7 @@ static MobileTerminal * application;
 
 -(void) nextTerminal
 {
+	if (numTerminals < 2) return;
 	int active = activeTerminal + 1;
 	if (active >= numTerminals) active = 0;
 	[self setActiveTerminal:active direction:1];

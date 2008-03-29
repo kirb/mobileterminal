@@ -50,7 +50,8 @@
 	//log(@"showAtPoint %f %f", p.x, p.y);
 	[self stopTimer];
   location.x = (int)(p.x - visibleFrame.size.width*0.5f);
-  location.y = (int)(p.y - visibleFrame.size.height*0.5f);;
+  location.y = (int)(p.y - visibleFrame.size.height*0.5f);
+	//logPoint(@"location", location);
 	timer = [NSTimer scheduledTimerWithTimeInterval:PIE_MENU_DELAY target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
 }
 
@@ -70,7 +71,8 @@
 {
 	timer = NULL;
 	
-  if (_visible) {
+  if (_visible) 
+	{
     return;
   }
   _visible = YES;
