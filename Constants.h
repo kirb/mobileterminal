@@ -5,6 +5,11 @@
 #import <UIKit/UIKit.h>
 
 #define TOGGLE_KEYBOARD_DELAY		0.35
+
+#define MENU_DELAY							0.45 
+#define MENU_FADE_IN_TIME				0.25
+#define MENU_FADE_OUT_TIME			0.25
+
 #define PIE_MENU_DELAY					0.45 
 #define PIE_MENU_FADE_IN_TIME		0.25
 #define PIE_MENU_FADE_OUT_TIME	0.25
@@ -26,17 +31,6 @@ enum {
 	ZONE_W,
 	ZONE_NW
 };
-
-/*
-#define ZONE_N								0
-#define ZONE_NE								1
-#define ZONE_E								2
-#define ZONE_SE								3
-#define ZONE_S								4
-#define ZONE_SW								5
-#define ZONE_W								6
-#define ZONE_NW								7
-*/
 
 //_______________________________________________________________________________
 

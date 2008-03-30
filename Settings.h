@@ -34,6 +34,7 @@
 {
 	NSString * arguments;
 	NSArray * terminalConfigs;
+	NSArray * menuButtons;
 	CGColorRef gestureViewColor;
 	BOOL multipleTerminals;
 }
@@ -51,9 +52,10 @@
 - (void) readUserDefaults;
 - (void) writeUserDefaults;
 
-- (NSArray *) terminalConfigs;
+- (NSArray*) terminalConfigs;
 - (void) setArguments: (NSString*)arguments;
 - (NSString*) arguments;
+- (NSArray*) menuButtons;
 
 //_______________________________________________________________________________
 

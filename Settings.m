@@ -101,6 +101,7 @@
 	
 	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.005f);
 	multipleTerminals = YES;
+	menuButtons = nil; 
 	
   return self;
 }
@@ -118,6 +119,57 @@
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
 	NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:2];
 	[d setObject:[NSNumber numberWithBool:YES] forKey:@"multipleTerminals"];
+	
+	NSMutableArray * buttons = [NSMutableArray arrayWithCapacity:16];
+	NSMutableDictionary * bd;
+
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"[" forKey:@"title"];
+	[bd setObject:@"[" forKey:@"chars"];
+	[buttons addObject:bd];
+	
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"]" forKey:@"title"];
+	[bd setObject:@"]" forKey:@"chars"];
+	[buttons addObject:bd];
+
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"*" forKey:@"title"];
+	[bd setObject:@"*" forKey:@"chars"];
+	[buttons addObject:bd];
+	
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"\\" forKey:@"title"];
+	[bd setObject:@"\\" forKey:@"chars"];
+	[buttons addObject:bd];
+
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"/" forKey:@"title"];
+	[bd setObject:@"/" forKey:@"chars"];
+	[buttons addObject:bd];
+	
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"~" forKey:@"title"];
+	[bd setObject:@"~" forKey:@"chars"];
+	[buttons addObject:bd];	
+	
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"{" forKey:@"title"];
+	[bd setObject:@"{" forKey:@"chars"];
+	[buttons addObject:bd];
+	
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@"}" forKey:@"title"];
+	[bd setObject:@"}" forKey:@"chars"];
+	[buttons addObject:bd];
+
+	bd = [NSMutableDictionary dictionaryWithCapacity:2];
+	[bd setObject:@">" forKey:@"title"];
+	[bd setObject:@">" forKey:@"chars"];
+	[buttons addObject:bd];
+	
+	[d setObject:buttons forKey:@"menuButtons"];
+	
 	NSMutableArray * tcs = [NSMutableArray arrayWithCapacity:MAXTERMINALS];
 	for (i = 0; i < MAXTERMINALS; i++)
 	{
@@ -131,6 +183,7 @@
 		[tcs addObject:tc];
 	}
 	[d setObject:tcs forKey:@"terminals"];
+	
 	[defaults registerDefaults:d];
 }
 
@@ -154,6 +207,7 @@
 	}
 
 	multipleTerminals = [defaults boolForKey:@"multipleTerminals"];
+	menuButtons = [[defaults arrayForKey:@"menuButtons"] retain];
 }
 
 //_______________________________________________________________________________
@@ -163,6 +217,7 @@
 	int i;
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
 	NSMutableArray * tcs = [NSMutableArray arrayWithCapacity:MAXTERMINALS];
+
 	for (i = 0; i < MAXTERMINALS; i++)
 	{
 		TerminalConfig * config = [terminalConfigs objectAtIndex:i];
@@ -177,12 +232,14 @@
 	}
 	[defaults setObject:tcs forKey:@"terminals"];
 	[defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
+	[defaults setObject:menuButtons forKey:@"menuButtons"];
 	[defaults synchronize];
 }
 
 //_______________________________________________________________________________
 
--(NSArray *) terminalConfigs { return terminalConfigs; }
+-(NSArray*) terminalConfigs { return terminalConfigs; }
+-(NSArray*) menuButtons { return menuButtons; }
 
 //_______________________________________________________________________________
 

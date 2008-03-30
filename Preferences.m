@@ -329,21 +329,14 @@
 	terminalIndex = index;
 	config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 	[self fontChanged];
-	log(@"terminalIndex %d", terminalIndex);
-	log(@"config autosize %d", [config autosize]);
-	log(@"autosizeSwitch %@", autosizeSwitch);
 	[autosizeSwitch setValue:([config autosize] ? 1.0f : 0.0f)];
 	[widthSlider setValue:[config width]];
-	log(@"config autosize %d", [config autosize]);
-	log(@"widthCell superview %@", [widthCell superview]);
 	if ([config autosize])
 	{
-		log(@"del widthCell");
 		[sizeGroup removeCell:widthCell];
 	}
 	else if (![config autosize])
 	{
-		log(@"add widthCell");
 		[sizeGroup addCell:widthCell];
 	}
 	[self reloadData];		
@@ -354,7 +347,6 @@
 - (void) autosizeSwitched:(UISliderControl*)control
 {
 	BOOL autosize = ([control value] == 1.0f);
-	log(@"autosizeSwitched %d", autosize);
 	[config setAutosize:autosize];
 	if (autosize)
 	{
@@ -373,7 +365,6 @@
 {
 	[control setValue:floor([control value])];
 	[config setWidth:(int)[control value]];
-	log(@"widthSelected %d", (int)[control value]);
 	[config setWidth:(int)[control value]];
 }
 

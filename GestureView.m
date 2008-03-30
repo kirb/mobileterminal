@@ -1,8 +1,13 @@
+//
+//  GestureView.m
+//  Terminal
+
 #import "GestureView.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import "MobileTerminal.h"
+#import "Menu.h"
 #import "Settings.h"
 #include <math.h>
 
@@ -15,7 +20,8 @@
   self = [super initWithFrame:rect];
   delegate = inputDelegate;
 	[super setTapDelegate: self];
-	
+	//[self setRequiresDisplayOnTracking:YES];
+
 	[self setBackgroundColor:[Settings sharedInstance].gestureViewColor];
 	 
 	toggleKeyboardTimer = NULL;
@@ -26,10 +32,74 @@
 
 //_______________________________________________________________________________
 
-- (void)mouseDown:(GSEvent *)event
+-(BOOL) shouldTrack
 {
+	log(@"should track"); // , [[Menu sharedInstance] visible]);
+	return YES;
+}
+
+//_______________________________________________________________________________
+
+- (BOOL) beginTrackingAt:(CGPoint)point withEvent:(id)event
+{
+	return YES;
+}
+
+//_______________________________________________________________________________
+
+- (BOOL) continueTrackingAt:(CGPoint)point previous:(CGPoint)prev withEvent:(id)event
+{
+	Menu * menu = [Menu sharedInstance];
+	
+	int i;
+	for (i = 0; i < [[menu subviews] count]; i++)
+	{
+		MenuButton * button = [[menu subviews] objectAtIndex:i];
+		[button setSelected:CGRectContainsPoint([button frame], [menu convertPoint:point fromView:self])];
+	}
+	return YES;
+}
+
+//_______________________________________________________________________________
+
+- (BOOL) endTrackingAt:(CGPoint)point previous:(CGPoint)prev withEvent:(id)event
+{
+	Menu * menu = [Menu sharedInstance];
+
+	int i;
+	for (i = 0; i < [[menu subviews] count]; i++)
+	{
+		MenuButton * button = [[menu subviews] objectAtIndex:i];
+		if ([button isSelected])
+		{
+			log(@"button activated %@", [button title]);
+			if ([button chars])
+				[delegate handleInputFromMenu:[button chars]];
+			[button setSelected:NO];
+			break;
+		}
+	}
+	[menu hide];
+	return YES;
+}
+
+//_______________________________________________________________________________
+
+- (void)mouseDown:(GSEvent*)event
+{
+	//memcpy(&mouseDownEvent, event, sizeof(GSEventStruct));
+	
 	mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   [delegate showMenu:mouseDownPos];
+	
+	[super mouseDown:event];
+}
+
+//_______________________________________________________________________________
+
+-(GSEventStruct*) mouseDownEvent
+{
+	return &mouseDownEvent;
 }
 
 //_______________________________________________________________________________
@@ -44,7 +114,7 @@
 
 - (void)mouseUp:(GSEvent*)event
 {
-	[delegate hideMenu];
+	//[delegate hideMenu];
 
 	if (gestureMode) 
 	{
@@ -138,6 +208,8 @@
 			[delegate handleInputFromMenu:characters];
     }
   }
+	
+	[super mouseUp:event];
 }
 
 //_______________________________________________________________________________

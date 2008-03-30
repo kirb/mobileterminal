@@ -1,7 +1,9 @@
+//
+//  GestureView.h
+//  Terminal
+
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
-@class SubProcess, PieView;
 
 //_______________________________________________________________________________
 
@@ -53,22 +55,22 @@ typedef struct {
 
 //_______________________________________________________________________________
 
-@interface GestureView : UIView 
+@interface GestureView : UIControl 
 {
+	GSEventStruct mouseDownEvent;
 	CGPoint mouseDownPos;
 	CGPoint gestureStart;
 	CGPoint gestureEnd;
 	int			gestureFingers;
 
-  id delegate;
-	BOOL gestureMode;
+  id			delegate;
+	BOOL		gestureMode;
 	
-	NSTimer *toggleKeyboardTimer;
+	NSTimer * toggleKeyboardTimer;
 }
 
-- (id)initWithFrame:(CGRect)rect
-           delegate:(id)inputDelegate;
-
+- (id) initWithFrame:(CGRect)rect delegate:(id)inputDelegate;
+-(GSEventStruct*) mouseDownEvent;
 -(void) stopToggleKeyboardTimer;
 
 @end

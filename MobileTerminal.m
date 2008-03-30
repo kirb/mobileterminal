@@ -11,6 +11,7 @@
 #import "VT100Screen.h"
 #import "GestureView.h"
 #import "PieView.h"
+#import "Menu.h"
 #import "Preferences.h"
 #import "Settings.h"
 
@@ -101,8 +102,8 @@ static MobileTerminal * application;
 		[mainView addSubview:[scrollers objectAtIndex:i]];
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
-  [mainView addSubview:[PieView sharedInstance]];
   [mainView addSubview:gestureView];
+	[mainView addSubview:[Menu sharedInstance]];
 	activeView = mainView;
 
 	contentView = [[UITransitionView alloc] initWithFrame: frame];
@@ -116,7 +117,7 @@ static MobileTerminal * application;
 	[window retain];	
 			
   // Shows momentarily and hides so the user knows its there
-  [[PieView sharedInstance] hideSlow:YES];
+  [[Menu sharedInstance] hideSlow:YES];
 
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
@@ -135,13 +136,6 @@ static MobileTerminal * application;
 		
 	//log(@"app init finished");
 }
-
-//_______________________________________________________________________________
-
--(UIView*) mainView { return mainView; }
--(UIView*) activeView { return activeView; }
--(PTYTextView*) textView { return [textviews objectAtIndex:activeTerminal]; }
--(UIScroller*) textScroller { return [scrollers objectAtIndex:activeTerminal]; }
 
 // Suspend/Resume: We have to hide then show again the keyboard view to get it
 // to properly acheive focus on suspend and resume.
@@ -302,14 +296,14 @@ static MobileTerminal * application;
 
 - (void)hideMenu
 {
-  [[PieView sharedInstance] hide];
+  [[Menu sharedInstance] hide];
 }
 
 //_______________________________________________________________________________
 
 - (void)showMenu:(CGPoint)point
 {
-  [[PieView sharedInstance] showAtPoint:point];
+  [[Menu sharedInstance] showAtPoint:point];
 }
 
 //_______________________________________________________________________________
@@ -508,7 +502,7 @@ static MobileTerminal * application;
 
 -(void) setActiveTerminal:(int)active direction:(int)direction
 {
-	log(@"setActiveTerminal %d", active);
+	//log(@"setActiveTerminal %d", active);
 	lastTerminal = activeTerminal;
 	
 	[[self textView] willSlideOut];
@@ -702,5 +696,13 @@ static MobileTerminal * application;
 {
 	return textviews;
 }
+
+//_______________________________________________________________________________
+
+-(UIView*) mainView { return mainView; }
+-(UIView*) activeView { return activeView; }
+-(GestureView*) gestureView { return gestureView; }
+-(PTYTextView*) textView { return [textviews objectAtIndex:activeTerminal]; }
+-(UIScroller*) textScroller { return [scrollers objectAtIndex:activeTerminal]; }
 
 @end

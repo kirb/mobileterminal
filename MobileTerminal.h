@@ -59,6 +59,7 @@
 @property BOOL controlKeyMode;
 @property (readonly) UIView				* activeView;
 @property (readonly) UIView				* mainView;
+@property (readonly) GestureView	* gestureView;
 @property (readonly) PTYTextView	* textView;
 
 + (MobileTerminal*) application;
@@ -82,6 +83,7 @@
 
 -(UIView*) mainView;
 -(UIView*) activeView;
+-(GestureView*) gestureView;
 -(PTYTextView*) textView;
 -(UIScroller*) textScroller;
 

@@ -17,7 +17,7 @@ Terminal: main.o \
 					ShellKeyboard.o \
 					SubProcess.o \
 					GestureView.o \
-					PieView.o \
+					Menu.o \
 					Preferences.o \
 					Constants.o \
 					Log.o
