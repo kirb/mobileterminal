@@ -86,6 +86,7 @@
 -(GestureView*) gestureView;
 -(PTYTextView*) textView;
 -(UIScroller*) textScroller;
+-(CGRect) keyboardFrame;
 
 - (void) togglePreferences;
 

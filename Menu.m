@@ -51,36 +51,39 @@
 
 @implementation Menu
 
+@synthesize visible;
+
 //_______________________________________________________________________________
 
 + (Menu*) sharedInstance
 {
   static Menu * instance = nil;
   if (instance == nil) 
-	{
-    CGRect frame = CGRectMake(0.0f, 0.0f, 0.0f, 0.0f);
-    instance = [[Menu alloc] initWithFrame:frame];
+	{		
+    instance = [[Menu alloc] init];
   }
   return instance;
 }
 
 //_______________________________________________________________________________
 
-- (id) initWithFrame:(CGRect)frame
+- (id) init
 {
-	//log(@"menu init");
-  self = [super initWithFrame:frame];
-  visibleFrame = frame;
-  location = CGPointMake(frame.origin.x + (frame.size.width*0.5f),
-                         frame.origin.y + (frame.size.height*0.5f));
+  self = [super initWithFrame:CGRectMake(0, 0, 0, 0)];
+	
+	float lx = MAX(0, 160 - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE));
+	float ly = MAX(0, 100 - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE));
+
+	[self setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, lx, ly)];
+  location = CGPointMake(160, 100);
+	
   visible = YES;
 
-  anim = [[UIAnimator alloc] init];
 	timer = nil;
 
 	[self setOpaque:NO];
 	[self updateButtons];
-	[self setBackgroundColor:colorWithRGBA(1.0f, 0.0f, 0.0f, 0.5f)];
+	[self setBackgroundColor:colorWithRGBA(0.0f, 0.0f, 0.0f, 0.0f)];
 		
   return self;
 }
@@ -95,14 +98,14 @@
 	float x=0.0f, y=0.0f;
 	
 	CDAnonymousStruct4 buttonPieces = {
-		.left = { .origin = { .x = 0.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = 43.0f } },
-		.middle = { .origin = { .x = 15.0f, .y = 0.0f }, .size = { .width = 2.0f, .height = 43.0f } },
-		.right = { .origin = { .x = 17.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = 43.0f } },
+		.left = { .origin = { .x = 0.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
+		.middle = { .origin = { .x = 15.0f, .y = 0.0f }, .size = { .width = 2.0f, .height = MENU_BUTTON_HEIGHT } },
+		.right = { .origin = { .x = 17.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
 	};
 
 	for (i = 0; i < [buttons count]; i++)
 	{
-		MenuButton * button = [[[MenuButton alloc] initWithFrame:CGRectMake(x, y, 60, 43)] autorelease];
+		MenuButton * button = [[[MenuButton alloc] initWithFrame:CGRectMake(x, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)] autorelease];
 				
 		[button setAutosizesToFit:NO];
 		[button setTitle:[[buttons objectAtIndex:i] objectForKey:@"title"]];
@@ -123,11 +126,11 @@
 		if (i % 3 == 2)
 		{
 			x = 0.0f;
-			y += 45.0f;
+			y += MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACE;
 		}
 		else
 		{
-			x += 62.0f;
+			x += MENU_BUTTON_WIDTH + MENU_BUTTON_SPACE;
 		}
 		
 		[self addSubview:button];
@@ -139,8 +142,8 @@
 - (void) showAtPoint:(CGPoint)p
 {
 	[self stopTimer];
-  location.x = (int)(p.x - visibleFrame.size.width*0.5f);
-  location.y = (int)(p.y - visibleFrame.size.height*0.5f);
+  location.x = p.x;
+  location.y = p.y;
 	timer = [NSTimer scheduledTimerWithTimeInterval:MENU_DELAY target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
 }
 
@@ -166,6 +169,11 @@
     return;
   }
 	
+	CGRect frame = [[self superview] frame];
+	logRect(@"frame", frame);
+	float lx = MIN(frame.size.width  - 3.0 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE),  MAX(0, location.x - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE)));
+	float ly = MIN(frame.size.height - 3.0 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE), MAX(0, location.y - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE)));
+	
   visible = YES;
   [self setTransform:CGAffineTransformMake(0.01f, 0, 0, 0.01f, location.x, location.y)];
   [self setAlpha: 0.0f];
@@ -174,7 +182,7 @@
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 	[UIView setAnimationDuration:MENU_FADE_IN_TIME];
-	[self setTransform:CGAffineTransformMake(1, 0, 0, 1, location.x, location.y)];
+	[self setTransform:CGAffineTransformMake(1, 0, 0, 1, lx, ly)];
 	[self setAlpha:1.0f];
 	[UIView endAnimations];	
 }
@@ -207,18 +215,13 @@
 	{
     return;
   }
+		
+	[UIView beginAnimations:@"fadeOut"];
+	[UIView setAnimationDuration: slow ? MENU_SLOW_FADE_OUT_TIME : MENU_FADE_OUT_TIME];
+	[self setTransform:CGAffineTransformMake(0.01f, 0, 0, 0.01f, location.x, location.y)];
+	[self setAlpha:0.0f];
+	[UIView endAnimations];	
 	
-  UITransformAnimation *scaleAnim = [[UITransformAnimation alloc] initWithTarget:self];
-  [scaleAnim setStartTransform: CGAffineTransformMake(1,0,0,1,location.x,location.y)];
-  [scaleAnim setEndTransform:   CGAffineTransformMake(0.01f,0,0,0.01f,location.x,location.y)];
-  UIAlphaAnimation *alphaAnim = [[UIAlphaAnimation alloc] initWithTarget:self];
-  [alphaAnim setStartAlpha: 0.9f];
-  [alphaAnim setEndAlpha: 0.0f];
-  float duration = slow ? 1.0f : MENU_FADE_OUT_TIME;
- 
-	[anim removeAnimationsForTarget:self];
-  if (!slow) [anim addAnimation:scaleAnim withDuration:duration start:YES]; 
-  [anim addAnimation:alphaAnim withDuration:duration start:YES];
   visible = NO;
 }
 

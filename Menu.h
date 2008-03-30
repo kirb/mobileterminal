@@ -23,14 +23,12 @@
 
 @interface Menu : UIView
 {
-	CGRect visibleFrame;
   CGPoint location;
-  UIAnimator * anim;
 	NSTimer * timer;
   BOOL visible;
 }
 
-//_______________________________________________________________________________
+@property BOOL visible;
 
 + (Menu*)	sharedInstance;
 

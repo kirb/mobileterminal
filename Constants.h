@@ -9,6 +9,12 @@
 #define MENU_DELAY							0.45 
 #define MENU_FADE_IN_TIME				0.25
 #define MENU_FADE_OUT_TIME			0.25
+#define MENU_SLOW_FADE_OUT_TIME	1.50
+#define MENU_BUTTON_HEIGHT      43.0f
+#define MENU_BUTTON_WIDTH       60.0f
+#define MENU_BUTTON_SPACE        2.0f
+#define KEYBOARD_FADE_OUT_TIME   0.5f
+#define KEYBOARD_FADE_IN_TIME    0.5f
 
 #define PIE_MENU_DELAY					0.45 
 #define PIE_MENU_FADE_IN_TIME		0.25

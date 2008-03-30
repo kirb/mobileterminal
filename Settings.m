@@ -99,7 +99,7 @@
 										 [[TerminalConfig alloc] init],
 										 [[TerminalConfig alloc] init], nil];
 	
-	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.005f);
+	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.05f);
 	multipleTerminals = YES;
 	menuButtons = nil; 
 	

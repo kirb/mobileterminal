@@ -5,6 +5,7 @@
 #import "GestureView.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <UIKit/CDStructures.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import "MobileTerminal.h"
 #import "Menu.h"
@@ -20,9 +21,8 @@
   self = [super initWithFrame:rect];
   delegate = inputDelegate;
 	[super setTapDelegate: self];
-	//[self setRequiresDisplayOnTracking:YES];
 
-	[self setBackgroundColor:[Settings sharedInstance].gestureViewColor];
+	[self setBackgroundColor:colorWithRGBA(0,0,0,0)];
 	 
 	toggleKeyboardTimer = NULL;
 	gestureMode = NO;
@@ -154,60 +154,64 @@
 		}
 		
 		return;
-	}
+		
+	} // end if gestureMode
 	
-  CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
-  CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
-
-  float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
-
-	int zone = [self zoneForVector:vector];
-  if (r > 30.0f) 
+	if (![[Menu sharedInstance] visible])
 	{
-    NSString *characters = nil;
-		
-    switch (zone) 
+		CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
+		CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
+
+		float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
+
+		int zone = [self zoneForVector:vector];
+		if (r > 30.0f) 
 		{
-      case ZONE_W:  // Left
-				if (r < 150.0f)
-					characters = @"\x1B[D";
-				else
-					characters = @"\x1"; // ctrl-a
-        break;
-      case ZONE_S:  // Down
-        characters = @"\x1B[B";
-        break;
-      case ZONE_E:  // Right
-				if (r < 150.0f)
-					characters = @"\x1B[C";
-				else
-					characters = @"\x5"; // ctrl-e
-        break;
-      case ZONE_N:  // Up
-        characters = @"\x1B[A";
-        break;
-      case ZONE_NE:  // ^C
-        characters = @"\x03";
-        break;
-      case ZONE_NW:  // ^[
-        characters = @"\x1B";
-        break;
-      case ZONE_SW: // Tab
-        characters = @"\x09";
-        break;
-      case ZONE_SE:  //^
-				if (![[MobileTerminal application] controlKeyMode])
-					[[MobileTerminal application] setControlKeyMode:YES];
-        break;
-    }
-		
-    if (characters) 
-		{
-			//log(@"zone %d %f", zone, r);
-			[self stopToggleKeyboardTimer];
-			[delegate handleInputFromMenu:characters];
-    }
-  }
+			NSString *characters = nil;
+			
+			switch (zone) 
+			{
+				case ZONE_W:  // Left
+					if (r < 150.0f)
+						characters = @"\x1B[D";
+					else
+						characters = @"\x1"; // ctrl-a
+					break;
+				case ZONE_S:  // Down
+					characters = @"\x1B[B";
+					break;
+				case ZONE_E:  // Right
+					if (r < 150.0f)
+						characters = @"\x1B[C";
+					else
+						characters = @"\x5"; // ctrl-e
+					break;
+				case ZONE_N:  // Up
+					characters = @"\x1B[A";
+					break;
+				case ZONE_NE:  // ^C
+					characters = @"\x03";
+					break;
+				case ZONE_NW:  // ^[
+					characters = @"\x1B";
+					break;
+				case ZONE_SW: // Tab
+					characters = @"\x09";
+					break;
+				case ZONE_SE:  //^
+					if (![[MobileTerminal application] controlKeyMode])
+						[[MobileTerminal application] setControlKeyMode:YES];
+					break;
+			}
+			
+			if (characters) 
+			{
+				//log(@"zone %d %f", zone, r);
+				[self stopToggleKeyboardTimer];
+				[delegate handleInputFromMenu:characters];
+			}
+		}
+	} // end if menu visible
 	
 	[super mouseUp:event];
 }
@@ -314,6 +318,24 @@
 - (BOOL)isOpaque
 {
   return NO;
+}
+
+//_______________________________________________________________________________
+
+-(void) drawRect:(CGRect)frame
+{
+	CGRect rect = [self bounds];
+	rect.origin.x -= 1;
+	rect.origin.y -= 1;
+	rect.size.width += 1;
+	rect.size.height += 1;
+	CGContextRef context = UICurrentContext();
+	CGColorRef c = [Settings sharedInstance].gestureViewColor;
+	const float pattern[2] = {1,4};
+	CGContextSetLineDash(context, 0, pattern, 2);
+	CGContextSetStrokeColorWithColor(context, c);
+	CGContextStrokeRectWithWidth(context, rect, 1);
+	CGContextFlush(context);
 }
 
 //_______________________________________________________________________________

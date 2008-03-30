@@ -320,12 +320,30 @@ static MobileTerminal * application;
 	if (keyboardShown) 
 	{
 		keyboardShown = NO;
-		[keyboardView removeFromSuperview];
+		
+		[UIView beginAnimations:@"keyboardFadeOut"];
+		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
+		//[keyboardView setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, 0, -480)];
+		CGRect kbFrame = [self keyboardFrame];
+		kbFrame.origin.y += kbFrame.size.height;
+		[keyboardView setFrame:kbFrame];
+		[keyboardView setAlpha:0.0f];		
+		[UIView endAnimations];		
+		
+		//[keyboardView removeFromSuperview];
 	}
 	else
 	{
 		keyboardShown = YES;
-		[mainView addSubview:keyboardView];		
+		
+		[UIView beginAnimations:@"keyboardFadeIn"];
+		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
+		[keyboardView setFrame:[self keyboardFrame]];
+		//[keyboardView setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, 0, 0)];
+		[keyboardView setAlpha:1.0f];		
+		[UIView endAnimations];		
+		
+		//[mainView addSubview:keyboardView];		
 	}
 		
 	[self updateFrames:NO];
@@ -403,11 +421,16 @@ static MobileTerminal * application;
 	else
 		contentBounds = CGRectMake(0, 0, screenSize.width, screenSize.height);
 
+	float availableWidth = contentBounds.size.width;
+	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
+	CGRect keybRect = CGRectMake(0, contentBounds.size.height - keybSize.height, contentBounds.size.height, keybSize.height);	
+	
 	[UIView beginAnimations:@"screenRotation"];
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 	[contentView setTransform:transEnd];
 	[contentView setBounds:contentBounds];
+	[keyboardView setFrame:keybRect];
 	[UIView endAnimations];
 
 	degrees = angle;
@@ -423,6 +446,15 @@ static MobileTerminal * application;
 								duration: 0.5 
 								 fenceID: 0 
 							 animation: 0];	
+}
+
+//_______________________________________________________________________________
+
+-(CGRect) keyboardFrame
+{
+	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
+	return CGRectMake(0, mainView.bounds.size.height - keybSize.height, 
+											 mainView.bounds.size.width, keybSize.height);
 }
 
 //_______________________________________________________________________________
@@ -455,7 +487,7 @@ static MobileTerminal * application;
 	if (keyboardShown) 
 	{
 		availableHeight -= keybSize.height;
-		[keyboardView setFrame:CGRectMake(0, mainView.bounds.size.height - keybSize.height, availableWidth, keybSize.height)];
+		//[keyboardView setFrame:CGRectMake(0, availableHeight - keybSize.height, availableWidth, keybSize.height)];
 	}
 			
 	float lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
@@ -552,9 +584,14 @@ static MobileTerminal * application;
 	//log(@"animation did stop %@ finished %@", animationID, finished);
 	// move old terminal away, so it won't appear on screen rotation
 	if ([animationID isEqualToString:@"slideOut"])
+	{
 		[[scrollers objectAtIndex:lastTerminal] setPosition:CGPointMake(1000,0)];
+	}
 	else if ([animationID isEqualToString:@"screenRotation"])
+	{
 		[self updateFrames:YES];
+		[keyboardView setFrame:[self keyboardFrame]];
+	}
 }
 
 //_______________________________________________________________________________
