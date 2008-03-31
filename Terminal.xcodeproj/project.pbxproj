@@ -25,8 +25,6 @@
 		C3A4E5E70D91AA86009A610C /* GestureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GestureView.m; sourceTree = "<group>"; };
 		C3A4E5E80D91AA86009A610C /* MobileTerminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MobileTerminal.h; sourceTree = "<group>"; };
 		C3A4E5E90D91AA86009A610C /* MobileTerminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MobileTerminal.m; sourceTree = "<group>"; };
-		C3A4E5EA0D91AA86009A610C /* PieView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PieView.h; sourceTree = "<group>"; };
-		C3A4E5EB0D91AA86009A610C /* PieView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PieView.m; sourceTree = "<group>"; };
 		C3A4E5EC0D91AA86009A610C /* PTYTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTYTextView.h; sourceTree = "<group>"; };
 		C3A4E5ED0D91AA86009A610C /* PTYTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTYTextView.m; sourceTree = "<group>"; };
 		C3A4E5EE0D91AA86009A610C /* PTYTile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTYTile.h; sourceTree = "<group>"; };
@@ -104,8 +102,6 @@
 				C3A4E5F30D91AA86009A610C /* ShellKeyboard.m */,
 				C3A4E5F40D91AA86009A610C /* SubProcess.h */,
 				C3A4E5F50D91AA86009A610C /* SubProcess.m */,
-				C3A4E5EA0D91AA86009A610C /* PieView.h */,
-				C3A4E5EB0D91AA86009A610C /* PieView.m */,
 				C3A4E5E30D91AA86009A610C /* charmaps.h */,
 				C3A4E5E40D91AA86009A610C /* ColorMap.h */,
 				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
