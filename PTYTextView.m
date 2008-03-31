@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <math.h>
 
-//static PTYTextView* instance = nil;
+#define DEBUGLOG YES
 
 @implementation PTYTextView
 
@@ -33,6 +33,10 @@
 	termid = identifier;
 	
   self = [super initWithFrame:frame];
+	
+	[self setPositionsTilesFromOrigin:YES];
+	[self setTileOrigin:CGPointMake(0,0)];
+
   CURSOR = YES;
   dataSource = screen;
 
@@ -44,11 +48,12 @@
   [textScroller setContentSize:frame.size];
   [textScroller setScrollerIndicatorStyle:2];
 	[textScroller displayScrollerIndicators];
+	[textScroller setAdjustForContentSizeChange:YES];
+	[textScroller setAllowsFourWayRubberBanding:NO];
 
   [self refresh];
 
   // Create one tile per row
-  //_tileSize = CGSizeMake(frame.size.width, lineHeight);
 	_tileSize = CGSizeMake(480, lineHeight);
   _firstTileSize = _tileSize;
 
@@ -131,83 +136,20 @@
 
 - (void)refresh
 {
-  id temp = dataSource;
-  [temp acquireLock];
-  int WIDTH = [dataSource width];
-  int HEIGHT = [dataSource height];
-  [temp releaseLock];
-
-	//log(@"refresh %d %d", WIDTH, HEIGHT);
-
   CGRect frame = [self frame];
 	
-	//log(@"termid %d", termid);
 	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
 	lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
 	charWidth = [config fontSize]*[config fontWidth];
-	//log(@"size %d width %f", [config fontSize], [config fontWidth]);
-	//log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
+	
+	//if (DEBUGLOG) log(@"size %d width %f", [config fontSize], [config fontWidth]);
+	//if (DEBUGLOG) log(@"lineHeight %f charWidth %f frame.width %f", lineHeight, charWidth, frame.size.width);
 	
 	[self setFirstTileSize:CGSizeMake(frame.size.width, lineHeight)];
 	[self setTileSize:CGSizeMake(frame.size.width, lineHeight)];
 	[self setNeedsLayout];
 	
-	//log(@"lineHeight %f frame.height %f", lineHeight, frame.size.height);
-	
-  // TODO: Use margins on either side
-  margin = floor((frame.size.width - (charWidth * WIDTH)) / 2);
-  vmargin = floor((frame.size.height - (lineHeight * HEIGHT)) / 2);
-}
-
-//_______________________________________________________________________________
-
-- (void) updateIfNecessary
-{
-  [dataSource acquireLock];
-  int width = [dataSource width];
-  int height = [dataSource height];
-  int lines = [dataSource numberOfLines];
-
-  // Expand the height, and cause scroll
-  int newHeight = lines * lineHeight;
-  CGRect frame = [self frame];
-	
-  if (frame.size.height != newHeight) 
-	{
-    frame.size.height = newHeight;
-    [self setFrame:frame];
-    [textScroller setContentSize:frame.size];
-  }
-  int startIndex = 0;
-  if (lines > height) {
-    startIndex = lines - height;
-  }
-
-  // Check for dirty on-screen rows; scroll back is not updated
-  int row;
-  int column;
-  for (row = 0; row < height; row++) 
-	{
-    BOOL redraw_row = NO;
-    const char* dirty = [dataSource dirty] + row * width;
-    for (column = 0; column < width; column++) 
-		{
-      char c = dirty[column];
-      if (c) {
-        redraw_row = YES;
-        break;
-      }
-    }
-    if (redraw_row) 
-		{
-      CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight,
-                               [self frame].size.width, lineHeight);
-      [self setNeedsDisplayInRect:rect];
-    }
-  }
-
-  [dataSource resetDirty];
-  [dataSource releaseLock];
+	//if (DEBUGLOG) log(@"lineHeight %f frame.height %f", lineHeight, frame.size.height);
 }
 
 //_______________________________________________________________________________
@@ -215,18 +157,64 @@
 - (void) updateAndScrollToEnd
 {
   [self updateIfNecessary];
-
+	
   [dataSource acquireLock];
-  int height = [dataSource height];
-  int lines = [dataSource numberOfLines];
-  int scrollIndex = height;
-  if (lines > height) {
-    scrollIndex = lines - height;
-  }
-  float visiblePoint = [self frame].size.height;
-  CGRect visibleRect = CGRectMake(0, visiblePoint, 0, 0);
+	
+  CGRect visibleRect = CGRectMake(0, [self frame].size.height, 0, 0);
+	
 	//logRect(@"visibleRect", visibleRect);
+	
   [textScroller scrollRectToVisible:visibleRect animated:YES];
+  [dataSource releaseLock];
+}
+
+//_______________________________________________________________________________
+
+- (void) updateIfNecessary
+{
+  [dataSource acquireLock];
+  int width  = [dataSource width];
+  int height = [dataSource height];
+  int lines  = [dataSource numberOfLines];
+
+	CGRect frame = [self frame];
+  float newHeight = lines * lineHeight;
+	float oldHeight = frame.size.height;
+	
+  if (oldHeight != newHeight) // expand height -> refresh
+	{
+    frame.size.height = newHeight;
+    [self setFrame:frame];
+    [textScroller setContentSize:frame.size];
+		
+		[self removeAllTiles];
+		[self setNeedsDisplay];
+  }
+	else if (lines >= 1000) // scrollback buffer full -> refresh
+	{
+		[self removeAllTiles];
+		[self setNeedsDisplay];
+	}
+	else // redraw dirty lines
+	{
+		int row, column, startIndex = MAX(0, lines-height);
+											
+		for (row = 0; row < height; row++) 
+		{
+			const char * dirty = [dataSource dirty] + row * width;
+			for (column = 0; column < width; column++)
+			{
+				if (dirty[column])
+				{
+					CGRect rect = CGRectMake(0, (startIndex + row) * lineHeight, [self frame].size.width, lineHeight);
+					[self setNeedsDisplayInRect:rect];					
+					break;
+				}
+			}		
+		}
+	}
+	
+  [dataSource resetDirty];
   [dataSource releaseLock];
 }
 
@@ -246,20 +234,6 @@
 	//logPoint(@"scrollOffset", scrollOffset);
 }
 
-//_______________________________________________________________________________
-
-- (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect
-{
-  // Each Tile is responsible for one row so determine the row that this
-  // tile is responsible for based on its bounding rectangle.
-	//logRect(@"frame", frame);
-	//logRect(@"rect", rect);
-  int row = (int)((frame.origin.y - [self frame].origin.y) / lineHeight);
-	//log(@"row %d", row);
-	if (row >= 0)
-		[self drawRow:row tileRect:(CGRect)rect];
-}
-
 //XXX: put me in a standard header somewhere
 extern CGFontRef CGContextGetFont(CGContextRef);
 
@@ -272,7 +246,6 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
 		const char * font = [config.font cString];
     // First time through: cache the fontRef. This lookup is expensive.
-    //fontSize = floor(lineHeight);
 		fontSize = config.fontSize;
     CGContextSelectFont(context, font, floor(lineHeight), kCGEncodingMacRoman);
     fontRef = (CGFontRef)CFRetain(CGContextGetFont(context));
@@ -338,13 +311,24 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
 //_______________________________________________________________________________
 
+- (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect
+{
+  // Each Tile is responsible for one row so determine the row that this
+  // tile is responsible for based on its bounding rectangle.	
+  int row = (int)((frame.origin.y - [self frame].origin.y) / lineHeight);
+	
+	//if (DEBUGLOG) logRect(@"frame", frame);
+	
+	if (row >= 0 && rect.size.height == lineHeight) [self drawRow:row tileRect:(CGRect)rect];
+}
+
+//_______________________________________________________________________________
+
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect
 {
-	//log(@"drawRow %d", row);
-	//logRect(@"tileRect", rect);
+	//if (DEBUGLOG) log(@"row %d", row);
 	
   CGContextRef context = UICurrentContext();
-  rect.origin.x += margin;
 
   [dataSource acquireLock];
 
@@ -357,15 +341,20 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   screen_char_t * theLine = [dataSource getLineAtIndex:row];
 	
 	// ---------- debug output
-	NSMutableString * line = [NSMutableString stringWithCapacity:width];
-  for (column = 0; column < width; column++) 
+	/*
+	if (DEBUGLOG) 
 	{
-    char c = 0xff & theLine[column].ch;
-    if (c == 0) c = ' ';
-		[line appendFormat:@"%c", c];
+		NSMutableString * line = [NSMutableString stringWithCapacity:width];
+		for (column = 0; column < width; column++) 
+		{
+			char c = 0xff & theLine[column].ch;
+			if (c == 0) c = ' ';
+			[line appendFormat:@"%c", c];
+		}
+		logRect(@"   ", rect);		
+		log(@"					    row %02d [%@]", row, line);
 	}
-	//logRect(@"   ", rect);		
-	//log(@"width %02d row %02d [%@]", width, row, line);
+	*/
 	// ---------- debug output end
 
   // Avoid painting each black square individually. First paint the whole 
@@ -375,10 +364,12 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 					color:[[ColorMap sharedInstance] colorForCode:DEFAULT_BG_COLOR_CODE]
 				boxRect:CGRectMake(rect.origin.x, rect.origin.y, charWidth * width, lineHeight)];
 
-  //now specially paint any exceptional backgrounds
-  for (column = 0; column < width; column++) {
+  // now specially paint any exceptional backgrounds
+  for (column = 0; column < width; column++) 
+	{
     unsigned int bgcode = theLine[column].bg_color;
-    if(bgcode != DEFAULT_BG_COLOR_CODE) {
+    if(bgcode != DEFAULT_BG_COLOR_CODE) 
+		{
       CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bgcode];
       [self drawBox:context color:bg boxRect:charRect];
     }
@@ -393,9 +384,11 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
   // Draw foreground character for each column in the row
   charRect.origin.x = rect.origin.x;
-  for (column = 0; column < width; column++) {
+  for (column = 0; column < width; column++) 
+	{
     char c = 0xff & theLine[column].ch;
-    if (c == 0) {
+    if (c == 0) 
+		{
       c = ' ';
     }
     unsigned int fgcode = theLine[column].fg_color;
@@ -406,7 +399,7 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
   // Fill a rectangle with the cursor. drawRow consideres scrollback buffer;
   // cursorY is relative to the non-scrollback screen.
-  int cursorY = [dataSource cursorY] - 1;
+  int cursorY = [dataSource cursorY];
   int height = [dataSource height];
   int lines = [dataSource numberOfLines];
   if (lines > height) {
@@ -415,17 +408,14 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 	
   if (CURSOR && row == cursorY) 
 	{
-		//log(@"control cursor row %d lines %d", row, lines);
-
-    int cursorX = [dataSource cursorX] - 1;
+    int cursorX = [dataSource cursorX];
     CGRect cursorRect = CGRectMake(rect.origin.x, rect.origin.y,
                                    charWidth, lineHeight);
     cursorRect.origin.x += cursorX * charWidth;
     CGColorRef cursorColor = [[ColorMap sharedInstance] defaultCursorColor];
 		if ([[MobileTerminal application] controlKeyMode])
 		{
-			//log(@"control cursor color");
-			cursorColor = [[ColorMap sharedInstance] colorForCode:10];
+			cursorColor = [[ColorMap sharedInstance] colorForCode:1];
 		}
     [self drawBox:context color:cursorColor boxRect:cursorRect];
   }
@@ -444,9 +434,10 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
 - (void) refreshCursorRow
 {
-	int row = [dataSource cursorY]-1;
-	//log(@"refreshCursorRow %d", row);
-	[self drawRow:row tileRect:CGRectMake(0, 0, self.frame.size.width, lineHeight)];
+	int row = [dataSource numberOfLines] - [dataSource height] + [dataSource cursorY];
+	if (DEBUGLOG) log(@"refreshCursorRow %d", row);
+	//[self drawRow:row tileRect:CGRectMake(0, 0, self.frame.size.width, lineHeight)];
+	[self setNeedsDisplayInRect:CGRectMake(0, row*lineHeight, self.frame.size.width, lineHeight)];
 }
 
 @end

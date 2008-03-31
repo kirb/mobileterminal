@@ -146,8 +146,10 @@
 {
   CGColorRef color;
 
-  if (index & DEFAULT_FG_COLOR_CODE) {  // special colors?
-    switch (index) {
+  if (index & DEFAULT_FG_COLOR_CODE) // special colors?
+	{  
+    switch (index) 
+		{
       case SELECTED_TEXT:
         [NSException raise:@"Unsupported" format:@"Unsupported color type"];
         break;
@@ -158,19 +160,27 @@
         color = defaultBGColor;
         break;
       default:
-        if (index & BOLD_MASK) {
-          color = (index-BOLD_MASK == DEFAULT_BG_COLOR_CODE) ?
-              defaultBGColor : [self defaultBoldColor];
-        } else {
+        if (index & BOLD_MASK) 
+				{
+          color = (index-BOLD_MASK == DEFAULT_BG_COLOR_CODE) ? defaultBGColor : [self defaultBoldColor];
+        } 
+				else 
+				{
           color = defaultFGColor;
         }
+				break;
     }
-  } else {
+  } 
+	else 
+	{
     index &= 0xff;
 
-    if (index < 16) {
+    if (index < 16) 
+		{
       color = table[index];
-    } else if (index < 232) {
+    } 
+		else if (index < 232) 
+		{
       index -= 16;
       CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
       float components[] = {
@@ -180,7 +190,9 @@
         1.0
       };
       color = CGColorCreate(colorSpace, components);
-    } else {
+    } 
+		else 
+		{
       index -= 232;
       //color=[CGColorRef colorWithCalibratedWhite:(index*10+8)/256.0 alpha:1];
       [NSException raise:@"Unsupported" format:@"Unsupported color type"];

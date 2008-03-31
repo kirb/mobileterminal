@@ -1755,12 +1755,12 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 - (int) cursorX
 {
-  return CURSOR_X+1;
+  return CURSOR_X;
 }
 
 - (int) cursorY
 {
-    return CURSOR_Y+1;
+    return CURSOR_Y;
 }
 
 - (void)clearTabStop

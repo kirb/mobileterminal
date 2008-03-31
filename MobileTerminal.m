@@ -272,7 +272,7 @@ static MobileTerminal * application;
       // Lowercase
       c -= 0x60;
     }
-    controlKeyMode = NO;
+    [self setControlKeyMode:NO];
   }
   // Not sure if this actually matches anything.  Maybe support high bits later?
   if ((c & 0xff00) != 0) 
@@ -323,14 +323,11 @@ static MobileTerminal * application;
 		
 		[UIView beginAnimations:@"keyboardFadeOut"];
 		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
-		//[keyboardView setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, 0, -480)];
 		CGRect kbFrame = [self keyboardFrame];
 		kbFrame.origin.y += kbFrame.size.height;
 		[keyboardView setFrame:kbFrame];
 		[keyboardView setAlpha:0.0f];		
 		[UIView endAnimations];		
-		
-		//[keyboardView removeFromSuperview];
 	}
 	else
 	{
@@ -339,11 +336,8 @@ static MobileTerminal * application;
 		[UIView beginAnimations:@"keyboardFadeIn"];
 		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
 		[keyboardView setFrame:[self keyboardFrame]];
-		//[keyboardView setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, 0, 0)];
 		[keyboardView setAlpha:1.0f];		
 		[UIView endAnimations];		
-		
-		//[mainView addSubview:keyboardView];		
 	}
 		
 	[self updateFrames:NO];
@@ -353,7 +347,6 @@ static MobileTerminal * application;
 
 -(void) setControlKeyMode:(BOOL)mode
 {
-	// log(@"setControlMode: %d", mode);
 	controlKeyMode = mode;
 	[[self textView] refreshCursorRow];
 }

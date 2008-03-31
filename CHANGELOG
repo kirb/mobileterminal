@@ -1,15 +1,55 @@
-- internally converts keyboard character LF to CR (makes nano and pico work) 
-
-- long swipe left: start of line (ctrl-a)
-- long swipe right: end og line (ctrl-e)
-- bigger gesture view area 
-- pie menu fades in with a delay
-- keyboard toggle via 1-finger-double-tap with a short delay
-- reactivated the scrollbar display
-- Makefile improved
-- XCode project added
-- initial landscape mode (unfinished)
 
 - multiple terminals added (code merged from the multi branch) 
-  this feature works best if the Default_MobileTerminal?.png and FSO_MobileTerminal?.png images are copied to /System/CoreServices/SpringBoard.app 
+  this feature works best if the Default_MobileTerminal?.png and FSO_MobileTerminal?.png images 
+	are copied to /System/CoreServices/SpringBoard.app 
+
+- landscape mode added
+	
+- pie menu replaced with a button menu:
+	- menu always within screen bounds
+	- shows/hides with a delay
+
+- single finger swipe gestures:
+	- short swipes:
+			up/down/left/right: cursor keys
+			down-left: tab
+			down-right: control key mode
+			up-right: ctrl-c
+			up-left: esc
+	- long swipes:
+			left: start of line (ctrl-a)
+			right: end of line (ctrl-e)
+	
+- double finger swipe gestures:
+		left/right: switch to next/previous terminal
+		down: return
+		
+- preferences added:
+	- multiple terminals:
+		- terminal font, font size
+		- terminal width
+	- gesture view frame color
+	- about page
+	
+- gesture view:
+	- bigger area
+	- frame display added
+
+- keyboard:	
+	- toggles via 1-finger-double-tap
+	- toggles with a delay
+	- keyboard slides in and out
+
+- sensitive status bar:
+	- left part: activates preferences
+	- right part: next/previous terminal
+
+- scrollbar scroller display reactivated
+- control key mode indicates via cursor color 
+- internally converts keyboard character LF to CR (makes nano and pico work) 
+- various display bugs fixed
+- various code improvements
+- Makefile improved
+- XCode project added
+
 

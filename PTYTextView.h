@@ -17,9 +17,6 @@
   float lineWidth;
   float charWidth;
   int numberOfLines;
-
-  int margin;
-  int vmargin;
 	
 	int termid;
 
