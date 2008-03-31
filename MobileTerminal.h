@@ -46,7 +46,6 @@
 	
   int numTerminals;
   int activeTerminal;	
-	int lastTerminal;
 
   BOOL controlKeyMode;
   BOOL keyboardShown;

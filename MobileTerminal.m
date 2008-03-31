@@ -51,7 +51,6 @@ static MobileTerminal * application;
 	[settings readUserDefaults];
 
 	activeTerminal = 0;
-	lastTerminal = -1;
 	
   controlKeyMode = NO;
   keyboardShown = YES;
@@ -526,9 +525,6 @@ static MobileTerminal * application;
 
 -(void) setActiveTerminal:(int)active direction:(int)direction
 {
-	//log(@"setActiveTerminal %d", active);
-	lastTerminal = activeTerminal;
-	
 	[[self textView] willSlideOut];
 		
 	if (direction)
@@ -536,7 +532,7 @@ static MobileTerminal * application;
 		[UIView beginAnimations:@"slideOut"];
 		[UIView setAnimationDelegate:self];
 		[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-direction * [mainView frame].size.width,0)];
+		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-direction * [mainView frame].size.width, 0)];
 		[UIView endAnimations];
 	}
 	else
@@ -551,6 +547,8 @@ static MobileTerminal * application;
 	if (numTerminals > 1)	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] 
 																removeOnAbnormalExit:YES];
 	
+	[mainView insertSubview:[self textScroller] below:keyboardView];
+
 	if (direction)
 	{
 		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * [mainView frame].size.width,0)];
@@ -573,11 +571,13 @@ static MobileTerminal * application;
 
 - (void) animationDidStop:(NSString*)animationID finished:(NSNumber*)finished context:(void*)context 
 {
-	//log(@"animation did stop %@ finished %@", animationID, finished);
-	// move old terminal away, so it won't appear on screen rotation
 	if ([animationID isEqualToString:@"slideOut"])
 	{
-		[[scrollers objectAtIndex:lastTerminal] setPosition:CGPointMake(1000,0)];
+		int i;
+		for (i = 0; i < numTerminals; i++)
+		{
+			if (i != activeTerminal) [[scrollers objectAtIndex:i] removeFromSuperview];
+		}
 	}
 	else if ([animationID isEqualToString:@"screenRotation"])
 	{
@@ -629,9 +629,7 @@ static MobileTerminal * application;
 																												 source: screen
 																											 scroller: scroller
 																										 identifier: numTerminals];		
-		[textviews addObject:textview];
-		
-		[mainView insertSubview:scroller above:[scrollers objectAtIndex:0]];
+		[textviews addObject:textview];		
 	}
 
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
