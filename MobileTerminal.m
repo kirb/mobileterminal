@@ -613,10 +613,10 @@ static MobileTerminal * application;
 	for (numTerminals = 1; numTerminals < MAXTERMINALS; numTerminals++)
 	{
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
-		VT100Screen   * screen   = [[VT100Screen alloc] init];
+		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
 		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
 		UIScroller    * scroller = [[UIScroller alloc] init];
-		
+
 		[screens   addObject: screen];
 		[terminals addObject: terminal];
 		[processes addObject: process];
@@ -624,14 +624,16 @@ static MobileTerminal * application;
 		
 		[screen setTerminal:terminal];
 		[terminal setScreen:screen];		
-		
+
 		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
 																												 source: screen
 																											 scroller: scroller
 																										 identifier: numTerminals];		
 		[textviews addObject:textview];
-	}	
-	
+		
+		[mainView insertSubview:scroller above:[scrollers objectAtIndex:0]];
+	}
+
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
 }
 
@@ -661,24 +663,11 @@ static MobileTerminal * application;
 
 -(void) togglePreferences
 {
-	if (preferencesController == nil) 
+	if (preferencesController == nil)
 	{
 		preferencesController = [PreferencesController sharedInstance];
 		[preferencesController initViewStack];
 	}
-
-	LKAnimation * animation = [LKTransition animation];
-	// to make the compiler not complain
-	//[animation setType: @"oglFlip"];
-	//[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
-	//[animation setTransitionFlags: 3];
-	[animation performSelector:@selector(setType:) withObject:@"oglFlip"];
-	[animation performSelector:@selector(setSubtype:) withObject:(activeView == mainView) ? @"fromRight" : @"fromLeft"];
-	[animation performSelector:@selector(setTransitionFlags:) withObject:[NSNumber numberWithInt:3]];
-	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
-	[animation setFillMode: @"extended"];
-	[animation setSpeed: 0.25f];
-	[contentView addAnimation:(id)animation forKey:@"flip"];	
 	
 	if (activeView == mainView)
 	{
@@ -703,6 +692,19 @@ static MobileTerminal * application;
 			[self createTerminals];
 		}
 	}
+	
+	LKAnimation * animation = [LKTransition animation];
+	// to make the compiler not complain
+	//[animation setType: @"oglFlip"];
+	//[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
+	//[animation setTransitionFlags: 3];
+	[animation performSelector:@selector(setType:) withObject:@"oglFlip"];
+	[animation performSelector:@selector(setSubtype:) withObject:(activeView == mainView) ? @"fromRight" : @"fromLeft"];
+	[animation performSelector:@selector(setTransitionFlags:) withObject:[NSNumber numberWithInt:3]];
+	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
+	//[animation setFillMode: @"extended"];
+	[animation setSpeed: 0.25f];
+	[contentView addAnimation:(id)animation forKey:@"flip"];
 }
 
 //_______________________________________________________________________________
