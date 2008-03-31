@@ -38,12 +38,4 @@ enum {
 	ZONE_NW
 };
 
-//_______________________________________________________________________________
 
-CGColorRef colorWithRGBA(float red, float green, float blue, float alpha);
-
-//_______________________________________________________________________________
-
-@interface UIView (Color)
-+ (CGColorRef) colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
-@end

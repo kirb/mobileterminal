@@ -34,7 +34,7 @@
 
 -(BOOL) shouldTrack
 {
-	log(@"should track"); // , [[Menu sharedInstance] visible]);
+	//log(@"should track"); // , [[Menu sharedInstance] visible]);
 	return YES;
 }
 
@@ -72,7 +72,7 @@
 		MenuButton * button = [[menu subviews] objectAtIndex:i];
 		if ([button isSelected])
 		{
-			log(@"button activated %@", [button title]);
+			//log(@"button activated %@", [button title]);
 			if ([button chars])
 				[delegate handleInputFromMenu:[button chars]];
 			[button setSelected:NO];
@@ -325,12 +325,12 @@
 -(void) drawRect:(CGRect)frame
 {
 	CGRect rect = [self bounds];
-	rect.origin.x -= 1;
-	rect.origin.y -= 1;
-	rect.size.width += 1;
-	rect.size.height += 1;
+	//rect.origin.x -= 1;
+	//rect.origin.y -= 1;
+	//rect.size.width += 1;
+	rect.size.height -= 2;
 	CGContextRef context = UICurrentContext();
-	CGColorRef c = [Settings sharedInstance].gestureViewColor;
+	CGColorRef c = CGColorWithRGBAColor([[Settings sharedInstance] gestureFrameColor]);
 	const float pattern[2] = {1,4};
 	CGContextSetLineDash(context, 0, pattern, 2);
 	CGContextSetStrokeColorWithColor(context, c);

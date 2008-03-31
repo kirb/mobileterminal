@@ -13,6 +13,8 @@ Terminal: main.o \
 					VT100Screen.o VT100Terminal.o \
 					PTYTextView.o PTYTile.o \
 					ColorMap.o \
+					ColorChooser.o \
+					Vector.o \
 					Settings.o \
 					ShellKeyboard.o \
 					SubProcess.o \

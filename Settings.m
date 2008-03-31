@@ -99,7 +99,7 @@
 										 [[TerminalConfig alloc] init],
 										 [[TerminalConfig alloc] init], nil];
 	
-	gestureViewColor = colorWithRGBA(1.0f, 1.0f, 1.0f, 0.05f);
+	gestureFrameColor = RGBAColorMake(0.0f, 0.0f, 1.0f, 0.5f);
 	multipleTerminals = YES;
 	menuButtons = nil; 
 	
@@ -108,7 +108,6 @@
 
 //_______________________________________________________________________________
 
-@synthesize gestureViewColor;
 @synthesize multipleTerminals;
 
 //_______________________________________________________________________________
@@ -184,6 +183,9 @@
 	}
 	[d setObject:tcs forKey:@"terminals"];
 	
+	NSArray * colorValues = RGBAColorToArray(RGBAColorMake(1,1,1,0.05f));
+	[d setObject:colorValues forKey:@"gestureFrameColor"];
+	
 	[defaults registerDefaults:d];
 }
 
@@ -208,6 +210,7 @@
 
 	multipleTerminals = [defaults boolForKey:@"multipleTerminals"];
 	menuButtons = [[defaults arrayForKey:@"menuButtons"] retain];
+	gestureFrameColor = RGBAColorMakeWithArray([defaults arrayForKey:@"gestureFrameColor"]);
 }
 
 //_______________________________________________________________________________
@@ -233,6 +236,7 @@
 	[defaults setObject:tcs forKey:@"terminals"];
 	[defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
 	[defaults setObject:menuButtons forKey:@"menuButtons"];
+	[defaults setObject:RGBAColorToArray(gestureFrameColor) forKey:@"gestureFrameColor"];
 	[defaults synchronize];
 }
 
@@ -240,6 +244,9 @@
 
 -(NSArray*) terminalConfigs { return terminalConfigs; }
 -(NSArray*) menuButtons { return menuButtons; }
+-(RGBAColor) gestureFrameColor { return gestureFrameColor; }
+-(RGBAColorRef) gestureFrameColorRef { return &gestureFrameColor; }
+-(void) setgestureFrameColor:(RGBAColor)color { gestureFrameColor = color; }
 
 //_______________________________________________________________________________
 

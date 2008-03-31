@@ -13,6 +13,8 @@
 #import <UIKit/UIPickerTable.h>
 #import <UIKit/UIPickerTableCell.h>
 
+#import "ColorChooser.h"
+
 @class MobileTerminal;
 @class TerminalConfig;
 @class PreferencesGroup;
@@ -65,6 +67,25 @@
 
 //_______________________________________________________________________________
 
+@interface ColorButton : ColorPreviewer
+{
+	RGBAColorRef colorRef;
+}
+
+-(id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface ColorView : ColorChooser
+{
+}	
+
+@end
+
+//_______________________________________________________________________________
+
 @interface TerminalView : UIPreferencesTable
 {
 	id							 fontButton;
@@ -109,6 +130,7 @@
 - (id) addFloatValueSlider: (NSString*)label minValue:(float)minValue maxValue:(float)maxValue target:(id)target action:(SEL)action;
 - (id) addPageButton:(NSString*)label;
 - (id) addPageButton:(NSString*)label value:(NSString*)value;
+- (id) addColorPageButton:(NSString*)label colorRef:(RGBAColorRef)color;
 - (id) addValueField:(NSString*)label value:(NSString*)value;
 - (id) addTextField:(NSString*)label;
 
@@ -150,16 +172,17 @@
 	UIPreferencesTable	* settingsView;
 	UIView							* aboutView;
 	FontView						* fontView;
+	ColorView           * colorView;
 	TerminalView				* terminalView;
 
 	UIPreferencesTextTableCell * terminalButton1;
 	UIPreferencesTextTableCell * terminalButton2;
 	UIPreferencesTextTableCell * terminalButton3;
 	UIPreferencesTextTableCell * terminalButton4;
-	
+		
 	PreferencesGroup * terminalGroup;
-	
-	int               terminalIndex;
+
+	int terminalIndex;
 }
 
 +(PreferencesController*) sharedInstance;
@@ -169,6 +192,7 @@
 -(UIPreferencesTable*) settingsView;
 
 -(FontView*) fontView;
+-(ColorView*) colorView;
 -(void)setFontSize:(int)size;
 -(void)setFontWidth:(float)width;
 -(void)setFont:(NSString*)font;

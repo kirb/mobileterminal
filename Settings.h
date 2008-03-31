@@ -3,6 +3,7 @@
 //  Terminal
 
 #import <Foundation/Foundation.h>
+#import "ColorChooser.h"
 
 //_______________________________________________________________________________
 
@@ -35,13 +36,12 @@
 	NSString * arguments;
 	NSArray * terminalConfigs;
 	NSArray * menuButtons;
-	CGColorRef gestureViewColor;
+	RGBAColor gestureFrameColor;
 	BOOL multipleTerminals;
 }
 
 //_______________________________________________________________________________
 
-@property CGColorRef gestureViewColor;
 @property BOOL multipleTerminals;
 
 + (Settings*) sharedInstance;
@@ -56,6 +56,9 @@
 - (void) setArguments: (NSString*)arguments;
 - (NSString*) arguments;
 - (NSArray*) menuButtons;
+- (RGBAColor) gestureFrameColor;
+- (RGBAColorRef) gestureFrameColorRef;
+- (void) setgestureFrameColor:(RGBAColor)color;
 
 //_______________________________________________________________________________
 

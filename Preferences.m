@@ -7,6 +7,7 @@
 #import "Settings.h"
 #import "PTYTextView.h"
 #import "Constants.h"
+#import "ColorChooser.h"
 #import "Log.h"
 
 #import <UIKit/UISimpleTableCell.h> 
@@ -289,6 +290,55 @@
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
+@implementation ColorButton
+
+-(id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c
+{
+	self = [super initWithColor:(RGBAColor)*c];
+	
+	[self setFrame:frame];
+	colorRef = c;
+	
+	return self;
+}
+
+- (void) colorChanged:(NSArray*) colorValues
+{
+	RGBAColor c = RGBAColorMakeWithArray(colorValues);
+	[self setColor:c];
+	*colorRef = c;
+}
+
+- (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
+{
+	PreferencesController * prefs = [PreferencesController sharedInstance];
+	[[prefs colorView] setColor:[self color]];
+	[[prefs colorView] setDelegate:self];
+	[prefs pushViewControllerWithView:[prefs colorView] navigationTitle:[[self superview] title]];
+}	
+
+@end
+
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation ColorView
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super init];
+	
+	[self setFrame:frame];
+
+	return self;
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
 @implementation TerminalView
 
 //_______________________________________________________________________________
@@ -435,6 +485,7 @@
 		// ------------------------------------------------------------- pref groups
 
 		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+		PreferencesGroup * group;
 		terminalGroup = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
 																				
 		BOOL multi = [[Settings sharedInstance] multipleTerminals];
@@ -457,8 +508,12 @@
 		}
 		
 		[prefGroups addGroup:terminalGroup];
+		
+		group = [PreferencesGroup groupWithTitle:@"Colors" icon:nil];
+		[group addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
+		[prefGroups addGroup:group];		
 				
-		PreferencesGroup *group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 		[group addPageButton:@"About"];
 		[prefGroups addGroup:group];
 
@@ -547,6 +602,19 @@
 
 //_______________________________________________________________________________
 
+-(ColorView*) colorView
+{
+	if (!colorView)
+	{
+		colorView = [[ColorView alloc] initWithFrame:[[super view] bounds]];
+		[colorView setDelegate:self]; 
+	}
+	
+	return colorView;
+}
+
+//_______________________________________________________________________________
+
 -(TerminalView*) terminalView
 {
 	if (!terminalView)
@@ -605,7 +673,6 @@
 	else
 	{
 		terminalIndex = [[title substringFromIndex:9] intValue] - 1;
-		//log(@"terminalIndex %@ %d", title, terminalIndex);
 		[[self terminalView] setTerminalIndex:terminalIndex];
 		[self pushViewControllerWithView:[self terminalView] navigationTitle:title];
 	}
@@ -621,6 +688,7 @@
 		if (terminalIndex < [[application textviews] count])
 			[[[application textviews] objectAtIndex:terminalIndex] resetFont];
 	}
+	
 	[super popViewController];
 }
 
@@ -647,7 +715,7 @@
 		TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 
 		[fontView selectFont:[config font] size:[config fontSize] width:[config fontWidth]];
-	}	
+	}
 }
 
 @end
@@ -884,6 +952,28 @@
 	
 	[[cell textField] setTapDelegate:[PreferencesController sharedInstance]];
 	[cell setTapDelegate:[PreferencesController sharedInstance]];
+	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(id) addColorPageButton:(NSString*)label colorRef:(RGBAColorRef)color
+{
+	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowDisclosure:YES];
+	[cell setDisclosureClickable: NO];
+	[cell setDisclosureStyle: 2];
+	[[cell textField] setEnabled:NO];
+	[cells addObject: cell];
+	
+	ColorButton * colorButton = [[ColorButton alloc] initWithFrame:CGRectMake(240,3,39,39) colorRef:color];
+	[cell addSubview:colorButton];
+	
+	[colorButton setTapDelegate:colorButton];
+	[[cell textField] setTapDelegate:colorButton];
+	[cell setTapDelegate:colorButton];
 	
 	return cell;
 }

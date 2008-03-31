@@ -97,7 +97,7 @@ static MobileTerminal * application;
   gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
-	[mainView setBackgroundColor:[UIView colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
+	[mainView setBackgroundColor:colorWithRGBA(0,0,0,1)];
 	for (i = 0; i < numTerminals; i++)
 		[mainView addSubview:[scrollers objectAtIndex:i]];
   [mainView addSubview:keyboardView];	
@@ -421,7 +421,6 @@ static MobileTerminal * application;
 	else
 		contentBounds = CGRectMake(0, 0, screenSize.width, screenSize.height);
 
-	float availableWidth = contentBounds.size.width;
 	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
 	CGRect keybRect = CGRectMake(0, contentBounds.size.height - keybSize.height, contentBounds.size.height, keybSize.height);	
 	
@@ -487,7 +486,6 @@ static MobileTerminal * application;
 	if (keyboardShown) 
 	{
 		availableHeight -= keybSize.height;
-		//[keyboardView setFrame:CGRectMake(0, availableHeight - keybSize.height, availableWidth, keybSize.height)];
 	}
 			
 	float lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
@@ -512,6 +510,7 @@ static MobileTerminal * application;
 	[[self textScroller] setFrame:textScrollerFrame];
 	[[self textScroller] setContentSize:textFrame.size];
 	[gestureView         setFrame:gestureFrame];
+	[gestureView				 setNeedsDisplay];
 	
 	[[self activeProcess] setWidth:columns    height:rows];
 	[[self activeScreen]  resizeWidth:columns height:rows];
@@ -700,6 +699,7 @@ static MobileTerminal * application;
 		activeView = mainView;
 		
 		[settings writeUserDefaults];
+		[gestureView	setNeedsDisplay];
 		
 		if (numTerminals > 1 && ![settings multipleTerminals])
 		{

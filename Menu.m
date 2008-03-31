@@ -170,7 +170,7 @@
   }
 	
 	CGRect frame = [[self superview] frame];
-	logRect(@"frame", frame);
+	//logRect(@"frame", frame);
 	float lx = MIN(frame.size.width  - 3.0 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE),  MAX(0, location.x - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE)));
 	float ly = MIN(frame.size.height - 3.0 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE), MAX(0, location.y - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE)));
 	
