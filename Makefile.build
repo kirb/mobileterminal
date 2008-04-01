@@ -12,8 +12,8 @@ Terminal: main.o \
 					MobileTerminal.o \
 					VT100Screen.o VT100Terminal.o \
 					PTYTextView.o PTYTile.o \
+					Color.o \
 					ColorMap.o \
-					ColorChooser.o \
 					Vector.o \
 					Settings.o \
 					ShellKeyboard.o \

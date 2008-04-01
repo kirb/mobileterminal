@@ -7,7 +7,7 @@
 #import "Settings.h"
 #import "PTYTextView.h"
 #import "Constants.h"
-#import "ColorChooser.h"
+#import "Color.h"
 #import "Log.h"
 
 #import <UIKit/UISimpleTableCell.h> 
@@ -294,22 +294,51 @@
 
 -(id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c
 {
-	self = [super initWithColor:(RGBAColor)*c];
+	self = [super initWithFrame:frame];
 	
-	[self setFrame:frame];
+  [self setBackgroundColor:colorWithRGBA(1,1,1,0)];
+  
 	colorRef = c;
 	
 	return self;
 }
 
-- (void) colorChanged:(NSArray*) colorValues
+//_______________________________________________________________________________
+
+-(RGBAColor) color 
 {
-	RGBAColor c = RGBAColorMakeWithArray(colorValues);
-	[self setColor:c];
-	*colorRef = c;
+	return * colorRef;
 }
 
-- (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
+//_______________________________________________________________________________
+
+-(void) drawRect:(struct CGRect)rect
+{
+  CGContextRef context = UICurrentContext();
+	CGContextSetFillColorWithColor(context, CGColorWithRGBAColor([self color]));
+  CGContextSetStrokeColorWithColor(context, colorWithRGBA(0.5,0.5,0.5,1));
+  
+  UIBezierPath * path = [UIBezierPath roundedRectBezierPath:CGRectMake(2, 2, rect.size.width-4, rect.size.height-4)
+                                         withRoundedCorners:0xffffffff
+                                           withCornerRadius:7.0f];	 
+  
+  [path fill];
+  [path stroke];
+
+  CGContextFlush(context);  
+}
+
+//_______________________________________________________________________________
+
+- (void) colorChanged:(NSArray*)colorValues
+{
+	*colorRef = RGBAColorMakeWithArray(colorValues);
+  [self setNeedsDisplay];
+}
+
+//_______________________________________________________________________________
+
+- (void) view: (UIView*) view handleTapWithCount:(int)count event:(id)event 
 {
 	PreferencesController * prefs = [PreferencesController sharedInstance];
 	[[prefs colorView] setColor:[self color]];
@@ -319,7 +348,6 @@
 
 @end
 
-
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
@@ -327,11 +355,77 @@
 
 -(id) initWithFrame:(CGRect)frame
 {
-	self = [super init];
+	self = [super initWithFrame:frame];
 	
-	[self setFrame:frame];
+  PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+  PreferencesGroup * group;
+
+  group = [PreferencesGroup groupWithTitle:@"Color" icon:nil];
+	colorField = [group addColorField];
+	[prefGroups addGroup:group];
+  
+	group = [PreferencesGroup groupWithTitle:@"Values" icon:nil];
+	redSlider   = [[group addFloatValueSlider:@"Red"   minValue:0 maxValue:1 target:self action:@selector(sliderChanged:)] control];
+	greenSlider = [[group addFloatValueSlider:@"Green" minValue:0 maxValue:1 target:self action:@selector(sliderChanged:)] control];
+	blueSlider  = [[group addFloatValueSlider:@"Blue"  minValue:0 maxValue:1 target:self action:@selector(sliderChanged:)] control];
+	[prefGroups addGroup:group];
+
+  group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	alphaSlider = [[group addFloatValueSlider:@"Alpha" minValue:0 maxValue:1 target:self action:@selector(sliderChanged:)] control];
+	[prefGroups addGroup:group];
+
+  [self setDataSource:prefGroups];
+	[self reloadData];
 
 	return self;
+}
+
+//_______________________________________________________________________________
+
+-(RGBAColor) color 
+{
+  return color;
+}
+
+//_______________________________________________________________________________
+
+-(void) setColor:(RGBAColor)color_
+{
+  color = color_;
+  [colorField setColor:color];
+  [redSlider   setValue:color.r];
+  [greenSlider setValue:color.g];  
+  [blueSlider  setValue:color.b];  
+  [alphaSlider setValue:color.a];
+}
+
+//_______________________________________________________________________________
+
+-(void) setDelegate:(id)delegate_
+{
+  delegate = delegate_;
+}
+
+//_______________________________________________________________________________
+
+-(id) delegate
+{
+  return delegate;
+}
+
+//_______________________________________________________________________________
+
+-(void) sliderChanged:(id)slider
+{
+  color = RGBAColorMake([redSlider value], [greenSlider value], [blueSlider value], [alphaSlider value]);
+
+  [colorField setColor:color];
+
+	if ([self delegate] && [[self delegate] respondsToSelector:@selector(colorChanged:)])
+	{
+		NSArray * colorArray = RGBAColorToArray(color);
+		[[self delegate] performSelector:@selector(colorChanged:) withObject:colorArray];
+	}
 }
 
 @end
@@ -607,7 +701,6 @@
 	if (!colorView)
 	{
 		colorView = [[ColorView alloc] initWithFrame:[[super view] bounds]];
-		[colorView setDelegate:self]; 
 	}
 	
 	return colorView;
@@ -716,6 +809,37 @@
 
 		[fontView selectFont:[config font] size:[config fontSize] width:[config fontWidth]];
 	}
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation ColorTableCell
+
+- (void) drawRect:(CGRect)rect
+{
+  CGContextRef context = UICurrentContext();
+	CGContextSetFillColorWithColor(context, CGColorWithRGBAColor(color));
+  CGContextSetStrokeColorWithColor(context, colorWithRGBA(0.0,0.0,0.0,0.8));
+    
+  UIBezierPath * path = [UIBezierPath roundedRectBezierPath:CGRectMake(10, 2, rect.size.width-20, rect.size.height-4)
+                                         withRoundedCorners:0xffffffff
+                                           withCornerRadius:7.0f];	 
+
+  [path fill];
+  [path stroke];
+  
+  CGContextFlush(context);  
+}
+
+//_______________________________________________________________________________
+
+- (void) setColor:(RGBAColor)color_
+{
+  color = color_;
+  [self setNeedsDisplay];
 }
 
 @end
@@ -1000,6 +1124,16 @@
 	[[cell textField] setHorizontallyCenterText:YES];
 	[[cell textField] setEnabled:NO];
 	[cells addObject: cell];	
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+-(id) addColorField
+{
+	ColorTableCell * cell = [[ColorTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+  [cell setDrawsBackground:NO];
+	[cells addObject: cell];
 	return cell;
 }
 

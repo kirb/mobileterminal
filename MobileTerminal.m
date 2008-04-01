@@ -149,6 +149,8 @@ static MobileTerminal * application;
 	}
 	
 	[mainView addSubview:[keyboardView inputView]];
+	[mainView bringSubviewToFront:gestureView];
+	[mainView bringSubviewToFront:[Menu sharedInstance]];
 	[[keyboardView inputView] becomeFirstResponder];
 	
 	[self setActiveTerminal:0];

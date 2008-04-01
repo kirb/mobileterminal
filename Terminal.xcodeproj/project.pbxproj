@@ -10,6 +10,8 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C308937B0D969034009430B9 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
+		C31614260DA2D23E004157BB /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
+		C31614270DA2D23E004157BB /* Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Color.m; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
 		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
@@ -39,8 +41,6 @@
 		C3A4E5F70D91AA86009A610C /* VT100Screen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Screen.m; sourceTree = "<group>"; };
 		C3A4E5F80D91AA86009A610C /* VT100Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Terminal.h; sourceTree = "<group>"; };
 		C3A4E5F90D91AA86009A610C /* VT100Terminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Terminal.m; sourceTree = "<group>"; };
-		C3ABC2F50DA039A900A22A22 /* ColorChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorChooser.h; sourceTree = "<group>"; };
-		C3ABC2F60DA039A900A22A22 /* ColorChooser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ColorChooser.m; sourceTree = "<group>"; };
 		C3ABC2F70DA039A900A22A22 /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
 		C3ABC2F80DA039A900A22A22 /* Vector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Vector.m; sourceTree = "<group>"; };
 		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
@@ -103,10 +103,10 @@
 				C3A4E5F40D91AA86009A610C /* SubProcess.h */,
 				C3A4E5F50D91AA86009A610C /* SubProcess.m */,
 				C3A4E5E30D91AA86009A610C /* charmaps.h */,
+				C31614260DA2D23E004157BB /* Color.h */,
+				C31614270DA2D23E004157BB /* Color.m */,
 				C3A4E5E40D91AA86009A610C /* ColorMap.h */,
 				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
-				C3ABC2F50DA039A900A22A22 /* ColorChooser.h */,
-				C3ABC2F60DA039A900A22A22 /* ColorChooser.m */,
 				C3ABC2F70DA039A900A22A22 /* Vector.h */,
 				C3ABC2F80DA039A900A22A22 /* Vector.m */,
 				C37DAB6F0D93475A00FC5BC7 /* Log.h */,

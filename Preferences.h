@@ -12,8 +12,7 @@
 #import <UIKit/UIPickerView.h>
 #import <UIKit/UIPickerTable.h>
 #import <UIKit/UIPickerTableCell.h>
-
-#import "ColorChooser.h"
+#import "Color.h"
 
 @class MobileTerminal;
 @class TerminalConfig;
@@ -67,20 +66,45 @@
 
 //_______________________________________________________________________________
 
-@interface ColorButton : ColorPreviewer
+@interface ColorTableCell : UIPreferencesTableCell
 {
-	RGBAColorRef colorRef;
+  RGBAColor color;
 }
 
--(id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c;
+- (void) setColor:(RGBAColor)color;
 
 @end
 
 //_______________________________________________________________________________
 
-@interface ColorView : ColorChooser
+@interface ColorButton : UIView
 {
+	RGBAColorRef colorRef;
+}
+
+- (id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c;
+- (void) colorChanged:(NSArray*)colorValues;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface ColorView : UIPreferencesTable
+{
+  id delegate;
+  
+  RGBAColor color;
+  
+  ColorTableCell  * colorField;
+  UISliderControl * redSlider;
+  UISliderControl * greenSlider;
+  UISliderControl * blueSlider;
+  UISliderControl * alphaSlider;
 }	
+
+-(RGBAColor) color;
+-(void) setColor:(RGBAColor)color;
+-(void) setDelegate:(id)delegate;
 
 @end
 
@@ -133,6 +157,7 @@
 - (id) addColorPageButton:(NSString*)label colorRef:(RGBAColorRef)color;
 - (id) addValueField:(NSString*)label value:(NSString*)value;
 - (id) addTextField:(NSString*)label;
+- (id) addColorField;
 
 - (int) rows;
 - (BOOL) boolValueForRow: (int) row;

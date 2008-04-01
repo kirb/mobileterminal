@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <math.h>
 
-#define DEBUGLOG YES
+#define DEBUGLOG NO
 
 @implementation PTYTextView
 
@@ -49,7 +49,6 @@
   [textScroller setScrollerIndicatorStyle:2];
 	[textScroller displayScrollerIndicators];
 	[textScroller setAdjustForContentSizeChange:YES];
-	[textScroller setAllowsFourWayRubberBanding:NO];
 
   [self refresh];
 
@@ -435,8 +434,6 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 - (void) refreshCursorRow
 {
 	int row = [dataSource numberOfLines] - [dataSource height] + [dataSource cursorY];
-	if (DEBUGLOG) log(@"refreshCursorRow %d", row);
-	//[self drawRow:row tileRect:CGRectMake(0, 0, self.frame.size.width, lineHeight)];
 	[self setNeedsDisplayInRect:CGRectMake(0, row*lineHeight, self.frame.size.width, lineHeight)];
 }
 

@@ -3,7 +3,7 @@
 //  Terminal
 
 #import <Foundation/Foundation.h>
-#import "ColorChooser.h"
+#import "Color.h"
 
 //_______________________________________________________________________________
 
