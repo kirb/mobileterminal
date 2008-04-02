@@ -17,6 +17,7 @@
 @class MobileTerminal;
 @class TerminalConfig;
 @class PreferencesGroup;
+@class Menu;
 
 //_______________________________________________________________________________
 
@@ -133,6 +134,38 @@
 
 //_______________________________________________________________________________
 
+@interface MenuTableCell : UIPreferencesTableCell
+{
+  Menu * menu;
+}
+
+- (id) initWithFrame:(CGRect)frame;
+- (float) getHeight;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface MenuPreferences : UIPreferencesTable
+{
+}
+
+-(id) initWithFrame:(CGRect)frame;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface GesturePreferences : UIPreferencesTable
+{
+}
+
+-(id) initWithFrame:(CGRect)frame;
+
+@end
+
+//_______________________________________________________________________________
+
 @interface PreferencesGroup : NSObject 
 {
 	UIPreferencesTableCell * title;
@@ -198,6 +231,8 @@
 	UIView							* aboutView;
 	FontView						* fontView;
 	ColorView           * colorView;
+  MenuPreferences     * menuView;
+  GesturePreferences  * gestureView;
 	TerminalView				* terminalView;
 
 	UIPreferencesTextTableCell * terminalButton1;
@@ -211,16 +246,20 @@
 }
 
 +(PreferencesController*) sharedInstance;
+
 -(id) init;
 -(void) initViewStack;
--(TerminalView*) terminalView;
--(UIPreferencesTable*) settingsView;
 
 -(FontView*) fontView;
 -(ColorView*) colorView;
--(void)setFontSize:(int)size;
--(void)setFontWidth:(float)width;
--(void)setFont:(NSString*)font;
+-(TerminalView*) terminalView;
+-(MenuPreferences*) menuView;
+-(GesturePreferences*) gestureView;
+-(UIPreferencesTable*) settingsView;
+
+-(void) setFontSize:(int)size;
+-(void) setFontWidth:(float)width;
+-(void) setFont:(NSString*)font;
 
 -(id) aboutView;
 

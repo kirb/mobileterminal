@@ -8,6 +8,7 @@
 #import "PTYTextView.h"
 #import "Constants.h"
 #import "Color.h"
+#import "Menu.h"
 #import "Log.h"
 
 #import <UIKit/UISimpleTableCell.h> 
@@ -517,6 +518,83 @@
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
+@implementation MenuTableCell
+
+-(id) initWithFrame:(CGRect) frame
+{
+  self = [super initWithFrame:frame];
+
+	[self setShowSelection:NO];
+  menu = [[Menu alloc] init];
+  [menu setFrame:CGRectMake(40, 10, frame.size.width-20, frame.size.height-20)];
+	[self addSubview:menu];
+  
+  return self;
+}
+
+//_______________________________________________________________________________
+
+- (float) getHeight
+{
+  return [self frame].size.height;
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation MenuPreferences
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	
+	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+
+	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 150.0f)];
+	[group addCell:cell];
+  [group addPageButton:@"Test"];
+	
+	[prefGroups addGroup:group];
+		
+	[self setDataSource:prefGroups];
+	[self reloadData];
+	
+	return self;
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation GesturePreferences
+
+//_______________________________________________________________________________
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	
+	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	
+  [group addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
+	[prefGroups addGroup:group];
+  
+	[self setDataSource:prefGroups];
+	[self reloadData];
+	
+	return self;
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
 @implementation PreferencesController
 
 //_______________________________________________________________________________
@@ -581,7 +659,9 @@
 		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
 		PreferencesGroup * group;
 		terminalGroup = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
-																				
+		
+    // ------------------------------------------------------------- terminals
+    
 		BOOL multi = [[Settings sharedInstance] multipleTerminals];
 		[terminalGroup addSwitch:@"Multiple Terminals" 
 									on:multi
@@ -602,9 +682,12 @@
 		}
 		
 		[prefGroups addGroup:terminalGroup];
-		
-		group = [PreferencesGroup groupWithTitle:@"Colors" icon:nil];
-		[group addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
+		    
+    // ------------------------------------------------------------- menu & gestures
+
+    group = [PreferencesGroup groupWithTitle:@"Menu & Gestures" icon:nil];
+    [group addPageButton:@"Menu"];
+		[group addPageButton:@"Gestures"];
 		[prefGroups addGroup:group];		
 				
 		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
@@ -620,6 +703,40 @@
 		settingsView = table;
 	}
 	return settingsView;	
+}
+
+//_______________________________________________________________________________
+
+- (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
+{
+	NSString * title = [(UIPreferencesTextTableCell*)view title];
+	
+	if ([title isEqualToString:@"About"])
+	{
+		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
+	}
+	else if ([title isEqualToString:@"code.google.com/p/mobileterminal"])
+	{
+		[[MobileTerminal application] openURL:[NSURL URLWithString:@"http://code.google.com/p/mobileterminal/"]];	
+	}
+	else if ([title isEqualToString:@"Font"])
+	{
+		[self pushViewControllerWithView:[self fontView] navigationTitle:title];
+	}
+	else if ([title isEqualToString:@"Menu"])
+	{
+		[self pushViewControllerWithView:[self menuView] navigationTitle:title];
+	}  
+	else if ([title isEqualToString:@"Gestures"])
+	{
+		[self pushViewControllerWithView:[self gestureView] navigationTitle:title];
+	}  
+	else
+	{
+		terminalIndex = [[title substringFromIndex:9] intValue] - 1;
+		[[self terminalView] setTerminalIndex:terminalIndex];
+		[self pushViewControllerWithView:[self terminalView] navigationTitle:title];
+	}
 }
 
 //_______________________________________________________________________________
@@ -696,13 +813,25 @@
 
 //_______________________________________________________________________________
 
+-(MenuPreferences*) menuView
+{
+	if (!menuView) menuView = [[MenuPreferences alloc] initWithFrame:[[super view] bounds]];
+	return menuView;
+}
+
+//_______________________________________________________________________________
+
+-(GesturePreferences*) gestureView
+{
+	if (!gestureView) gestureView = [[GesturePreferences alloc] initWithFrame:[[super view] bounds]];
+	return gestureView;
+}
+
+//_______________________________________________________________________________
+
 -(ColorView*) colorView
 {
-	if (!colorView)
-	{
-		colorView = [[ColorView alloc] initWithFrame:[[super view] bounds]];
-	}
-	
+	if (!colorView) colorView = [[ColorView alloc] initWithFrame:[[super view] bounds]];
 	return colorView;
 }
 
@@ -710,11 +839,7 @@
 
 -(TerminalView*) terminalView
 {
-	if (!terminalView)
-	{
-		terminalView = [[TerminalView alloc] initWithFrame:[[super view] bounds]];
-	}
-	
+	if (!terminalView) terminalView = [[TerminalView alloc] initWithFrame:[[super view] bounds]];
 	return terminalView;
 }
 
@@ -743,32 +868,6 @@
 	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 	
 	[config setFont:font];
-}
-
-//_______________________________________________________________________________
-
-- (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
-{
-	NSString * title = [(UIPreferencesTextTableCell*)view title];
-	
-	if ([title isEqualToString:@"About"])
-	{
-		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
-	}
-	else if ([title isEqualToString:@"code.google.com/p/mobileterminal"])
-	{
-		[[MobileTerminal application] openURL:[NSURL URLWithString:@"http://code.google.com/p/mobileterminal/"]];	
-	}
-	else if ([title isEqualToString:@"Font"])
-	{
-		[self pushViewControllerWithView:[self fontView] navigationTitle:@"Font"];
-	}
-	else
-	{
-		terminalIndex = [[title substringFromIndex:9] intValue] - 1;
-		[[self terminalView] setTerminalIndex:terminalIndex];
-		[self pushViewControllerWithView:[self terminalView] navigationTitle:title];
-	}
 }
 
 //_______________________________________________________________________________
@@ -913,7 +1012,21 @@
 	} 
 	else 
 	{
-		return proposed;
+    UIPreferencesTableCell * cell = [[groups objectAtIndex: group] row:row];
+    if ([cell respondsToSelector:@selector(getHeight)])
+    {
+      float height;
+      SEL sel = @selector(getHeight);
+      NSMethodSignature * sig = [[cell class] instanceMethodSignatureForSelector:sel];
+      NSInvocation * invocation = [NSInvocation invocationWithMethodSignature:sig];
+      [invocation setTarget:cell];
+      [invocation setSelector:sel];
+      [invocation invoke];
+      [invocation getReturnValue:&height];
+      return height;      
+    }
+    else
+      return proposed;
 	}
 }
 

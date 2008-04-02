@@ -1,5 +1,9 @@
 = CHANGELOG =
 
+== r2?? ==
+
+  * missing header files added
+
 == r257 ==
 
   * gesture commands and menu buttons are read from defaults file

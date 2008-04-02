@@ -30,6 +30,25 @@
 	self = [super initWithFrame:frame];
 
 	chars = nil;
+
+  CDAnonymousStruct4 buttonPieces = {
+		.left = { .origin = { .x = 0.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
+		.middle = { .origin = { .x = 15.0f, .y = 0.0f }, .size = { .width = 2.0f, .height = MENU_BUTTON_HEIGHT } },
+		.right = { .origin = { .x = 17.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
+	};
+  
+  [self setPressedBackgroundImage: [UIImage imageNamed: @"menubuttonpressed.png"]];
+  [self setBackground: [UIImage imageNamed: @"menubuttonpressed.png"] forState:4];
+  [self setBackgroundImage: [UIImage imageNamed: @"menubutton.png"]];
+  [self setDrawContentsCentered: YES];			
+  [self setBackgroundSlices: buttonPieces];
+  [self setAutosizesToFit:NO];
+  [self setEnabled: YES];		
+  
+  [self setTitleColor:colorWithRGBA(0,0,0,1) forState:0];
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected
+  
 	return self;
 }
 
@@ -97,31 +116,13 @@
 	int i;
 	float x=0.0f, y=0.0f;
 	
-	CDAnonymousStruct4 buttonPieces = {
-		.left = { .origin = { .x = 0.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
-		.middle = { .origin = { .x = 15.0f, .y = 0.0f }, .size = { .width = 2.0f, .height = MENU_BUTTON_HEIGHT } },
-		.right = { .origin = { .x = 17.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
-	};
-
 	for (i = 0; i < [buttons count]; i++)
 	{
 		MenuButton * button = [[[MenuButton alloc] initWithFrame:CGRectMake(x, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)] autorelease];
 				
-		[button setAutosizesToFit:NO];
 		[button setTitle:[[buttons objectAtIndex:i] objectForKey:@"title"]];
 		if ([[buttons objectAtIndex:i] objectForKey:@"chars"])
-				[button setChars:[[buttons objectAtIndex:i] objectForKey:@"chars"]];
-		[button setPressedBackgroundImage: [UIImage imageNamed: @"menubuttonpressed.png"]];
-		[button setBackground: [UIImage imageNamed: @"menubuttonpressed.png"] forState:4];
-		[button setBackgroundImage: [UIImage imageNamed: @"menubutton.png"]];
-		[button setDrawContentsCentered: YES];			
-		[button setBackgroundSlices: buttonPieces];
-		[button setEnabled: YES];		
-				
-		[button setTitleColor:colorWithRGBA(0,0,0,1) forState:0];
-		[button setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
-		[button setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected
-		
+				[button setChars:[[buttons objectAtIndex:i] objectForKey:@"chars"]];		
 		
 		if (i % 3 == 2)
 		{
@@ -164,7 +165,7 @@
 {
 	[self stopTimer];
 	
-  if (visible) 
+  if (visible)
 	{
     return;
   }
