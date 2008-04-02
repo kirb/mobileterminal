@@ -45,12 +45,15 @@
 		C3ABC2F80DA039A900A22A22 /* Vector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Vector.m; sourceTree = "<group>"; };
 		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
 		C3E137B20D95F931005B2F2D /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		C3F8EC820DA40DE900910DB8 /* UINavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UINavigationController.h; sourceTree = "<group>"; };
+		C3F8EC840DA40E1100910DB8 /* UIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIViewController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		29B97314FDCFA39411CA2CEA /* terminal */ = {
 			isa = PBXGroup;
 			children = (
+				C3F8EC810DA40DD500910DB8 /* Headers */,
 				C33DEA310D953AFE002261A5 /* Sources */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -115,6 +118,15 @@
 				C308937B0D969034009430B9 /* Constants.m */,
 			);
 			name = Sources;
+			sourceTree = "<group>";
+		};
+		C3F8EC810DA40DD500910DB8 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				C3F8EC840DA40E1100910DB8 /* UIViewController.h */,
+				C3F8EC820DA40DE900910DB8 /* UINavigationController.h */,
+			);
+			name = Headers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

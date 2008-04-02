@@ -8,7 +8,7 @@
 #import <UIKit/UIPreferencesControlTableCell.h>
 #import <UIKit/UIPreferencesTextTableCell.h>
 #import <UIKit/UISwitchControl.h>
-#import <UIKit/UINavigationController.h>
+#import "UINavigationController.h"
 #import <UIKit/UIPickerView.h>
 #import <UIKit/UIPickerTable.h>
 #import <UIKit/UIPickerTableCell.h>

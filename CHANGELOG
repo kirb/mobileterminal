@@ -1,11 +1,16 @@
 = CHANGELOG =
 
-== r2?? ==
+== r257 ==
+
+  * gesture commands and menu buttons are read from defaults file
 
   * bugfixes
+    * should link against the original ncurses.dylib now (version 5.4)
     * fixed a problem with the gesture area after application resume
-    * fixed a bug in the color chooser by replacing it with a much simpler solution :-) 
+    * fixed a bug in the color chooser by replacing it with a much simpler solution :-)
 
+  * application size reduced by removing unused images from the Resources
+  
 == r250 ==
 
   * multiple terminals added (code merged from the multi branch) 
