@@ -170,7 +170,7 @@
   }
 	
 	CGRect frame = [[self superview] frame];
-	//logRect(@"frame", frame);
+
 	float lx = MIN(frame.size.width  - 3.0 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE),  MAX(0, location.x - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE)));
 	float ly = MIN(frame.size.height - 3.0 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE), MAX(0, location.y - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE)));
 	
@@ -179,23 +179,10 @@
   [self setAlpha: 0.0f];
 		
 	[UIView beginAnimations:@"fadeIn"];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 	[UIView setAnimationDuration:MENU_FADE_IN_TIME];
 	[self setTransform:CGAffineTransformMake(1, 0, 0, 1, lx, ly)];
 	[self setAlpha:1.0f];
 	[UIView endAnimations];	
-}
-
-//_______________________________________________________________________________
-
-- (void) animationDidStop:(NSString*)animID finished:(NSNumber*)finished context:(void*)context
-{
-	if ([finished boolValue] && [animID isEqualToString:@"fadeIn"])
-	{
-		//GSEventStruct * event = [[[MobileTerminal application] gestureView] mouseDownEvent];
-		//log(@"mouseDownEvent %f %f", event->x, event->y);
-	}
 }
 
 //_______________________________________________________________________________

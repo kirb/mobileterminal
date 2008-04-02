@@ -87,19 +87,10 @@
 
 - (void)mouseDown:(GSEvent*)event
 {
-	//memcpy(&mouseDownEvent, event, sizeof(GSEventStruct));
-	
 	mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   [delegate showMenu:mouseDownPos];
 	
 	[super mouseDown:event];
-}
-
-//_______________________________________________________________________________
-
--(GSEventStruct*) mouseDownEvent
-{
-	return &mouseDownEvent;
 }
 
 //_______________________________________________________________________________
@@ -114,17 +105,13 @@
 
 - (void)mouseUp:(GSEvent*)event
 {
-	//[delegate hideMenu];
-
 	if (gestureMode) 
 	{
 		gestureMode = NO;
-		
-		//log(@"finger count %d", gestureFingers);
-		
+				
 		CGPoint vector = CGPointMake(gestureEnd.x - gestureStart.x, gestureEnd.y - gestureStart.y);	
 		float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
-		//log(@"vector %f %f length %f", vector.x, vector.y, r);
+
 		if (r < 30) 
 		{
 			if (gestureFingers == 3)
@@ -134,7 +121,7 @@
 		else if (r > 30)
 		{
 			int zone = [self zoneForVector:vector];
-			//log(@"zone %d", zone);
+
 			if (gestureFingers == 2)
 			{
 				switch (zone)
@@ -168,47 +155,37 @@
 		if (r > 30.0f) 
 		{
 			NSString *characters = nil;
-			
-			switch (zone) 
-			{
-				case ZONE_W:  // Left
-					if (r < 150.0f)
-						characters = @"\x1B[D";
-					else
-						characters = @"\x1"; // ctrl-a
-					break;
-				case ZONE_S:  // Down
-					characters = @"\x1B[B";
-					break;
-				case ZONE_E:  // Right
-					if (r < 150.0f)
-						characters = @"\x1B[C";
-					else
-						characters = @"\x5"; // ctrl-e
-					break;
-				case ZONE_N:  // Up
-					characters = @"\x1B[A";
-					break;
-				case ZONE_NE:  // ^C
-					characters = @"\x03";
-					break;
-				case ZONE_NW:  // ^[
-					characters = @"\x1B";
-					break;
-				case ZONE_SW: // Tab
-					characters = @"\x09";
-					break;
-				case ZONE_SE:  //^
-					if (![[MobileTerminal application] controlKeyMode])
-						[[MobileTerminal application] setControlKeyMode:YES];
-					break;
-			}
+
+			NSDictionary * swipeGestures = [[Settings sharedInstance] swipeGestures];
+      NSString * zoneName = ZONE_KEYS[zone];
+      
+      if (r < 150.0f)
+      {
+        characters = [swipeGestures objectForKey:zoneName];
+      }
+      else
+      {
+        NSString * longZoneName = ZONE_KEYS[zone+8];
+        characters = [swipeGestures objectForKey:longZoneName];
+        if (![characters length])
+        {
+          characters = [swipeGestures objectForKey:zoneName]; 
+        }
+      }
 			
 			if (characters) 
 			{
-				//log(@"zone %d %f", zone, r);
 				[self stopToggleKeyboardTimer];
-				[delegate handleInputFromMenu:characters];
+        
+        if ([characters isEqualToString:@"[CTRL]"])
+        {
+          if (![[MobileTerminal application] controlKeyMode])
+						[[MobileTerminal application] setControlKeyMode:YES];
+        }
+        else
+        {
+          [delegate handleInputFromMenu:characters];
+        }
 			}
 		}
 	} // end if menu visible
@@ -238,7 +215,6 @@
 	int i;
 	for (i = 0; i < ((GSEventStruct*)event)->numPoints; i++)
 	{
-		//log(@"p %d %f %f", i, ((GSEventStruct*)event)->points[i].x, ((GSEventStruct*)event)->points[i].y);
 		cx += ((GSEventStruct*)event)->points[i].x;
 		cy += ((GSEventStruct*)event)->points[i].y;
 	}		
@@ -271,8 +247,6 @@
 	[delegate hideMenu];
 	gestureEnd = [delegate viewPointForWindowPoint:[self gestureCenter:event]];
 	gestureFingers = ((GSEventStruct*)event)->numPoints;
-
-	//logPoint(@"end", gestureEnd);
 }
 
 //_______________________________________________________________________________
@@ -293,7 +267,10 @@
 	if (fingers == 1 && count == 2)
 	{
 		[self stopToggleKeyboardTimer];
-		toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:TOGGLE_KEYBOARD_DELAY target:self selector:@selector(toggleKeyboard) userInfo:NULL repeats:NO];
+		toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:TOGGLE_KEYBOARD_DELAY 
+                                                           target:self 
+                                                         selector:@selector(toggleKeyboard) 
+                                                         userInfo:NULL repeats:NO];
 	}
 }
 
@@ -325,9 +302,6 @@
 -(void) drawRect:(CGRect)frame
 {
 	CGRect rect = [self bounds];
-	//rect.origin.x -= 1;
-	//rect.origin.y -= 1;
-	//rect.size.width += 1;
 	rect.size.height -= 2;
 	CGContextRef context = UICurrentContext();
 	CGColorRef c = CGColorWithRGBAColor([[Settings sharedInstance] gestureFrameColor]);

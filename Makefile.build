@@ -4,7 +4,7 @@ CFLAGS=-Wall -O7
 
 LDFLAGS=-lobjc -framework CoreFoundation -framework Foundation \
         -framework UIKit -framework LayerKit -framework CoreGraphics \
-        -framework GraphicsServices -lcurses -lobjc
+        -framework GraphicsServices -lncurses.5.4 -lobjc
 
 all:	Terminal
 

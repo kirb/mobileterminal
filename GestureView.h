@@ -57,7 +57,6 @@ typedef struct {
 
 @interface GestureView : UIControl 
 {
-	GSEventStruct mouseDownEvent;
 	CGPoint mouseDownPos;
 	CGPoint gestureStart;
 	CGPoint gestureEnd;
@@ -70,7 +69,6 @@ typedef struct {
 }
 
 - (id) initWithFrame:(CGRect)rect delegate:(id)inputDelegate;
--(GSEventStruct*) mouseDownEvent;
 -(void) stopToggleKeyboardTimer;
 
 @end

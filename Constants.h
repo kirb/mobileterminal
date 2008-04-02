@@ -38,4 +38,6 @@ enum {
 	ZONE_NW
 };
 
-
+extern NSString * ZONE_KEYS[];
+extern NSString * DEFAULT_SWIPE_GESTURES[][2];
+extern NSString * DEFAULT_MENU_BUTTONS[][4];

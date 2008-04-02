@@ -33,7 +33,6 @@ static MobileTerminal * application;
 + (MobileTerminal*) application
 {
 	return application;
-	//return [[UIWindow keyWindow] application];
 }
 
 //_______________________________________________________________________________
