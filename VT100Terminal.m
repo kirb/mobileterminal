@@ -25,6 +25,7 @@
 
 #import "VT100Terminal.h"
 #import "VT100Screen.h"
+#import "Log.h"
 #include <term.h>
 
 #define DEBUG_ALLOC 0
@@ -1214,10 +1215,8 @@ autorelease]; */
 
 - (void)setTermType:(NSString *)termtype
 {
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s(%d):-[VT100Screen setTermType:%@]",
-      __FILE__, __LINE__, termtype);
-#endif
+  log(@"setTermType: %@", termtype);
+
   if (termType) [termType release];
   termType = [termtype retain];
 

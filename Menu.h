@@ -23,6 +23,9 @@
 
 @interface Menu : UIView
 {
+  id delegate;
+  MenuButton * activeButton;
+  
   CGPoint location;
 	NSTimer * timer;
   BOOL visible;
@@ -37,5 +40,7 @@
 - (void) hide;
 - (void) stopTimer;
 - (void) hideSlow:(BOOL)slow;
+- (id)   delegate;
+- (void) setDelegate:(id)delegate;
 
 @end

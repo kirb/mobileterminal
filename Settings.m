@@ -97,7 +97,7 @@
                      [[TerminalConfig alloc] init], nil];
   
   gestureFrameColor = RGBAColorMake(1.0f, 1.0f, 1.0f, 0.05f);
-  multipleTerminals = YES;
+  multipleTerminals = NO;
   menuButtons = nil; 
   swipeGestures = nil;
   
@@ -115,7 +115,7 @@
   int i;
   NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
   NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:2];
-  [d setObject:[NSNumber numberWithBool:YES] forKey:@"multipleTerminals"];
+  [d setObject:[NSNumber numberWithBool:MULTIPLE_TERMINALS] forKey:@"multipleTerminals"];
   
   // menu buttons
   
@@ -188,7 +188,7 @@
     config.args =        [tc objectForKey:@"args"];
   }
 
-  multipleTerminals = [defaults boolForKey:@"multipleTerminals"];
+  multipleTerminals = MULTIPLE_TERMINALS && [defaults boolForKey:@"multipleTerminals"];
   menuButtons = [[defaults arrayForKey:@"menuButtons"] retain];
   swipeGestures = [[defaults objectForKey:@"swipeGestures"] retain];
   gestureFrameColor = RGBAColorMakeWithArray([defaults arrayForKey:@"gestureFrameColor"]);

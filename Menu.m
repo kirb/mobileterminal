@@ -119,6 +119,7 @@
 	for (i = 0; i < [buttons count]; i++)
 	{
 		MenuButton * button = [[[MenuButton alloc] initWithFrame:CGRectMake(x, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)] autorelease];
+    [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
 				
 		[button setTitle:[[buttons objectAtIndex:i] objectForKey:@"title"]];
 		if ([[buttons objectAtIndex:i] objectForKey:@"chars"])
@@ -137,6 +138,21 @@
 		[self addSubview:button];
 	}
 }	
+
+//_______________________________________________________________________________
+
+- (void) buttonPressed:(id)button
+{
+  if ([self delegate])
+  {
+    //log(@"buttonPressed %@ activeButton %@", button, activeButton);
+    [activeButton setSelected:NO];
+    activeButton = button;
+    [button setSelected:YES];
+    if ([[self delegate] respondsToSelector:@selector(menuButtonPressed:)])
+      [[self delegate] performSelector:@selector(menuButtonPressed:) withObject:activeButton];
+  }
+}
 
 //_______________________________________________________________________________
 
@@ -212,5 +228,10 @@
 	
   visible = NO;
 }
+
+//_______________________________________________________________________________
+
+- (id) delegate { return delegate; }
+- (void) setDelegate:(id)delegate_ { delegate = delegate_; }
 
 @end

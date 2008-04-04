@@ -148,6 +148,8 @@
 
 @interface MenuPreferences : UIPreferencesTable
 {
+  UIPreferencesTextTableCell * titleField;
+  UIPreferencesTextTableCell * valueField;
 }
 
 -(id) initWithFrame:(CGRect)frame;
@@ -189,7 +191,7 @@
 - (id) addPageButton:(NSString*)label value:(NSString*)value;
 - (id) addColorPageButton:(NSString*)label colorRef:(RGBAColorRef)color;
 - (id) addValueField:(NSString*)label value:(NSString*)value;
-- (id) addTextField:(NSString*)label;
+- (id) addTextField:(NSString*)label value:(NSString*)value;
 - (id) addColorField;
 
 - (int) rows;

@@ -4,6 +4,8 @@
 
 #import <UIKit/UIKit.h>
 
+#define MULTIPLE_TERMINALS      NO
+
 #define TOGGLE_KEYBOARD_DELAY		0.35
 
 #define MENU_DELAY							0.45 

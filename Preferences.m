@@ -120,7 +120,7 @@
 	SEL sel = @selector(directoryContentsAtPath:matchingExtension:options:keepExtension:);
 	NSMethodSignature * sig = [[fm class] instanceMethodSignatureForSelector:sel];
 	NSInvocation * invocation = [NSInvocation invocationWithMethodSignature:sig];
-	NSString * path = @"/var/Fonts/Cache";
+	NSString * path = @"/System/Library/Fonts/Cache";
 	NSString * ext = @"ttf";
 	int options = 0;
 	BOOL keep = NO;
@@ -520,13 +520,14 @@
 
 @implementation MenuTableCell
 
--(id) initWithFrame:(CGRect) frame
+-(id) initWithFrame:(CGRect)frame
 {
   self = [super initWithFrame:frame];
 
 	[self setShowSelection:NO];
   menu = [[Menu alloc] init];
   [menu setFrame:CGRectMake(40, 10, frame.size.width-20, frame.size.height-20)];
+  [menu setDelegate:self];
 	[self addSubview:menu];
   
   return self;
@@ -538,6 +539,10 @@
 {
   return [self frame].size.height;
 }
+
+//_______________________________________________________________________________
+
+- (Menu*) menu { return menu; }
 
 @end
 
@@ -554,8 +559,10 @@
 	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 
 	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 150.0f)];
+  [[cell menu] setDelegate:self];
 	[group addCell:cell];
-  [group addPageButton:@"Test"];
+  titleField = [group addTextField:@"Title" value:@""];
+  valueField = [group addTextField:@"Command" value:@""];
 	
 	[prefGroups addGroup:group];
 		
@@ -563,6 +570,24 @@
 	[self reloadData];
 	
 	return self;
+}
+
+//_______________________________________________________________________________
+
+- (void) menuButtonPressed:(MenuButton*)button
+{
+  [titleField setValue:[button chars]];
+  [valueField setValue:[button chars]];
+}
+
+//_______________________________________________________________________________
+
+- (void) prepareToPop
+{
+  if ([self keyboard])
+  {    
+    [self setKeyboardVisible:NO animated:NO];
+  }
 }
 
 @end
@@ -663,23 +688,29 @@
     // ------------------------------------------------------------- terminals
     
 		BOOL multi = [[Settings sharedInstance] multipleTerminals];
-		[terminalGroup addSwitch:@"Multiple Terminals" 
-									on:multi
-							target:self 
-							action:@selector(multipleTerminalsSwitched:)];
+    if (MULTIPLE_TERMINALS)
+    {
+      [terminalGroup addSwitch:@"Multiple Terminals" 
+                            on:multi
+                        target:self 
+                        action:@selector(multipleTerminalsSwitched:)];
+    }
 				
 		terminalButton1 = [terminalGroup addPageButton:@"Terminal 1"];
 
-		terminalButton2 = [terminalGroup addPageButton:@"Terminal 2"];
-		terminalButton3 = [terminalGroup addPageButton:@"Terminal 3"];
-		terminalButton4 = [terminalGroup addPageButton:@"Terminal 4"];
+    if (MULTIPLE_TERMINALS)
+    {
+      terminalButton2 = [terminalGroup addPageButton:@"Terminal 2"];
+      terminalButton3 = [terminalGroup addPageButton:@"Terminal 3"];
+      terminalButton4 = [terminalGroup addPageButton:@"Terminal 4"];
 
-		if (!multi)
-		{
-			[terminalGroup removeCell:terminalButton2];
-			[terminalGroup removeCell:terminalButton3];
-			[terminalGroup removeCell:terminalButton4];
-		}
+      if (!multi)
+      {
+        [terminalGroup removeCell:terminalButton2];
+        [terminalGroup removeCell:terminalButton3];
+        [terminalGroup removeCell:terminalButton4];
+      }
+    }
 		
 		[prefGroups addGroup:terminalGroup];
 		    
@@ -874,6 +905,11 @@
 
 -(void) popViewController
 {
+  if ([[[self topViewController] view] respondsToSelector:@selector(prepareToPop)])
+  {
+    [[[self topViewController] view] performSelector:@selector(prepareToPop)];
+  }
+    
 	if ([[self topViewController] view] == fontView)
 	{
 		[terminalView fontChanged];
@@ -886,8 +922,28 @@
 
 //_______________________________________________________________________________
 
+-(void) pushViewControllerWithView:(id)view navigationTitle:(NSString*)title
+{
+  //log(@"push view controller %@", [[self topViewController] view]);
+  if ([view respondsToSelector:@selector(prepareToPush)])
+  {
+    [view performSelector:@selector(prepareToPush)];
+  }  
+  
+  [super pushViewControllerWithView:view navigationTitle:title];
+}
+
+//_______________________________________________________________________________
+
 -(void)_didFinishPoppingViewController
 {
+  if ([[self topViewController] view] == menuView)
+  {
+    [menuView removeFromSuperview];
+    [menuView autorelease];
+    menuView = nil;
+  }
+  
 	[super _didFinishPoppingViewController];
 	
 	if ([[self topViewController] view] == settingsView)
@@ -1217,7 +1273,7 @@
 
 //_______________________________________________________________________________
 
--(id) addValueField: (NSString*) label value:(NSString*)value
+-(id) addValueField:(NSString*)label value:(NSString*)value
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
@@ -1230,12 +1286,13 @@
 
 //_______________________________________________________________________________
 
--(id) addTextField: (NSString*) label
+-(id) addTextField:(NSString*)label value:(NSString*)value
 {
 	UIPreferencesTextTableCell * cell = [[UIPreferencesTextTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
-	[cell setValue: label];
-	[[cell textField] setHorizontallyCenterText:YES];
-	[[cell textField] setEnabled:NO];
+	[cell setTitle: label];
+  [cell setValue: value];
+	[[cell textField] setHorizontallyCenterText:NO];
+	[[cell textField] setEnabled:YES];
 	[cells addObject: cell];	
 	return cell;
 }

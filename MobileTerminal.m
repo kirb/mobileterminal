@@ -132,7 +132,7 @@ static MobileTerminal * application;
 		[self updateFrames:YES];
 	}
 		
-	//log(@"app init finished");
+	log(@"application initialized");
 }
 
 // Suspend/Resume: We have to hide then show again the keyboard view to get it

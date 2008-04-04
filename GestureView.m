@@ -72,7 +72,6 @@
 		MenuButton * button = [[menu subviews] objectAtIndex:i];
 		if ([button isSelected])
 		{
-			//log(@"button activated %@", [button title]);
 			if ([button chars])
 				[delegate handleInputFromMenu:[button chars]];
 			[button setSelected:NO];
