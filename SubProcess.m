@@ -63,9 +63,9 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   win.ws_row = DEFAULT_TERMINAL_HEIGHT;
 
   pid = forkpty(&fd, NULL, NULL, &win);
-	//log(@"pid %d", pid);
   if (pid == -1) 
 	{
+    log(@"[Failed to fork child process] %d", pid);
     perror("forkpty");
     [self failure:@"[Failed to fork child process]"];
     exit(0);
@@ -83,7 +83,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     start_process("/bin/sh", sh_args, env);
     exit(0);
   }
-  //log(@"Child process id: %d\n", pid);
+  log(@"Child process id: %d", pid);
   [NSThread detachNewThreadSelector:@selector(startIOThread:)
                            toTarget:self
                          withObject:delegate];

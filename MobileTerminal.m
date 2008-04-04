@@ -611,11 +611,16 @@ static MobileTerminal * application;
 
 -(void) createTerminals
 {
+  log(@"createTerminals %d", MAXTERMINALS);
 	for (numTerminals = 1; numTerminals < MAXTERMINALS; numTerminals++)
 	{
+    log(@"create terminal");    
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
+    log(@"create screen");    
 		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
+    log(@"create process");    
 		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
+    log(@"process created");    
 		UIScroller    * scroller = [[UIScroller alloc] init];
 
 		[screens   addObject: screen];
@@ -626,14 +631,18 @@ static MobileTerminal * application;
 		[screen setTerminal:terminal];
 		[terminal setScreen:screen];		
 
+    log(@"create textview");    
+
 		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
 																												 source: screen
 																											 scroller: scroller
 																										 identifier: numTerminals];		
+    log(@"textview created");    
 		[textviews addObject:textview];		
 	}
 
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
+  log(@"terminals created");  
 }
 
 //_______________________________________________________________________________

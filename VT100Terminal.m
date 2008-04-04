@@ -1127,10 +1127,8 @@ autorelease]; */
 
 - (id)init
 {
+  //log(@"0x%x", self);
 
-#if DEBUG_ALLOC
-  NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
-#endif
   int i;
 
   if ([super init] == nil)
@@ -1179,8 +1177,9 @@ autorelease]; */
 
   numLock = YES;
 
-  // TODO: Tweakable?
-  [self setTermType:@"vt100"];
+  [self setTermType:@"xtermc"]; // @"vt100"];
+  
+  log(@"terminal initialized %@", self);
 
   return self;
 }
@@ -1213,27 +1212,30 @@ autorelease]; */
     return termType;
 }
 
-- (void)setTermType:(NSString *)termtype
+- (void)setTermType:(NSString *)ttype
 {
-  log(@"setTermType: %@", termtype);
-
   if (termType) [termType release];
-  termType = [termtype retain];
+  termType = [[NSString stringWithString:ttype] retain];
 
   NSRange range = [termType rangeOfString:@"xterm"];
   allowKeypadMode = range.location != NSNotFound;
 
   int i;
   int r;
-  setupterm((char *)[termtype cString], fileno(stdout), &r);
+  
+  setupterm((char *)[termType cString], fileno(stdout), &r);
 
-  if (r!=1) {
-    NSLog(@"Terminal type %s is not defined.\n",[termtype cString]);
-    for(i = 0; i < TERMINFO_KEYS; i ++) {
+  if (r!=1) 
+  {
+    log(@"Terminal type %s is not defined (%d)", [termType cString], r);
+    for(i = 0; i < TERMINFO_KEYS; i ++) 
+    {
       if (key_strings[i]) free(key_strings[i]);
       key_strings[i]=NULL;
     }
-  } else {
+  } 
+  else 
+  {
     char *key_names[] = {
       key_left, key_right, key_up, key_down,
       key_home, key_end, key_npage, key_ppage,

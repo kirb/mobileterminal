@@ -3,8 +3,10 @@
 //  Terminal
 
 #import <UIKit/UIKit.h>
+#import "svnversion.h"
 
-#define MULTIPLE_TERMINALS      NO
+#define MULTIPLE_TERMINALS      YES
+#define MAXTERMINALS            4
 
 #define TOGGLE_KEYBOARD_DELAY		0.35
 

@@ -18,8 +18,6 @@
 @class MobileTerminal;
 @class Settings;
 
-#define MAXTERMINALS 4
-
 //_______________________________________________________________________________
 
 @interface MobileTerminal : UIApplication

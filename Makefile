@@ -6,7 +6,10 @@ APPDIR		= ./$(APPNAME).app
 #all: copySources Terminal package sendToiPod killOniPod startOniPod removeSources done
 all: copySources Terminal package sendToiPod killOniPod done
 
-copySources:
+svnversion:
+	$(shell python svnversion.py)
+
+copySources: svnversion
 	@echo ... copying sources ...
 	$(shell mkdir -p $(BUILDDIR))
 	$(shell rm -f $(BUILDDIR)/Makefile $(BUILDDIR)/*.h $(BUILDDIR)/*.m $(BUILDDIR)/*.c)

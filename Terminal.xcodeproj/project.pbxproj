@@ -9,6 +9,7 @@
 /* Begin PBXFileReference section */
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C30257DF0DA6AEB500AAA6EA /* svnversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnversion.h; sourceTree = "<group>"; };
 		C308937B0D969034009430B9 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
 		C31614260DA2D23E004157BB /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
 		C31614270DA2D23E004157BB /* Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Color.m; sourceTree = "<group>"; };
@@ -114,6 +115,7 @@
 				C3ABC2F80DA039A900A22A22 /* Vector.m */,
 				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
 				C37DAB700D93475A00FC5BC7 /* Log.m */,
+				C30257DF0DA6AEB500AAA6EA /* svnversion.h */,
 				C3E137B20D95F931005B2F2D /* Constants.h */,
 				C308937B0D969034009430B9 /* Constants.m */,
 			);

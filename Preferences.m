@@ -792,7 +792,7 @@
 		PreferencesGroup * group;
 
 		group = [PreferencesGroup groupWithTitle:@"MobileTerminal" icon:nil];
-		[group addValueField:@"Version" value:@"1.0"];
+		[group addValueField:@"Version" value:[NSString stringWithFormat:@"1.0 (%@)", SVN_VERSION]];
 		[aboutGroups addGroup:group];
 
 		group = [PreferencesGroup groupWithTitle:@"Homepage" icon:nil];
