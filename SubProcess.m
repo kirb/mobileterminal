@@ -68,7 +68,8 @@ int start_process(const char* path, char* const args[], char* const env[]) {
     log(@"[Failed to fork child process] %d", pid);
     perror("forkpty");
     [self failure:@"[Failed to fork child process]"];
-    exit(0);
+    //exit(0); // sometimes a fork fails. if we exit here, the app hangs -kodi
+    return self;
   } 
 	else if (pid == 0) 
 	{
@@ -126,36 +127,52 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 {
   [[NSAutoreleasePool alloc] init];
 
-  NSString* arg = [[Settings sharedInstance]  arguments];
-  if (arg != nil) {
-    // A command line argument was passed to the program. What to do? 
+  TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
+  NSString * arg = [config args];
+  
+  if (termid == 0)
+  {
+    NSString * arguments = [[Settings sharedInstance] arguments];
+    if (arguments != nil && [arguments length] > 0 && ![arguments isEqualToString:@"--launchedFromSB"])
+      arg = arguments;
+  }
+  
+  if (arg != nil && [arg length] > 0) 
+  {    
+    // A command line argument was passed to the program
     const char* path = [arg cString];
     struct stat st;
-    if ((stat(path, &st) == 0) && ((st.st_mode & S_IFDIR) != 0)) {
+    if ((stat(path, &st) == 0) && ((st.st_mode & S_IFDIR) != 0)) // it's a path, issue a cd command
+    {
       write(fd, "cd ", 3);
       write(fd, path, [arg length]);
       write(fd, "\n", 1);
-    } else {
-			// doesn't work for me (springboard adds --launchedFromSB) -kodi
-      //write(fd, path, [arg length]);
-      //write(fd, "; exit\n", 7);
+    } 
+    else // just print the command 
+    {
+      write(fd, [arg cString], [arg length]);
+      write(fd, "\n", 1);
     }
   }
-
+  
   const int kBufSize = 1024;
   char buf[kBufSize];
   ssize_t nread;
-  while (1) {
+  while (1) 
+  {
     // Blocks until a character is ready
     nread = read(fd, buf, kBufSize);
     // On error, give a tribute to OS X terminal
-    if (nread == -1) {
+    if (nread == -1) 
+    {
       perror("read");
       [self close];
 			if(!closed)
 				[self failure:@"[Process error]"];
-      return;
-    } else if (nread == 0) {
+      return; 
+    } 
+    else if (nread == 0) 
+    {
       [self close];
 			if(!closed)
 				[self failure:@"[Process completed]"];
@@ -168,6 +185,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
 - (void)failure:(NSString*)message;
 {
   // HACK: Just pretend the message came from the child
+  NSLog(message);
   [delegate handleStreamOutput:[message cString] length:[message length] identifier:termid];
 }
 

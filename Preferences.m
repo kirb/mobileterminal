@@ -434,7 +434,7 @@
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
-@implementation TerminalView
+@implementation TerminalPreferences
 
 //_______________________________________________________________________________
 
@@ -443,8 +443,9 @@
 	self = [super initWithFrame:frame];
 	
 	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
-	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-	
+	PreferencesGroup * group;
+
+  group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 	fontButton = [group addPageButton:@"Font"];
 	[prefGroups addGroup:group];
 	
@@ -453,11 +454,28 @@
 	widthCell = [sizeGroup addIntValueSlider:@"Width" range:NSMakeRange(40, 60) target:self action:@selector(widthSelected:)];
   widthSlider = [widthCell control];
 	[prefGroups addGroup:sizeGroup];	
-	
+
+  group = [PreferencesGroup groupWithTitle:@"Arguments" icon:nil];
+  argumentField = [[group addTextField:@"" value:@""] textField];
+  [argumentField setEditingDelegate:self];  
+	[prefGroups addGroup:group];	
+  
 	[self setDataSource:prefGroups];
 	[self reloadData];
-	
+
 	return self;
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) keyboardInput:(id)fieldEditor shouldInsertText:(NSString*)text isMarkedText:(BOOL)marked
+{
+  if ([text isEqualToString:@"\n"])
+  {
+    [config setArgs:[argumentField text]];
+    if ([self keyboard]) [self setKeyboardVisible:NO animated:YES];
+  }
+  return YES;
 }
 
 //_______________________________________________________________________________
@@ -474,6 +492,7 @@
 	terminalIndex = index;
 	config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:terminalIndex];
 	[self fontChanged];
+  [argumentField setText:[config args]];
 	[autosizeSwitch setValue:([config autosize] ? 1.0f : 0.0f)];
 	[widthSlider setValue:[config width]];
 	if ([config autosize])
@@ -868,9 +887,9 @@
 
 //_______________________________________________________________________________
 
--(TerminalView*) terminalView
+-(TerminalPreferences*) terminalView
 {
-	if (!terminalView) terminalView = [[TerminalView alloc] initWithFrame:[[super view] bounds]];
+	if (!terminalView) terminalView = [[TerminalPreferences alloc] initWithFrame:[[super view] bounds]];
 	return terminalView;
 }
 
@@ -937,11 +956,18 @@
 
 -(void)_didFinishPoppingViewController
 {
-  if ([[self topViewController] view] == menuView)
+  UIView * topView = [[self topViewController] view];
+  if (topView == menuView)
   {
     [menuView removeFromSuperview];
     [menuView autorelease];
     menuView = nil;
+  }
+  else if (topView == terminalView)
+  {
+    [terminalView removeFromSuperview];
+    [terminalView autorelease];
+    terminalView = nil;
   }
   
 	[super _didFinishPoppingViewController];

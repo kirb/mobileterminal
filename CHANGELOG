@@ -2,6 +2,13 @@
 
 == r2?? ==
 
+  * terminal arguments preferences added
+  * command line arguments re-enabled: 
+    * when launched from the shell, additional arguments get executed in the first terminal
+    * if arguments is a directory, the first shell cd's to that directory
+    * still crashes if started from shell without arguments :-(
+  * hopefully resolved the problems that made the app crash in multi-terminal mode on non-Cydia systems
+  * svn version number is displayed in the about page
   * missing header files added
 
 == r257 ==

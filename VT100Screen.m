@@ -1605,7 +1605,6 @@ static __inline__ screen_char_t *incrementLinePointer(
   NSLog(@"%s(%d):-[VT100Screen insertBlank; %d]", __FILE__, __LINE__, n);
 #endif
 
-
   //    NSLog(@"insertBlank[%d@(%d,%d)]",n,CURSOR_X,CURSOR_Y);
 
   if (CURSOR_X>=WIDTH) return;

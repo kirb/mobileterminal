@@ -23,7 +23,7 @@
   fontSize = 12;
   fontWidth = 0.6f;
   font = @"CourierNewBold";
-  args = nil;
+  args = @"";
   
   return self;
 }
@@ -100,6 +100,7 @@
   multipleTerminals = NO;
   menuButtons = nil; 
   swipeGestures = nil;
+  arguments = @"";
   
   return self;
 }
@@ -228,12 +229,14 @@
 -(NSDictionary*)  swipeGestures         { return swipeGestures; }
 -(RGBAColor)      gestureFrameColor     { return gestureFrameColor; }
 -(RGBAColorRef)   gestureFrameColorRef  { return &gestureFrameColor; }
--(NSString*)      arguments             { return arguments; }
+-(NSString*)      arguments             { log(@"arguments %@", arguments); return arguments; }
 
 //_______________________________________________________________________________
 
 - (void) setArguments: (NSString*)str
 {
+  log(@"setArguments");
+  
   if (arguments != str)
   {
     [arguments release];

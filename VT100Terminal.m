@@ -1177,7 +1177,7 @@ autorelease]; */
 
   numLock = YES;
 
-  [self setTermType:@"xtermc"]; // @"vt100"];
+  //[self setTermType:@"vt100"]; this crashes on non-Cydia systems when called multiple times. has no obvious effect anyway, so i disabled it -kodi
   
   log(@"terminal initialized %@", self);
 

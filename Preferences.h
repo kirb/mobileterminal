@@ -111,14 +111,14 @@
 
 //_______________________________________________________________________________
 
-@interface TerminalView : UIPreferencesTable
+@interface TerminalPreferences : UIPreferencesTable
 {
-	id							 fontButton;
-
-	UISliderControl * widthSlider;
+	id                  fontButton;
+  UITextField       * argumentField;
+	UISliderControl   * widthSlider;
+	UISliderControl   * autosizeSwitch;
+	PreferencesGroup  * sizeGroup;
 	UIPreferencesControlTableCell * widthCell;
-	UISliderControl * autosizeSwitch;
-	PreferencesGroup * sizeGroup;
 
 	TerminalConfig * config;
 	int							 terminalIndex;
@@ -235,7 +235,7 @@
 	ColorView           * colorView;
   MenuPreferences     * menuView;
   GesturePreferences  * gestureView;
-	TerminalView				* terminalView;
+	TerminalPreferences				* terminalView;
 
 	UIPreferencesTextTableCell * terminalButton1;
 	UIPreferencesTextTableCell * terminalButton2;
@@ -254,7 +254,7 @@
 
 -(FontView*) fontView;
 -(ColorView*) colorView;
--(TerminalView*) terminalView;
+-(TerminalPreferences*) terminalView;
 -(MenuPreferences*) menuView;
 -(GesturePreferences*) gestureView;
 -(UIPreferencesTable*) settingsView;
