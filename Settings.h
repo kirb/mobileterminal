@@ -35,7 +35,7 @@
 {
 	NSString * arguments;
 	NSArray * terminalConfigs;
-	NSArray * menuButtons;
+	NSArray * menu;
 	RGBAColor gestureFrameColor;
 	BOOL multipleTerminals;
   NSDictionary * swipeGestures;
@@ -56,7 +56,7 @@
 - (NSArray*) terminalConfigs;
 - (void) setArguments: (NSString*)arguments;
 - (NSString*) arguments;
-- (NSArray*) menuButtons;
+- (NSArray*) menu;
 - (NSDictionary*) swipeGestures;
 - (RGBAColor) gestureFrameColor;
 - (RGBAColorRef) gestureFrameColorRef;

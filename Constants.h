@@ -3,26 +3,23 @@
 //  Terminal
 
 #import <UIKit/UIKit.h>
+#import <Foundation/NSString.h>
 #import "svnversion.h"
 
 #define MULTIPLE_TERMINALS      YES
 #define MAXTERMINALS            4
 
-#define TOGGLE_KEYBOARD_DELAY		0.35
+#define TOGGLE_KEYBOARD_DELAY		 0.15
 
-#define MENU_DELAY							0.45 
-#define MENU_FADE_IN_TIME				0.25
-#define MENU_FADE_OUT_TIME			0.25
-#define MENU_SLOW_FADE_OUT_TIME	1.50
-#define MENU_BUTTON_HEIGHT      43.0f
+#define MENU_DELAY							 0.10 
+#define MENU_TAP_DELAY           0.20
+#define MENU_FADE_IN_TIME				 0.10
+#define MENU_FADE_OUT_TIME			 0.10
+#define MENU_SLOW_FADE_OUT_TIME	 1.00
+#define MENU_BUTTON_HEIGHT      44.0f
 #define MENU_BUTTON_WIDTH       60.0f
-#define MENU_BUTTON_SPACE        2.0f
 #define KEYBOARD_FADE_OUT_TIME   0.5f
 #define KEYBOARD_FADE_IN_TIME    0.5f
-
-#define PIE_MENU_DELAY					0.45 
-#define PIE_MENU_FADE_IN_TIME		0.25
-#define PIE_MENU_FADE_OUT_TIME	0.25
 
 #define DEFAULT_TERMINAL_WIDTH	80
 #define DEFAULT_TERMINAL_HEIGHT	25
@@ -42,6 +39,20 @@ enum {
 	ZONE_NW
 };
 
+#define MENU_BUTTON_DICT_KEYS 24
+
+#define MENU_CMD      @"cmd"
+#define MENU_TITLE    @"title"
+#define MENU_SUBMENU  @"submenu"
+
+struct StrCtrlMap 
+{
+  NSString * str; 
+  unichar chars[6];
+};
+
+extern struct StrCtrlMap STRG_CTRL_MAP[];
+
 extern NSString * ZONE_KEYS[];
 extern NSString * DEFAULT_SWIPE_GESTURES[][2];
-extern NSString * DEFAULT_MENU_BUTTONS[][4];
+extern NSString * DEFAULT_MENU_BUTTONS[][MENU_BUTTON_DICT_KEYS];

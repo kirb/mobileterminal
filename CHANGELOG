@@ -2,6 +2,11 @@
 
 == r2?? ==
 
+  * splash screen replaced
+  * dependencies added to make process
+
+== r265 ==
+
   * terminal arguments preferences added
   * command line arguments re-enabled: 
     * when launched from the shell, additional arguments get executed in the first terminal

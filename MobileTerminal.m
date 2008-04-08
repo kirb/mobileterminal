@@ -1,20 +1,20 @@
 // MobileTerminal.h
 #define DEBUG_METHOD_TRACE    0
 
-#import "MobileTerminal.h"
+#include "MobileTerminal.h"
+#include "ShellKeyboard.h"
+#include "PTYTextView.h"
+#include "SubProcess.h"
+#include "VT100Terminal.h"
+#include "VT100Screen.h"
+#include "GestureView.h"
+#include "PieView.h"
+#include "Menu.h"
+#include "Preferences.h"
+#include "Settings.h"
+
 #import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
-#import "ShellKeyboard.h"
-#import "PTYTextView.h"
-#import "SubProcess.h"
-#import "VT100Terminal.h"
-#import "VT100Screen.h"
-#import "GestureView.h"
-#import "PieView.h"
-#import "Menu.h"
-#import "Preferences.h"
-#import "Settings.h"
-
 #import <UIKit/UIView-Geometry.h>
 #import <LayerKit/LKAnimation.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -37,6 +37,13 @@ static MobileTerminal * application;
 
 //_______________________________________________________________________________
 
++ (Menu*) menu
+{
+	return [application menu];
+}
+
+//_______________________________________________________________________________
+
 - (void) applicationDidFinishLaunching:(NSNotification*)unused
 {
 	log(@"applicationDidFinishLaunching");
@@ -49,6 +56,8 @@ static MobileTerminal * application;
 	[settings registerDefaults];
 	[settings readUserDefaults];
 
+  menu = [Menu menuWithArray:[settings menu]];
+  
 	activeTerminal = 0;
 	
   controlKeyMode = NO;
@@ -101,7 +110,7 @@ static MobileTerminal * application;
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:gestureView];
-	[mainView addSubview:[Menu sharedInstance]];
+	[mainView addSubview:[MenuView sharedInstance]];
 	activeView = mainView;
 
 	contentView = [[UITransitionView alloc] initWithFrame: frame];
@@ -115,7 +124,7 @@ static MobileTerminal * application;
 	[window retain];	
 			
   // Shows momentarily and hides so the user knows its there
-  [[Menu sharedInstance] hideSlow:YES];
+  [[MenuView sharedInstance] hideSlow:YES];
 
   // Input focus
   [[keyboardView inputView] becomeFirstResponder];
@@ -149,7 +158,7 @@ static MobileTerminal * application;
 	
 	[mainView addSubview:[keyboardView inputView]];
 	[mainView bringSubviewToFront:gestureView];
-	[mainView bringSubviewToFront:[Menu sharedInstance]];
+	[mainView bringSubviewToFront:[MenuView sharedInstance]];
 	[[keyboardView inputView] becomeFirstResponder];
 	
 	[self setActiveTerminal:0];
@@ -296,20 +305,22 @@ static MobileTerminal * application;
 
 - (void)hideMenu
 {
-  [[Menu sharedInstance] hide];
+  log(@"hideMenu");
+  [[MenuView sharedInstance] hide];
 }
 
 //_______________________________________________________________________________
 
 - (void)showMenu:(CGPoint)point
 {
-  [[Menu sharedInstance] showAtPoint:point];
+  [[MenuView sharedInstance] showAtPoint:point];
 }
 
 //_______________________________________________________________________________
 
 - (void)handleInputFromMenu:(NSString*)input
 {
+  if (input == nil) return;
   [[self activeProcess] write:[input cString] length:[input length]];
 }
 
@@ -739,6 +750,7 @@ static MobileTerminal * application;
 
 //_______________________________________________________________________________
 
+-(Menu*) menu { return menu; }
 -(UIView*) mainView { return mainView; }
 -(UIView*) activeView { return activeView; }
 -(GestureView*) gestureView { return gestureView; }

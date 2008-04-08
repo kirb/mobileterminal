@@ -12,6 +12,7 @@
 #import "Log.h"
 
 #import <UIKit/UISimpleTableCell.h> 
+#import "UIFieldEditor.h"
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
@@ -532,6 +533,16 @@
 	[config setWidth:(int)[control value]];
 }
 
+//_______________________________________________________________________________
+
+- (void) prepareToPop
+{
+  if ([self keyboard])
+  {    
+    [self setKeyboardVisible:NO animated:NO];
+  }
+}
+
 @end
 
 //_______________________________________________________________________________
@@ -544,9 +555,10 @@
   self = [super initWithFrame:frame];
 
 	[self setShowSelection:NO];
-  menu = [[Menu alloc] init];
-  [menu setFrame:CGRectMake(40, 10, frame.size.width-20, frame.size.height-20)];
-  [menu setDelegate:self];
+  menu = [[MenuView alloc] init];
+  [menu setShowsEmptyButtons:YES];
+  [menu loadMenu];
+  [menu setOrigin:CGPointMake(70,10)];
 	[self addSubview:menu];
   
   return self;
@@ -561,7 +573,7 @@
 
 //_______________________________________________________________________________
 
-- (Menu*) menu { return menu; }
+- (MenuView*) menu { return menu; }
 
 @end
 
@@ -575,28 +587,131 @@
 	self = [super initWithFrame:frame];
 	
 	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
-	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+	menuGroup = [PreferencesGroup groupWithTitle:@"" icon:nil];
 
-	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 150.0f)];
-  [[cell menu] setDelegate:self];
-	[group addCell:cell];
-  titleField = [group addTextField:@"Title" value:@""];
-  valueField = [group addTextField:@"Command" value:@""];
-	
-	[prefGroups addGroup:group];
+	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 195.0f)];
+  menuView = [cell menu];
+  [menuView setDelegate:self];
+	[menuGroup addCell:cell];
+  titleField = [[menuGroup addTextField:@"Title" value:@""] textField];
+  [titleField setEditingDelegate:self];  
+  commandField = [[menuGroup addTextField:@"Command" value:@""] textField];
+  [commandField setEditingDelegate:self];  
+
+  submenuControl = [menuGroup addSwitch:@"Submenu" target:self action:@selector(submenuSwitched:)];
+  submenuSwitch = [submenuControl control];
+
+  [submenuControl setShowDisclosure:NO];
+  [submenuControl setUsesBlueDisclosureCircle:YES];
+  [submenuControl setDisclosureClickable:YES];	
+  
+	[prefGroups addGroup:menuGroup];
 		
 	[self setDataSource:prefGroups];
 	[self reloadData];
 	
+  editButton = nil;
+  
+  [menuView selectButton:[menuView buttonAtIndex:0]];
+  [self menuButtonPressed:[menuView buttonAtIndex:0]];
+  
 	return self;
+}
+
+//_______________________________________________________________________________
+- (void) submenuSwitched:(UISliderControl*)control
+{
+  if ([control value] == 1)
+  {
+    [Menu menuWithItem:[editButton item]];
+    [menuView loadMenu:[editButton submenu]];
+  }
+  else
+  {
+    [[editButton item] setSubmenu:nil];
+  }
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) shouldLoadMenuWithButton:(MenuButton*)button
+{
+  return NO;
+}
+
+//_______________________________________________________________________________
+
+- (void) openSubmenuAction
+{
+  log(@"open submenu %@", editButton);
+  [menuView loadMenu:[[editButton item] submenu]];
 }
 
 //_______________________________________________________________________________
 
 - (void) menuButtonPressed:(MenuButton*)button
 {
-  [titleField setValue:[button chars]];
-  [valueField setValue:[button chars]];
+  log(@"menuButtonPressed");
+  editButton = button;
+  [self update];  
+}
+
+//_______________________________________________________________________________
+
+- (void) update
+{
+  [titleField setText:[editButton title]];
+  [commandField setText:[editButton commandString]];
+  [submenuSwitch setValue:[editButton isMenuButton] ? 1 : 0];
+  [submenuControl setShowDisclosure:[editButton isNavigationButton] animated:YES];
+  
+  [UIView beginAnimations:@"slideSwitch"];
+  
+  if ([editButton isNavigationButton])
+  {
+    [[submenuControl _disclosureView] addTarget:self action:@selector(openSubmenuAction) forEvents:64];
+    [submenuSwitch setOrigin:CGPointMake(156.0f, 9.0f)];
+  }
+  else
+  {
+    [submenuSwitch setOrigin:CGPointMake(206.0f, 9.0f)];
+  }
+  
+  [UIView endAnimations];
+  [self reloadData];
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) respondsToSelector:(SEL)sel
+{
+  return [super respondsToSelector:sel];
+}
+
+//_______________________________________________________________________________
+-(void) keyboardInputChanged:(UIFieldEditor*)fieldEditor
+{
+  if ([fieldEditor proxiedView] == titleField)
+    [editButton setTitle:[titleField text]];
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) keyboardInput:(id)fieldEditor shouldInsertText:(NSString*)text isMarkedText:(BOOL)marked
+{  
+  if ([fieldEditor proxiedView] == commandField && [text isEqualToString:@"\n"])
+  {
+    if ([self keyboard]) [self setKeyboardVisible:NO animated:YES];
+    [editButton setCommandString:[NSString stringWithString:[commandField text]]];
+    if ([editButton title] == nil || [[editButton title] length] == 0)
+    {
+      [editButton setTitle:[commandField text]];
+      [titleField setText:[commandField text]];
+    }
+    
+    [self update];
+  }
+  return YES;
 }
 
 //_______________________________________________________________________________
@@ -646,9 +761,7 @@
 + (PreferencesController*) sharedInstance
 {
   static PreferencesController * instance = nil;
-  if (instance == nil) {
-    instance = [[PreferencesController alloc] init];
-  }
+  if (instance == nil)  instance = [[PreferencesController alloc] init];
   return instance;
 }
 
@@ -707,6 +820,7 @@
     // ------------------------------------------------------------- terminals
     
 		BOOL multi = [[Settings sharedInstance] multipleTerminals];
+
     if (MULTIPLE_TERMINALS)
     {
       [terminalGroup addSwitch:@"Multiple Terminals" 
@@ -761,6 +875,8 @@
 {
 	NSString * title = [(UIPreferencesTextTableCell*)view title];
 	
+  log(@"handletapwithcount %@", title);
+  
 	if ([title isEqualToString:@"About"])
 	{
 		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
@@ -1191,7 +1307,7 @@
 
 //_______________________________________________________________________________
 
-- (id) addSwitch: (NSString*) label on: (BOOL) on target:(id)target action:(SEL)action
+- (id) addSwitch:(NSString*)label on:(BOOL)on target:(id)target action:(SEL)action
 {
 	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];
@@ -1206,7 +1322,22 @@
 
 //_______________________________________________________________________________
 
-- (id) addIntValueSlider: (NSString*)label range:(NSRange)range target:(id)target action:(SEL)action
+- (id) addMenuSwitch: (NSString*)label target:(id)target action:(SEL)action
+{
+	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
+	[cell setTitle: label];
+	[cell setShowSelection:NO];
+	UISwitchControl * sw = [[UISwitchControl alloc] initWithFrame: CGRectMake(206.0f, 9.0f, 96.0f, 48.0f)];
+	[sw setValue:0.0f];
+	[sw addTarget:target action:action forEvents:64];
+	[cell setControl:sw];	
+	[cells addObject: cell];
+	return cell;
+}
+
+//_______________________________________________________________________________
+
+- (id) addIntValueSlider:(NSString*)label range:(NSRange)range target:(id)target action:(SEL)action
 {
 	UIPreferencesControlTableCell* cell = [[UIPreferencesControlTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 48.0f)];
 	[cell setTitle: label];

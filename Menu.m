@@ -8,18 +8,235 @@
 #import "Settings.h"
 #import "Log.h"
 #import <UIKit/CDStructures.h>
+#import "UIGradient.h"
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 /*
-	button events:
-	1 button down
-	4 mouse move with focus
-	8 mouse move without focus
-	32 lost focus
-	16 got focus
-	64 button release
+	button events:  1   button down
+                  4   mouse move with focus
+                  8   mouse move without focus
+                  32  lost focus
+                  16  got focus
+                  64  button release
+
+  keyboard return button style 0: gray  with    background
+                         style 2: blue  with    background
+                         style 3: gray  without background
+ 
+  keyboard space button  style 1: white with    background
+                         style 4: white without background
 */
+
+//_______________________________________________________________________________
+
+BOOL writeImageToPNG (CGImageRef image, NSString * filePath) 
+{
+  if (image == nil) { log(@"[ERROR] no image"); return NO; }
+  CFURLRef cfurl = CFURLCreateFromFileSystemRepresentation (NULL, (const UInt8 *)[filePath cString], [filePath length], 0);
+  CGImageDestinationRef imageDest = CGImageDestinationCreateWithURL(cfurl, (CFStringRef)@"public.png", 1, nil);
+  if (imageDest==nil) { log(@"[ERROR] no image destination"); return NO; }  
+  CGImageDestinationAddImage(imageDest, image, nil);
+  if (!CGImageDestinationFinalize(imageDest)) { log(@"[ERROR] unable to write image"); return NO; }
+  return YES;
+}
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation MenuItem
+
+- (id) initWithMenu:(Menu*)menu_
+{
+  self = [super init];
+  menu = menu_;
+  title = @"";
+  command = @"";
+  submenu = nil;
+    
+  return self;
+}
+
+//_______________________________________________________________________________
+
+- (int) index
+{
+  return [menu indexOfItem:self];
+}
+
+//_______________________________________________________________________________
+
+- (NSDictionary*) getDict
+{
+  NSMutableDictionary * dict = [NSMutableDictionary dictionaryWithCapacity:3];
+  
+  [dict setObject:title forKey:MENU_TITLE];
+  [dict setObject:command forKey:MENU_CMD];
+  if (submenu)
+    [dict setObject:[submenu getArray] forKey:MENU_SUBMENU];
+  
+  return dict;
+}
+
+//_______________________________________________________________________________
+
+-(NSString*) commandString
+{
+  NSMutableString * str = [NSMutableString stringWithCapacity:64];
+  [str setString:[self command]];
+  int i = 0;
+  while (STRG_CTRL_MAP[i].str)
+  {
+    int toLength = 0;
+    while (STRG_CTRL_MAP[i].chars[toLength]) toLength++;
+    NSString * from = [menu dotStringWithCommand:STRG_CTRL_MAP[i].str];
+    NSString * to = [NSString stringWithCharacters:STRG_CTRL_MAP[i].chars length:toLength];
+    
+    [str replaceOccurrencesOfString:to withString:from options:0 range:NSMakeRange(0, [str length])];
+    
+    i++;
+  }
+  return str;  
+}
+
+//_______________________________________________________________________________
+
+-(void) setCommandString:(NSString*)cmdString
+{
+  NSMutableString * cmd = [NSMutableString stringWithCapacity:64];
+  [cmd setString:cmdString];
+
+  int i = 0;
+  while (STRG_CTRL_MAP[i].str)
+  {
+    int toLength = 0;
+    while (STRG_CTRL_MAP[i].chars[toLength]) toLength++;
+    NSString * from = [menu dotStringWithCommand:STRG_CTRL_MAP[i].str];
+    NSString * to = [NSString stringWithCharacters:STRG_CTRL_MAP[i].chars length:toLength];
+    
+    [cmd replaceOccurrencesOfString:from withString:to options:0 range:NSMakeRange(0, [cmd length])];
+    
+    i++;
+  }
+  [self setCommand:cmd];
+}
+
+//_______________________________________________________________________________
+
+- (Menu*) menu        { return menu; }
+- (BOOL)  hasSubmenu  { return (submenu != nil); }
+- (Menu*) submenu     { return submenu; }
+
+- (void)  setSubmenu:(Menu*)submenu_
+{
+  [submenu release];
+  submenu = [submenu_ retain];
+}
+
+- (NSString*) title { return title; }
+- (void) setTitle:(NSString*)title_
+{
+  [title release];
+  title = [title_ copy];
+}
+
+- (NSString*) command { return command; }
+- (void) setCommand:(NSString*)command_
+{
+  [command release];
+  command = [command_ copy];
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation Menu
+
+//_______________________________________________________________________________
++ (Menu*) menuWithArray:(NSArray*)array
+{
+  int i;
+  Menu * menu = [[Menu alloc] init];
+  for (i = 0; i < 12; i++)
+  {
+    MenuItem * item = [[menu items] objectAtIndex:i];
+    NSDictionary * dict = [array objectAtIndex:i];
+    [item setTitle:[dict objectForKey:MENU_TITLE]];
+    [item setCommand:[dict objectForKey:MENU_CMD]];
+    NSArray * submenu = [dict objectForKey:MENU_SUBMENU];
+    if (submenu) [item setSubmenu:[Menu menuWithArray:submenu]];
+  }
+  return menu;
+}
+
+//_______________________________________________________________________________
++ (Menu*) menuWithItem:(MenuItem*)item
+{
+  Menu * menu = [Menu create];
+  [item setSubmenu:menu];
+  MenuItem * backItem = [menu itemAtIndex:[item index]];
+  [backItem setTitle:@"back"];
+  [backItem setCommand:[menu dotStringWithCommand:@"back"]];
+  return menu;
+}
+
+//_______________________________________________________________________________
+
++ (Menu*) create
+{
+  Menu * menu = [[Menu alloc] init];
+  return menu;
+}
+
+//_______________________________________________________________________________
+
+- (id) init
+{
+  int i;
+  self = [super init];
+  items = [[NSMutableArray arrayWithCapacity:12] retain];
+  for (i = 0; i < 12; i++)
+  {
+    [items addObject:[[MenuItem alloc] initWithMenu:self]];
+  }
+  
+  unichar dotChar[1] = {0x2022};
+  dot = [[NSString stringWithCharacters:dotChar length:1] retain];
+  
+  return self;
+}
+
+//_______________________________________________________________________________
+
+- (NSArray*) getArray
+{
+  NSMutableArray * array = [NSMutableArray arrayWithCapacity:12];
+  for (MenuItem * item in items)
+  {
+    [array addObject:[item getDict]];
+  }
+  return array;
+}
+
+//_______________________________________________________________________________
+
+-(NSString*) dotStringWithCommand:(NSString*)cmd
+{
+  return [NSString stringWithFormat:@"%@%@", dot, cmd];
+}
+
+//_______________________________________________________________________________
+
+- (NSArray*) items { return items; }
+- (MenuItem*) itemAtIndex:(int) index { return [items objectAtIndex:index]; }
+- (int) indexOfItem:(MenuItem*) item { return [items indexOfObjectIdenticalTo:item]; }
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
 
 @implementation MenuButton
 
@@ -29,57 +246,124 @@
 {
 	self = [super initWithFrame:frame];
 
-	chars = nil;
-
+  item = nil;
   CDAnonymousStruct4 buttonPieces = {
-		.left = { .origin = { .x = 0.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
-		.middle = { .origin = { .x = 15.0f, .y = 0.0f }, .size = { .width = 2.0f, .height = MENU_BUTTON_HEIGHT } },
-		.right = { .origin = { .x = 17.0f, .y = 0.0f }, .size = { .width = 14.0f, .height = MENU_BUTTON_HEIGHT } },
+		.left   = { .origin = { .x = 0.0f,  .y = 0.0f }, .size = { .width = 12.0f, .height = MENU_BUTTON_HEIGHT } },
+		.middle = { .origin = { .x = 12.0f, .y = 0.0f }, .size = { .width = 20.0f, .height = MENU_BUTTON_HEIGHT } },
+		.right  = { .origin = { .x = 32.0f, .y = 0.0f }, .size = { .width = 12.0f, .height = MENU_BUTTON_HEIGHT } },
 	};
-  
-  [self setPressedBackgroundImage: [UIImage imageNamed: @"menubuttonpressed.png"]];
-  [self setBackground: [UIImage imageNamed: @"menubuttonpressed.png"] forState:4];
-  [self setBackgroundImage: [UIImage imageNamed: @"menubutton.png"]];
-  [self setDrawContentsCentered: YES];			
+
+  [self setDrawContentsCentered: YES];	
   [self setBackgroundSlices: buttonPieces];
   [self setAutosizesToFit:NO];
   [self setEnabled: YES];		
+  [self setOpaque:NO];
   
   [self setTitleColor:colorWithRGBA(0,0,0,1) forState:0];
-  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
-  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected
   
 	return self;
 }
 
 //_______________________________________________________________________________
 
-- (NSString*) chars { return chars; }
-- (void) setChars:(NSString*)chars_ 
+- (BOOL) isMenuButton
 {
-	[chars release];
-	chars = [chars_ copy];
+  return ([self submenu] != nil); 
 }
 
 //_______________________________________________________________________________
+
+- (BOOL) isNavigationButton
+{
+  return ([self isMenuButton] || [[item command] isEqualToString:[[item menu] dotStringWithCommand:@"back"]]);
+}
+
+//_______________________________________________________________________________
+
+- (void) update
+{
+  if ([self isNavigationButton])
+  {
+    [self setTitleColor:colorWithRGBA(0,0,1,1) forState:1]; // pressed
+    [self setTitleColor:colorWithRGBA(0,0,1,1) forState:4]; // selected
+    
+    NSString * normalImage = @"menu_button_gray.png";
+    NSString * selectedImage = @"menu_button_white.png";
+    [self setPressedBackgroundImage: [UIImage imageNamed:selectedImage]];
+    [self setBackground: [UIImage imageNamed:selectedImage] forState:4];
+    [self setBackgroundImage: [UIImage imageNamed:normalImage]];    
+  }
+  else
+  {
+    [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
+    [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected
+    
+    NSString * normalImage = @"menu_button_white.png";
+    NSString * selectedImage = @"menu_button_blue.png";
+    [self setPressedBackgroundImage: [UIImage imageNamed:selectedImage]];
+    [self setBackground: [UIImage imageNamed:selectedImage] forState:4];
+    [self setBackgroundImage: [UIImage imageNamed:normalImage]];    
+  }
+  
+  NSString * title = [item title];
+  if (title == nil) title = [item command];
+  if (title != nil) [super setTitle:title];
+}
+
+//_______________________________________________________________________________
+- (NSString*) command { return (item != nil) ? [item command] : nil; }
+- (NSString*) commandString { return (item != nil) ? [item commandString] : nil; }
+- (void) setCommandString:(NSString*)commandString
+{
+  if (item != nil) 
+  {
+    [item setCommandString:commandString];
+    [self update];
+  }
+}
+
+//_______________________________________________________________________________
+
+- (NSString*) title { return (item != nil) ? [item title] : nil; }
+- (void) setTitle:(NSString*)title
+{
+  if (item != nil) 
+  {
+    [item setTitle:title];
+    [self update];
+  }
+}
+
+//_______________________________________________________________________________
+
+- (Menu*) submenu { return (item != nil) ? [item submenu] : nil; }
+
+//_______________________________________________________________________________
+-(MenuItem*) item { return item; }
+- (void) setItem:(MenuItem*)item_
+{
+  item = item_;
+  [self update];
+}
 
 @end
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
-@implementation Menu
+@implementation MenuView
 
 @synthesize visible;
 
 //_______________________________________________________________________________
 
-+ (Menu*) sharedInstance
++ (MenuView*) sharedInstance
 {
-  static Menu * instance = nil;
+  static MenuView * instance = nil;
   if (instance == nil) 
 	{		
-    instance = [[Menu alloc] init];
+    instance = [[MenuView alloc] init];
+    [instance loadMenu];
   }
   return instance;
 }
@@ -88,54 +372,61 @@
 
 - (id) init
 {
-  self = [super initWithFrame:CGRectMake(0, 0, 0, 0)];
-	
-	float lx = MAX(0, 160 - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE));
-	float ly = MAX(0, 100 - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE));
-
-	[self setTransform:CGAffineTransformMake(1.0f, 0, 0, 1.0f, lx, ly)];
-  location = CGPointMake(160, 100);
-	
+  self = [super initWithFrame:CGRectMake(0, 0, 4*MENU_BUTTON_HEIGHT+4, 3*MENU_BUTTON_WIDTH-4)];
+		
   visible = YES;
 
 	timer = nil;
+  showsEmptyButtons = NO;
+  activeButton = nil;
 
 	[self setOpaque:NO];
-	[self updateButtons];
-	[self setBackgroundColor:colorWithRGBA(0.0f, 0.0f, 0.0f, 0.0f)];
-		
+    
   return self;
 }
 
 //_______________________________________________________________________________
+- (void) loadMenu { [self loadMenu:nil]; }
+//_______________________________________________________________________________
 
-- (void) updateButtons
+- (void) loadMenu:(Menu*)menu
 {
-	NSArray * buttons = [[Settings sharedInstance] menuButtons];
+  log(@"+++++++++++ menu %@", menu);
+	if (menu == nil) menu = [MobileTerminal menu];
+  
+  activeButton = nil;
 	
-	int i;
-	float x=0.0f, y=0.0f;
+	float x = 0.0f, y = 0.0f;
 	
-	for (i = 0; i < [buttons count]; i++)
+  while ([[self subviews] count]) [[[self subviews] lastObject] removeFromSuperview];
+  
+  for (MenuItem * item in [menu items])
 	{
-		MenuButton * button = [[[MenuButton alloc] initWithFrame:CGRectMake(x, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)] autorelease];
-    [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
-				
-		[button setTitle:[[buttons objectAtIndex:i] objectForKey:@"title"]];
-		if ([[buttons objectAtIndex:i] objectForKey:@"chars"])
-				[button setChars:[[buttons objectAtIndex:i] objectForKey:@"chars"]];		
+    MenuButton * button = nil;
+    
+    NSString * command = [item command];
+    
+    if (showsEmptyButtons || [item hasSubmenu] || (command != nil && [command length] > 0))
+    {
+      CGRect buttonFrame = CGRectMake(x, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
+      button = [[[MenuButton alloc] initWithFrame:buttonFrame] autorelease]; 
+
+      [button setItem:item];
+            
+      [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
+      
+      [self addSubview:button];
+    }
 		
-		if (i % 3 == 2)
+		if ([item index] % 3 == 2)
 		{
 			x = 0.0f;
-			y += MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACE;
+			y += MENU_BUTTON_HEIGHT;
 		}
 		else
 		{
-			x += MENU_BUTTON_WIDTH + MENU_BUTTON_SPACE;
+			x += MENU_BUTTON_WIDTH;
 		}
-		
-		[self addSubview:button];
 	}
 }	
 
@@ -143,25 +434,112 @@
 
 - (void) buttonPressed:(id)button
 {
-  if ([self delegate])
+  log(@"------------------ button pressed %@ %@", button, activeButton);
+  if (button != activeButton)
   {
-    //log(@"buttonPressed %@ activeButton %@", button, activeButton);
-    [activeButton setSelected:NO];
+    if (activeButton && (![activeButton isMenuButton] || [button isMenuButton]))
+      [activeButton setSelected:NO];
+    
     activeButton = button;
-    [button setSelected:YES];
-    if ([[self delegate] respondsToSelector:@selector(menuButtonPressed:)])
+    [activeButton setSelected:YES];
+    
+    if ([self delegate] && [[self delegate] respondsToSelector:@selector(menuButtonPressed:)])
       [[self delegate] performSelector:@selector(menuButtonPressed:) withObject:activeButton];
+    
+    if ([activeButton isMenuButton])
+    {
+      if ([self delegate] && [[self delegate] respondsToSelector:@selector(shouldLoadMenuWithButton:)])
+        if (![[self delegate] performSelector:@selector(shouldLoadMenuWithButton:) withObject:activeButton])
+          return;
+      [self loadMenu:[activeButton submenu]];
+    }
   }
+}
+
+//_______________________________________________________________________________
+
+- (void) deselectButton:(MenuButton*) button
+{
+  [button setSelected:NO];
+  if (button == activeButton) activeButton = nil;
+}
+
+//_______________________________________________________________________________
+
+- (void) selectButton:(MenuButton*) button
+{
+  if (activeButton) [activeButton setSelected:NO];
+  [button setSelected:YES];
+  activeButton = button;
+}
+
+//_______________________________________________________________________________
+
+- (MenuButton*) buttonAtIndex:(int)index
+{
+  return [[self subviews] objectAtIndex:index];
+}
+
+//_______________________________________________________________________________
+
+- (void) handleTrackingAt:(CGPoint) point
+{
+  int i;
+	for (i = 0; i < [[self subviews] count]; i++)
+	{
+    if (CGRectContainsPoint([[[self subviews] objectAtIndex:i] frame], point))
+    {
+      [self buttonPressed:[[self subviews] objectAtIndex:i]];
+      return;
+    }
+	}
+  if (activeButton && ![activeButton isMenuButton])
+  {
+    [activeButton setSelected:NO];
+    activeButton = nil;
+  }
+}  
+
+//_______________________________________________________________________________
+
+- (NSString*) handleTrackingEnd
+{
+  [self hide];
+  if (activeButton && ![activeButton isMenuButton]) 
+  {
+    return [activeButton command];
+  }
+  return nil;
 }
 
 //_______________________________________________________________________________
 
 - (void) showAtPoint:(CGPoint)p
 {
+  [self showAtPoint:p delay:MENU_DELAY];
+}
+
+//_______________________________________________________________________________
+
+- (void) showAtPoint:(CGPoint)p delay:(float)delay
+{
+  if (!visible)
+  {
+    [self stopTimer];
+    location.x = p.x;
+    location.y = p.y;
+    timer = [NSTimer scheduledTimerWithTimeInterval:delay target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
+  }
+}
+
+//_______________________________________________________________________________
+
+- (void) fadeInAtPoint:(CGPoint)p
+{
 	[self stopTimer];
   location.x = p.x;
   location.y = p.y;
-	timer = [NSTimer scheduledTimerWithTimeInterval:MENU_DELAY target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
+	[self fadeIn];
 }
 
 //_______________________________________________________________________________
@@ -180,26 +558,42 @@
 - (void) fadeIn
 {
 	[self stopTimer];
+  
+  if (visible) return;
 	
-  if (visible)
-	{
-    return;
-  }
-	
+  activeButton = nil;
+  [self loadMenu];
+  
 	CGRect frame = [[self superview] frame];
 
-	float lx = MIN(frame.size.width  - 3.0 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE),  MAX(0, location.x - 1.5 * (MENU_BUTTON_WIDTH+MENU_BUTTON_SPACE)));
-	float ly = MIN(frame.size.height - 3.0 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE), MAX(0, location.y - 1.5 * (MENU_BUTTON_HEIGHT+MENU_BUTTON_SPACE)));
+	float lx = MIN(frame.size.width  - 3.0 * MENU_BUTTON_WIDTH,  MAX(0, location.x - 1.5 * MENU_BUTTON_WIDTH));
+	float ly = MIN(frame.size.height - 3.0 * MENU_BUTTON_HEIGHT, MAX(0, location.y - 1.5 * MENU_BUTTON_HEIGHT));
 	
   visible = YES;
-  [self setTransform:CGAffineTransformMake(0.01f, 0, 0, 0.01f, location.x, location.y)];
+  tapMode = NO;
+  [self setTransform:CGAffineTransformMakeScale(1.0f, 1.0f)];
+  [self setOrigin:CGPointMake(lx, ly)];
   [self setAlpha: 0.0f];
 		
 	[UIView beginAnimations:@"fadeIn"];
+  [UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
 	[UIView setAnimationDuration:MENU_FADE_IN_TIME];
-	[self setTransform:CGAffineTransformMake(1, 0, 0, 1, lx, ly)];
 	[self setAlpha:1.0f];
 	[UIView endAnimations];	
+}
+
+//_______________________________________________________________________________
+
+- (void) animationDidStop:(NSString*)animationID finished:(NSNumber*)finished context:(void*)context
+{
+  if ([animationID isEqualToString:@"fadeIn"] && [finished boolValue] == YES)
+  {
+    if ([self delegate] && [[self delegate] respondsToSelector:@selector(menuFadedIn)])
+    {
+      [[self delegate] performSelector:@selector(menuFadedIn)];
+    }
+  }
 }
 
 //_______________________________________________________________________________
@@ -207,6 +601,7 @@
 - (void) hide 
 {
   [self hideSlow:NO];
+  [self setDelegate:nil];
 }
 
 //_______________________________________________________________________________
@@ -214,15 +609,13 @@
 - (void) hideSlow:(BOOL)slow
 { 
 	[self stopTimer];
-	
-  if (!visible) 
-	{
-    return;
-  }
+  	
+  if (!visible) return;
 		
 	[UIView beginAnimations:@"fadeOut"];
 	[UIView setAnimationDuration: slow ? MENU_SLOW_FADE_OUT_TIME : MENU_FADE_OUT_TIME];
-	[self setTransform:CGAffineTransformMake(0.01f, 0, 0, 0.01f, location.x, location.y)];
+  [self setTransform:CGAffineTransformMakeScale(0.01f, 0.01f)];
+  [self setOrigin:CGPointMake([self frame].origin.x + [self frame].size.width/2, [self frame].origin.y + [self frame].size.height/2)];
 	[self setAlpha:0.0f];
 	[UIView endAnimations];	
 	
@@ -231,7 +624,48 @@
 
 //_______________________________________________________________________________
 
+-(void) setTapMode:(BOOL)tapMode_
+{
+  tapMode = tapMode_;
+}
+
+//_______________________________________________________________________________
+/*
+-(BOOL) respondsToSelector:(SEL)sel
+{
+  log(@"responds to %s", sel);
+  return [super respondsToSelector:sel];
+}
+*/
+//_______________________________________________________________________________
+
+-(void) drawRect:(struct CGRect)rect
+{
+  CGContextRef context = UICurrentContext();
+  float w = rect.size.width;
+  float h = rect.size.height;
+  CGContextBeginPath (context);
+  CGContextMoveToPoint(context,w/2, 0);
+  CGContextAddArcToPoint(context, w, 0, w, h/2, 7);
+  CGContextAddArcToPoint(context, w, h, w/2, h, 7);
+  CGContextAddArcToPoint(context, 0, h, 0, h/2, 7);
+  CGContextAddArcToPoint(context, 0, 0, w/2, 0, 7);
+  CGContextClosePath (context);
+  CGContextClip (context);
+
+  float components[11] = { 0.5647f, 0.6f, 0.6275f, 1.0f, 0.0f, 
+                           0.29f, 0.321f, 0.3651f, 1.0f, 1.0f, 0 };
+  UIGradient * gradient = [[UIGradient alloc] initVerticalWithValues:(CDAnonymousStruct3 *)components];
+  [gradient fillRect:rect];
+  
+  CGContextFlush(context);  
+}
+
+//_______________________________________________________________________________
+
 - (id) delegate { return delegate; }
 - (void) setDelegate:(id)delegate_ { delegate = delegate_; }
+
+- (void) setShowsEmptyButtons:(BOOL)aBool { showsEmptyButtons = aBool; }
 
 @end

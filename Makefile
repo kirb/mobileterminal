@@ -4,17 +4,21 @@ APPNAME   = Terminal
 APPDIR		= ./$(APPNAME).app
 
 #all: copySources Terminal package sendToiPod killOniPod startOniPod removeSources done
-all: copySources Terminal package sendToiPod killOniPod done
+all: copySources depend Terminal package sendToiPod killOniPod done
 
 svnversion:
 	$(shell python svnversion.py)
 
-copySources: svnversion
+copySources:
 	@echo ... copying sources ...
 	$(shell mkdir -p $(BUILDDIR))
-	$(shell rm -f $(BUILDDIR)/Makefile $(BUILDDIR)/*.h $(BUILDDIR)/*.m $(BUILDDIR)/*.c)
+	$(shell rm -f $(BUILDDIR)/Makefile)
 	$(shell cp -p ./Makefile.build $(BUILDDIR)/Makefile)
-	$(shell find $(SOURCEDIR) \( -name "*.m" -or -name "*.h" -or -name "*.c" \) -type f -exec cp -p -f {} $(BUILDDIR) \;)
+	$(shell find $(SOURCEDIR) \( -name "*.m" -or -name "*.h" \) -type f \! -path "./build/*" -exec cp -p -f {} $(BUILDDIR) \;)
+
+depend:
+	@echo ... updating dependencies ...
+	$(shell make -C $(BUILDDIR) depend)
 
 Terminal:
 	@echo ... building $(APPNAME) ...
@@ -24,7 +28,7 @@ package:
 	@echo ... packaging $(APPNAME).app ...
 	$(shell rm -fr $(APPDIR))
 	$(shell mkdir -p $(APPDIR))
-	$(shell mv $(BUILDDIR)/$(APPNAME) $(APPDIR)/)
+	$(shell cp $(BUILDDIR)/$(APPNAME) $(APPDIR)/)
 	$(shell cp Info.plist $(APPDIR)/Info.plist)
 	$(shell cp -r ./Resources/* $(APPDIR)/)
 	$(shell find $(APPDIR) -name ".svn" | xargs rm -Rf)
@@ -39,7 +43,7 @@ killOniPod:
 
 startOniPod:
 	@echo ... starting $(APPNAME) on iPod ...
-	$(shell ssh root@$(IPHONE_IP) /Applications/$(APPNAME).app/$(APPNAME) &)
+	ssh root@$(IPHONE_IP) /Applications/$(APPNAME).app/$(APPNAME) ls
 
 removeSources:
 	@echo ... removing sources ...
@@ -47,12 +51,12 @@ removeSources:
 
 clean: 
 	@echo ... cleaning up ...
-	make -C $(BUILDDIR) clean
 	rm -fr $(BUILDDIR)
 	rm -fr *.o $(APPNAME).app $(APPNAME).zip
 
-dist: package
+dist: svnversion copySources depend Terminal package
 	zip -r $(APPNAME).zip $(APPDIR)
 
 done:
 	@echo ... done
+

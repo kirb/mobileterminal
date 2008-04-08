@@ -17,7 +17,8 @@
 @class MobileTerminal;
 @class TerminalConfig;
 @class PreferencesGroup;
-@class Menu;
+@class MenuView;
+@class MenuButton;
 
 //_______________________________________________________________________________
 
@@ -136,7 +137,7 @@
 
 @interface MenuTableCell : UIPreferencesTableCell
 {
-  Menu * menu;
+  MenuView * menu;
 }
 
 - (id) initWithFrame:(CGRect)frame;
@@ -148,11 +149,19 @@
 
 @interface MenuPreferences : UIPreferencesTable
 {
-  UIPreferencesTextTableCell * titleField;
-  UIPreferencesTextTableCell * valueField;
+  PreferencesGroup  * menuGroup;
+  MenuButton        * editButton;
+  UITextField       * titleField;
+  UITextField       * commandField;
+  UIPreferencesControlTableCell * submenuControl;
+  UISliderControl   * submenuSwitch;
+  UIPushButton      * openSubmenu;
+  MenuView          * menuView; 
 }
 
--(id) initWithFrame:(CGRect)frame;
+- (id) initWithFrame:(CGRect)frame;
+- (void) menuButtonPressed:(MenuButton*)button;
+- (void) update;
 
 @end
 

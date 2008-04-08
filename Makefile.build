@@ -14,7 +14,6 @@ Terminal: main.o \
 					PTYTextView.o PTYTile.o \
 					Color.o \
 					ColorMap.o \
-					Vector.o \
 					Settings.o \
 					ShellKeyboard.o \
 					SubProcess.o \
@@ -28,5 +27,9 @@ Terminal: main.o \
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
+depend:
+	@makedepend *.m &> /dev/null
+
 clean: 
-	$(shell rm -f *.o Terminal)
+	@rm -f *.o Terminal
+

@@ -64,6 +64,7 @@ typedef struct {
 
   id			delegate;
 	BOOL		gestureMode;
+  BOOL    menuTapped;
 	
 	NSTimer * toggleKeyboardTimer;
 }

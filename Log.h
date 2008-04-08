@@ -7,7 +7,7 @@
 #define log(s,...)     [FileLog logFunc:__PRETTY_FUNCTION__ format:(s),##__VA_ARGS__]
 #define logRect(s, r)  [FileLog logFunc:__PRETTY_FUNCTION__ string:(s) rect:(r)] 
 #define logPoint(s, p) [FileLog logFunc:__PRETTY_FUNCTION__ string:(s) point:(p)] 
-
+ 
 @interface FileLog : NSObject {
 }
 + (void)logFunc: (const char*)func format:(NSString*)format, ...;

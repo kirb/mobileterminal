@@ -5,6 +5,7 @@
 #import "Settings.h"
 #import "Constants.h"
 #import "MobileTerminal.h"
+#import "Menu.h"
 #import <Foundation/NSUserDefaults.h>
 
 //_______________________________________________________________________________
@@ -98,7 +99,7 @@
   
   gestureFrameColor = RGBAColorMake(1.0f, 1.0f, 1.0f, 0.05f);
   multipleTerminals = NO;
-  menuButtons = nil; 
+  menu = nil; 
   swipeGestures = nil;
   arguments = @"";
   
@@ -117,23 +118,10 @@
   NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
   NSMutableDictionary * d = [NSMutableDictionary dictionaryWithCapacity:2];
   [d setObject:[NSNumber numberWithBool:MULTIPLE_TERMINALS] forKey:@"multipleTerminals"];
-  
-  // menu buttons
-  
-  NSMutableArray * buttons = [NSMutableArray arrayWithCapacity:16];
-  NSMutableDictionary * bd;
 
-  i = 0;
-  while (DEFAULT_MENU_BUTTONS[i][0])
-  {
-    bd = [NSMutableDictionary dictionaryWithCapacity:2];
-    [bd setObject:DEFAULT_MENU_BUTTONS[i][1] forKey:DEFAULT_MENU_BUTTONS[i][0]];
-    [bd setObject:DEFAULT_MENU_BUTTONS[i][1] forKey:@"title"];
-    [buttons addObject:bd];    
-    i++;
-  }
-    
-  [d setObject:buttons forKey:@"menuButtons"];
+  // menu buttons
+      
+  [d setObject:[[Menu create] getArray] forKey:@"menu"];
   
   // swipe gestures
   
@@ -167,7 +155,9 @@
   NSArray * colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 0.05f));
   [d setObject:colorValues forKey:@"gestureFrameColor"];
   
-  [defaults registerDefaults:d];
+  log(@"registering defaults %@", d);  
+  
+  [defaults registerDefaults:d];  
 }
 
 //_______________________________________________________________________________
@@ -177,6 +167,7 @@
   int i;
   NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
   NSArray * tcs = [defaults arrayForKey:@"terminals"];
+    
   for (i = 0; i < MAXTERMINALS; i++)
   {
     TerminalConfig * config = [terminalConfigs objectAtIndex:i];
@@ -190,7 +181,7 @@
   }
 
   multipleTerminals = MULTIPLE_TERMINALS && [defaults boolForKey:@"multipleTerminals"];
-  menuButtons = [[defaults arrayForKey:@"menuButtons"] retain];
+  menu = [[defaults arrayForKey:@"menu"] retain];
   swipeGestures = [[defaults objectForKey:@"swipeGestures"] retain];
   gestureFrameColor = RGBAColorMakeWithArray([defaults arrayForKey:@"gestureFrameColor"]);
 }
@@ -217,7 +208,8 @@
   }
   [defaults setObject:tcs forKey:@"terminals"];
   [defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
-  [defaults setObject:menuButtons forKey:@"menuButtons"];
+  [defaults setObject:[[MobileTerminal menu] getArray] forKey:@"menu"];
+  [defaults setObject:swipeGestures forKey:@"swipeGestures"];
   [defaults setObject:RGBAColorToArray(gestureFrameColor) forKey:@"gestureFrameColor"];
   [defaults synchronize];
 }
@@ -225,18 +217,16 @@
 //_______________________________________________________________________________
 
 -(NSArray*)       terminalConfigs       { return terminalConfigs; }
--(NSArray*)       menuButtons           { return menuButtons; }
+-(NSArray*)       menu                  { return menu; }
 -(NSDictionary*)  swipeGestures         { return swipeGestures; }
 -(RGBAColor)      gestureFrameColor     { return gestureFrameColor; }
 -(RGBAColorRef)   gestureFrameColorRef  { return &gestureFrameColor; }
--(NSString*)      arguments             { log(@"arguments %@", arguments); return arguments; }
+-(NSString*)      arguments             { return arguments; }
 
 //_______________________________________________________________________________
 
 - (void) setArguments: (NSString*)str
 {
-  log(@"setArguments");
-  
   if (arguments != str)
   {
     [arguments release];

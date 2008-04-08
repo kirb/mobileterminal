@@ -133,7 +133,7 @@ int start_process(const char* path, char* const args[], char* const env[]) {
   if (termid == 0)
   {
     NSString * arguments = [[Settings sharedInstance] arguments];
-    if (arguments != nil && [arguments length] > 0 && ![arguments isEqualToString:@"--launchedFromSB"])
+    if (arguments != nil && [arguments length] > 0 && ![arguments hasPrefix:@"--launchedFromSB"])
       arg = arguments;
   }
   

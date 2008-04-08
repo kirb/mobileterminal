@@ -17,6 +17,7 @@
 @class PreferencesController;
 @class MobileTerminal;
 @class Settings;
+@class Menu;
 
 //_______________________________________________________________________________
 
@@ -41,6 +42,7 @@
   NSMutableArray				* scrollers;
 
   Settings              * settings;
+  Menu                  * menu;
 	
   int numTerminals;
   int activeTerminal;	
@@ -54,12 +56,14 @@
 @property BOOL landscape;
 @property int  degrees;
 @property BOOL controlKeyMode;
+@property (readonly) Menu 				* menu;
 @property (readonly) UIView				* activeView;
 @property (readonly) UIView				* mainView;
 @property (readonly) GestureView	* gestureView;
 @property (readonly) PTYTextView	* textView;
 
 + (MobileTerminal*) application;
++ (Menu*) menu;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)aNotification;
 - (void) applicationSuspend:(GSEvent *)event;
