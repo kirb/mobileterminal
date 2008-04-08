@@ -12,37 +12,6 @@
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
-/*
-	button events:  1   button down
-                  4   mouse move with focus
-                  8   mouse move without focus
-                  32  lost focus
-                  16  got focus
-                  64  button release
-
-  keyboard return button style 0: gray  with    background
-                         style 2: blue  with    background
-                         style 3: gray  without background
- 
-  keyboard space button  style 1: white with    background
-                         style 4: white without background
-*/
-
-//_______________________________________________________________________________
-
-BOOL writeImageToPNG (CGImageRef image, NSString * filePath) 
-{
-  if (image == nil) { log(@"[ERROR] no image"); return NO; }
-  CFURLRef cfurl = CFURLCreateFromFileSystemRepresentation (NULL, (const UInt8 *)[filePath cString], [filePath length], 0);
-  CGImageDestinationRef imageDest = CGImageDestinationCreateWithURL(cfurl, (CFStringRef)@"public.png", 1, nil);
-  if (imageDest==nil) { log(@"[ERROR] no image destination"); return NO; }  
-  CGImageDestinationAddImage(imageDest, image, nil);
-  if (!CGImageDestinationFinalize(imageDest)) { log(@"[ERROR] unable to write image"); return NO; }
-  return YES;
-}
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
 
 @implementation MenuItem
 
@@ -176,9 +145,7 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
 {
   Menu * menu = [Menu create];
   [item setSubmenu:menu];
-  MenuItem * backItem = [menu itemAtIndex:[item index]];
-  [backItem setTitle:@"back"];
-  [backItem setCommand:[menu dotStringWithCommand:@"back"]];
+
   return menu;
 }
 
@@ -259,7 +226,9 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
   [self setEnabled: YES];		
   [self setOpaque:NO];
   
-  [self setTitleColor:colorWithRGBA(0,0,0,1) forState:0];
+  [self setTitleColor:colorWithRGBA(0,0,0,1) forState:0]; // normal
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected  
   
 	return self;
 }
@@ -284,20 +253,14 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
 {
   if ([self isNavigationButton])
   {
-    [self setTitleColor:colorWithRGBA(0,0,1,1) forState:1]; // pressed
-    [self setTitleColor:colorWithRGBA(0,0,1,1) forState:4]; // selected
-    
     NSString * normalImage = @"menu_button_gray.png";
-    NSString * selectedImage = @"menu_button_white.png";
+    NSString * selectedImage = @"menu_button_darkgray.png";
     [self setPressedBackgroundImage: [UIImage imageNamed:selectedImage]];
     [self setBackground: [UIImage imageNamed:selectedImage] forState:4];
     [self setBackgroundImage: [UIImage imageNamed:normalImage]];    
   }
   else
-  {
-    [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
-    [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected
-    
+  {    
     NSString * normalImage = @"menu_button_white.png";
     NSString * selectedImage = @"menu_button_blue.png";
     [self setPressedBackgroundImage: [UIImage imageNamed:selectedImage]];
@@ -375,6 +338,7 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
   self = [super initWithFrame:CGRectMake(0, 0, 4*MENU_BUTTON_HEIGHT+4, 3*MENU_BUTTON_WIDTH-4)];
 		
   visible = YES;
+  history = [[NSMutableArray arrayWithCapacity:5] retain];
 
 	timer = nil;
   showsEmptyButtons = NO;
@@ -386,13 +350,10 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
 }
 
 //_______________________________________________________________________________
-- (void) loadMenu { [self loadMenu:nil]; }
-//_______________________________________________________________________________
 
 - (void) loadMenu:(Menu*)menu
 {
   log(@"+++++++++++ menu %@", menu);
-	if (menu == nil) menu = [MobileTerminal menu];
   
   activeButton = nil;
 	
@@ -431,14 +392,47 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
 }	
 
 //_______________________________________________________________________________
+- (void) clearHistory
+{
+  log(@"clearHistory %d", [history count]);
+  [history removeAllObjects];
+}
+
+//_______________________________________________________________________________
+
+- (void) popMenu
+{
+  log(@"popMenu %d", [history count]);
+  if ([history count] > 1) [history removeLastObject];
+  [self loadMenu:[history lastObject]];
+}
+
+//_______________________________________________________________________________
+
+- (void) pushMenu:(Menu*)menu
+{
+  log(@"pusMenu %d %@", [history count], menu);
+  [history addObject:menu];
+  [self loadMenu:menu];
+}
+
+//_______________________________________________________________________________
+
+- (void) loadMenu 
+{ 
+  [self clearHistory];
+  [self pushMenu:[MobileTerminal menu]]; 
+}
+
+//_______________________________________________________________________________
 
 - (void) buttonPressed:(id)button
 {
   log(@"------------------ button pressed %@ %@", button, activeButton);
   if (button != activeButton)
   {
-    if (activeButton && (![activeButton isMenuButton] || [button isMenuButton]))
-      [activeButton setSelected:NO];
+    //if (activeButton && (![activeButton isMenuButton] || [button isMenuButton]))
+    [activeButton setSelected:NO];
     
     activeButton = button;
     [activeButton setSelected:YES];
@@ -451,7 +445,7 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
       if ([self delegate] && [[self delegate] respondsToSelector:@selector(shouldLoadMenuWithButton:)])
         if (![[self delegate] performSelector:@selector(shouldLoadMenuWithButton:) withObject:activeButton])
           return;
-      [self loadMenu:[activeButton submenu]];
+      [self pushMenu:[activeButton submenu]];
     }
   }
 }
@@ -507,7 +501,11 @@ BOOL writeImageToPNG (CGImageRef image, NSString * filePath)
   [self hide];
   if (activeButton && ![activeButton isMenuButton]) 
   {
-    return [activeButton command];
+    NSMutableString * command = [NSMutableString stringWithCapacity:32];
+    [command setString:[activeButton command]];    
+    [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]];
+    [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]];
+    return command;
   }
   return nil;
 }

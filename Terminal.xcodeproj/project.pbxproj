@@ -16,6 +16,8 @@
 		C31614270DA2D23E004157BB /* Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Color.m; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
+		C34DCB5D0DABD31300EB4BC5 /* Tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tools.h; sourceTree = "<group>"; };
+		C34DCB5E0DABD31300EB4BC5 /* Tools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Tools.m; sourceTree = "<group>"; };
 		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
 		C37DAB700D93475A00FC5BC7 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Log.m; sourceTree = "<group>"; };
 		C390BE9A0D9EF05800FAD5B0 /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Menu.h; sourceTree = "<group>"; };
@@ -117,6 +119,8 @@
 				C30257DF0DA6AEB500AAA6EA /* svnversion.h */,
 				C3E137B20D95F931005B2F2D /* Constants.h */,
 				C308937B0D969034009430B9 /* Constants.m */,
+				C34DCB5D0DABD31300EB4BC5 /* Tools.h */,
+				C34DCB5E0DABD31300EB4BC5 /* Tools.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

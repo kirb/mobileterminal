@@ -162,6 +162,7 @@
 - (id) initWithFrame:(CGRect)frame;
 - (void) menuButtonPressed:(MenuButton*)button;
 - (void) update;
+- (MenuView*) menuView;
 
 @end
 

@@ -121,7 +121,9 @@
 
   // menu buttons
       
-  [d setObject:[[Menu create] getArray] forKey:@"menu"];
+  NSArray * menuArray = [NSArray arrayWithContentsOfFile:@"/Applications/Terminal.app/menu.plist"];
+  if (menuArray == nil) menuArray = [[Menu create] getArray];
+  [d setObject:menuArray forKey:@"menu"];
   
   // swipe gestures
   
@@ -212,6 +214,7 @@
   [defaults setObject:swipeGestures forKey:@"swipeGestures"];
   [defaults setObject:RGBAColorToArray(gestureFrameColor) forKey:@"gestureFrameColor"];
   [defaults synchronize];
+  [[[MobileTerminal menu] getArray] writeToFile:[NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/com.googlecode.mobileterminal.menu.plist"] atomically:YES];
 }
 
 //_______________________________________________________________________________

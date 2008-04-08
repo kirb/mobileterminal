@@ -624,12 +624,13 @@
   if ([control value] == 1)
   {
     [Menu menuWithItem:[editButton item]];
-    [menuView loadMenu:[editButton submenu]];
   }
   else
   {
     [[editButton item] setSubmenu:nil];
   }
+  [editButton update];
+  [self update];
 }
 
 //_______________________________________________________________________________
@@ -643,15 +644,18 @@
 
 - (void) openSubmenuAction
 {
-  log(@"open submenu %@", editButton);
-  [menuView loadMenu:[[editButton item] submenu]];
+  int index = [[editButton item] index];
+  PreferencesController * prefControl = [PreferencesController sharedInstance];
+  MenuPreferences * newMenuPrefs = [[MenuPreferences alloc] initWithFrame:[[prefControl view] bounds]];
+  [[newMenuPrefs menuView] loadMenu:[[editButton item] submenu]];
+  editButton = [menuView buttonAtIndex:index];
+  [prefControl pushViewControllerWithView:newMenuPrefs navigationTitle:[editButton title]];    
 }
 
 //_______________________________________________________________________________
 
 - (void) menuButtonPressed:(MenuButton*)button
 {
-  log(@"menuButtonPressed");
   editButton = button;
   [self update];  
 }
@@ -723,6 +727,9 @@
     [self setKeyboardVisible:NO animated:NO];
   }
 }
+
+//_______________________________________________________________________________
+- (MenuView*) menuView { return menuView; }
 
 @end
 

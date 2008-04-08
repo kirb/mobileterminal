@@ -1177,7 +1177,7 @@ autorelease]; */
 
   numLock = YES;
 
-  //[self setTermType:@"vt100"]; this crashes on non-Cydia systems when called multiple times. has no obvious effect anyway, so i disabled it -kodi
+  [self setTermType:@"vt100"];
   
   log(@"terminal initialized %@", self);
 
@@ -1221,9 +1221,13 @@ autorelease]; */
   allowKeypadMode = range.location != NSNotFound;
 
   int i;
-  int r;
-  
+  int r=0;
+
+  static int issetup = 0;
+  if (!issetup) { issetup = 1;
+  // this crashes on non-Cydia systems when called multiple times  
   setupterm((char *)[termType cString], fileno(stdout), &r);
+  }
 
   if (r!=1) 
   {

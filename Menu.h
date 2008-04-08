@@ -4,16 +4,8 @@
 
 #import <UIKit/UIKit.h>
 #import <UIKit/UIPopup.h> 
-//#import "UIKeyboardKeyView.h"
-//#import "UIKeyboardReturnKeyView.h"
-//#import "UIKeyboardSpaceKeyView.h"
 #import "Constants.h"
-
-//_______________________________________________________________________________
-
-@interface NSArray (NSFastEnumeration)
-- (int) countByEnumeratingWithState:(void*)state objects:(id *)stackbuf count:(int)len;
-@end
+#import "Tools.h"
 
 @class Menu;
 
@@ -92,6 +84,7 @@
 {
   id delegate;
   MenuButton * activeButton;
+  NSMutableArray * history;
   
   CGPoint location;
 	NSTimer * timer;
@@ -106,6 +99,8 @@
 + (MenuView*)	sharedInstance;
 
 - (void) loadMenu;
+- (void) popMenu;
+- (void) pushMenu:(Menu*)menu;
 - (void) loadMenu:(Menu*)menu;
 - (void) showAtPoint:(CGPoint)p;
 - (void) showAtPoint:(CGPoint)p delay:(float)delay;

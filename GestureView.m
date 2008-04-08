@@ -10,6 +10,7 @@
 #import "MobileTerminal.h"
 #import "Menu.h"
 #import "Settings.h"
+#import "Tools.h"
 #include <math.h>
 
 @implementation GestureView
@@ -284,18 +285,30 @@
   log(@">>>>>>>>>> menu button pressed");
   if (![button isMenuButton])
   {
+    BOOL keepMenu = NO;
     NSMutableString * command = [NSMutableString stringWithCapacity:16];
     [command setString:[button command]];
-    if (![command hasSuffix:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]])
+    
+    if ([command hasSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]])
+    {
+      [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]];
+      [[MenuView sharedInstance] deselectButton:button];
+      keepMenu = YES;
+    }
+
+    if ([command hasSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]])
+    {
+      [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]];
+      [[MenuView sharedInstance] popMenu];
+      keepMenu = YES;
+    }
+    
+    if (!keepMenu)
     {
       [[MenuView sharedInstance] setDelegate:nil];
       [[MenuView sharedInstance] hide];      
-    }
-    else
-    {
-      [command deleteCharactersInRange:NSMakeRange([command length]-9, 9)];
-      [[MenuView sharedInstance] deselectButton:button];
-    }
+    }        
+
     [delegate handleInputFromMenu:command];
   }
 }
