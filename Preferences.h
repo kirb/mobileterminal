@@ -161,6 +161,7 @@
 
 - (id) initWithFrame:(CGRect)frame;
 - (void) menuButtonPressed:(MenuButton*)button;
+- (void) selectButtonAtIndex:(int)index;
 - (void) update;
 - (MenuView*) menuView;
 

@@ -648,8 +648,8 @@
   PreferencesController * prefControl = [PreferencesController sharedInstance];
   MenuPreferences * newMenuPrefs = [[MenuPreferences alloc] initWithFrame:[[prefControl view] bounds]];
   [[newMenuPrefs menuView] loadMenu:[[editButton item] submenu]];
-  editButton = [menuView buttonAtIndex:index];
-  [prefControl pushViewControllerWithView:newMenuPrefs navigationTitle:[editButton title]];    
+  [newMenuPrefs selectButtonAtIndex:index];
+  [prefControl pushViewControllerWithView:newMenuPrefs navigationTitle:[editButton title]];
 }
 
 //_______________________________________________________________________________
@@ -658,6 +658,15 @@
 {
   editButton = button;
   [self update];  
+}
+
+//_______________________________________________________________________________
+
+- (void) selectButtonAtIndex:(int)index
+{
+  editButton = [[self menuView] buttonAtIndex:index];
+  [menuView selectButton:editButton];
+  [self update];
 }
 
 //_______________________________________________________________________________
@@ -818,13 +827,19 @@
 {
 	if (!settingsView)
 	{
-		// ------------------------------------------------------------- pref groups
-
 		PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
 		PreferencesGroup * group;
-		terminalGroup = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
-		
+    
+    // ------------------------------------------------------------- menu & gestures
+    
+    group = [PreferencesGroup groupWithTitle:@"Menu & Gestures" icon:nil];
+    [group addPageButton:@"Menu"];
+		[group addPageButton:@"Gestures"];
+		[prefGroups addGroup:group];		
+    		
     // ------------------------------------------------------------- terminals
+
+		terminalGroup = [PreferencesGroup groupWithTitle:@"Terminals" icon:nil];
     
 		BOOL multi = [[Settings sharedInstance] multipleTerminals];
 
@@ -854,18 +869,11 @@
 		
 		[prefGroups addGroup:terminalGroup];
 		    
-    // ------------------------------------------------------------- menu & gestures
-
-    group = [PreferencesGroup groupWithTitle:@"Menu & Gestures" icon:nil];
-    [group addPageButton:@"Menu"];
-		[group addPageButton:@"Gestures"];
-		[prefGroups addGroup:group];		
-				
+    // ------------------------------------------------------------- about
+    
 		group = [PreferencesGroup groupWithTitle:@"" icon:nil];
 		[group addPageButton:@"About"];
 		[prefGroups addGroup:group];
-
-		// ------------------------------------------------------------- pref table
 
 		UIPreferencesTable * table = [[UIPreferencesTable alloc] initWithFrame: [[self view] bounds]];
 		[table setDataSource:prefGroups];
