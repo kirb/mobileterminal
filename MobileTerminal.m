@@ -270,6 +270,8 @@ static MobileTerminal * application;
   } 
 	else 
 	{
+    log(@"-ctrl %x", c);
+    
     // was in ctrl key mode, got another key
     if (c < 0x60 && c > 0x40) 
 		{
@@ -282,6 +284,8 @@ static MobileTerminal * application;
       c -= 0x60;
     }
     [self setControlKeyMode:NO];
+    
+    log(@"+ctrl %x", c);
   }
   // Not sure if this actually matches anything.  Maybe support high bits later?
   if ((c & 0xff00) != 0) 

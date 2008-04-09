@@ -117,10 +117,10 @@
 				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
 				C37DAB700D93475A00FC5BC7 /* Log.m */,
 				C30257DF0DA6AEB500AAA6EA /* svnversion.h */,
-				C3E137B20D95F931005B2F2D /* Constants.h */,
-				C308937B0D969034009430B9 /* Constants.m */,
 				C34DCB5D0DABD31300EB4BC5 /* Tools.h */,
 				C34DCB5E0DABD31300EB4BC5 /* Tools.m */,
+				C3E137B20D95F931005B2F2D /* Constants.h */,
+				C308937B0D969034009430B9 /* Constants.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

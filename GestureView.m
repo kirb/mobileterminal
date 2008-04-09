@@ -309,6 +309,9 @@
       [[MenuView sharedInstance] hide];      
     }        
 
+    //int i;
+    //for (i = 0; i < [command length]; i++) log(@"[%d] %x", i, [command characterAtIndex:i]);
+    
     [delegate handleInputFromMenu:command];
   }
 }
