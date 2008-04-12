@@ -57,8 +57,9 @@
           color:(CGColorRef)color
         boxRect:(CGRect)rect;
 
-- (void)drawChar:(CGContextRef)context
-       character:(char)c
+- (void)drawChars:(CGContextRef)context
+       characters:(unichar*)characters
+           count:(int)count
            color:(CGColorRef)color
            point:(CGPoint)point;
 

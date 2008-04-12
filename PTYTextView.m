@@ -279,9 +279,10 @@ extern CGFontRef CGContextGetFont(CGContextRef);
 bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
 //_______________________________________________________________________________
-
-- (void)drawChar:(CGContextRef)context
-       character:(char)c
+#define MAX_GLYPHS 256
+- (void)drawChars:(CGContextRef)context
+       characters:(unichar*)characters
+            count:(int)count
            color:(CGColorRef)color
            point:(CGPoint)point
 {
@@ -290,22 +291,22 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
                                     components[2], components[3]);
   // TODO: Consider adjusting the text point based on the rotation above
   
-  // Use CGContextShowGlyphsWithAdvances() and make up the advances. Actually
-  // calculating advances is expensive and unnecessary for plotting one glyph.
+  // Use CGContextShowGlyphsWithAdvances() and make up the advances.
   
-  //Get the glyph
-  CGGlyph glyphs[1] = { 0 };
-  unichar chars[1];
-  chars[0] = (unichar)c;
-  CGFontGetGlyphsForUnichars(fontRef, chars, glyphs, 1);
+  //Get the glyphs
+  CGGlyph glyphs[MAX_GLYPHS] = { 0 };
+  CGSize advances[MAX_GLYPHS];
+  // don't overflow the buffer - should never be an issue
+  if (count > MAX_GLYPHS) count = MAX_GLYPHS;
+  int i;
+  for (i=0; i<count; i++) {
+      advances[i] = CGSizeMake(charWidth,0.0);
+  }
+  CGFontGetGlyphsForUnichars(fontRef, characters, glyphs, count);
   
-  //one character, nothing to advance from, so this isn't really important.
-  CGSize advances[1];
-  advances[0] = CGSizeMake(0.0,0.0);
-  
-  //plot the one glyph
+  //plot the glyphs
   CGContextSetTextPosition( context, floor(point.x), floor(point.y) );
-  CGContextShowGlyphsWithAdvances(context,glyphs,advances,1);
+  CGContextShowGlyphsWithAdvances(context,glyphs,advances,count);
 }
 
 //_______________________________________________________________________________
@@ -364,16 +365,27 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 				boxRect:CGRectMake(rect.origin.x, rect.origin.y, charWidth * width, lineHeight)];
 
   // now specially paint any exceptional backgrounds
-  for (column = 0; column < width; column++) 
-	{
-    unsigned int bgcode = theLine[column].bg_color;
-    if(bgcode != DEFAULT_BG_COLOR_CODE) 
-		{
-      CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bgcode];
-      [self drawBox:context color:bg boxRect:charRect];
+  unsigned int col1 = 0, bg1 = theLine[0].bg_color;
+    for (column = 1; column < width; column++) 
+    {
+        unsigned int bgcode = theLine[column].bg_color;
+        if(bgcode != bg1) {
+            charRect.size.width = charWidth * (column - col1);
+            if (bg1 != DEFAULT_BG_COLOR_CODE) {
+                CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1];
+                [self drawBox:context color:bg boxRect:charRect];
+            }
+            charRect.origin.x += charRect.size.width;
+            bg1 = bgcode;
+            col1 = column;
+        }
     }
-    charRect.origin.x += charWidth;
-  }
+    charRect.size.width = charWidth * (column - col1);
+    if (bg1 != DEFAULT_BG_COLOR_CODE) {
+        CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1];
+        [self drawBox:context color:bg boxRect:charRect];
+    }
+    
 
   // Set font and mirror text; start one line lower to account for text flip
   [self setupTextForContext:context];
@@ -383,18 +395,29 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 
   // Draw foreground character for each column in the row
   charRect.origin.x = rect.origin.x;
-  for (column = 0; column < width; column++) 
-	{
-    char c = 0xff & theLine[column].ch;
-    if (c == 0) 
-		{
-      c = ' ';
-    }
-    unsigned int fgcode = theLine[column].fg_color;
-    CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fgcode];
-    [self drawChar:context character:c color:fg point:charRect.origin];
-    charRect.origin.x += charWidth;
+  col1 = 0;
+  unsigned int fg1 = theLine[0].fg_color;
+  unichar characters[MAX_GLYPHS] = {0};
+  int n = (width<MAX_GLYPHS)?width:MAX_GLYPHS;
+  for (column = 0; column < n; column++)
+  {
+    unichar c = theLine[column].ch;
+    if (c == 0) c = ' ';
+    characters[column] = c;
   }
+  for (column = 0; column < n; column++) 
+	{
+    unsigned int fgcode = theLine[column].fg_color;
+    if(fgcode != fg1) {
+        CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1];
+        [self drawChars:context characters:characters+col1 count:(column - col1) color:fg point:charRect.origin];
+        charRect.origin.x += charWidth * (column - col1);
+        fg1 = fgcode;
+        col1 = column;
+    }
+  }
+  CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1];
+  [self drawChars:context characters:characters+col1 count:(n-col1) color:fg point:charRect.origin];
 
   // Fill a rectangle with the cursor. drawRow consideres scrollback buffer;
   // cursorY is relative to the non-scrollback screen.
