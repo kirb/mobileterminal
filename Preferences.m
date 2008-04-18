@@ -9,6 +9,7 @@
 #import "Constants.h"
 #import "Color.h"
 #import "Menu.h"
+#import "PieView.h"
 #import "Log.h"
 
 #import <UIKit/UISimpleTableCell.h> 
@@ -548,6 +549,143 @@
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
+@implementation GestureTableCell
+
+-(id) initWithFrame:(CGRect)frame
+{
+  self = [super initWithFrame:frame];
+  
+	[self setShowSelection:NO];
+  pieView = [[PieView alloc] initWithFrame:frame];
+  [pieView setOrigin:CGPointMake(57,10)];
+	[self addSubview:pieView];
+  
+  return self;
+}
+
+//_______________________________________________________________________________
+
+- (float) getHeight
+{
+  return [self frame].size.height;
+}
+
+//_______________________________________________________________________________
+
+- (PieView*) pieView { return pieView; }
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation GesturePreferences
+
+-(id) initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	
+	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
+	menuGroup = [PreferencesGroup groupWithTitle:@"" icon:nil];
+  
+	GestureTableCell * cell = [[GestureTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 235.0f)];
+  pieView = [cell pieView];
+  [pieView setDelegate:self];
+	[menuGroup addCell:cell];
+
+  commandField = [[menuGroup addTextField:@"Command" value:@""] textField];
+  [commandField setEditingDelegate:self];  
+
+  [menuGroup addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
+    
+	[prefGroups addGroup:menuGroup];
+  
+	[self setDataSource:prefGroups];
+	[self reloadData];
+	
+  editButton = nil;
+  
+  //[pieView selectButton:[pieView buttonAtIndex:0]];
+  //[self menuButtonPressed:[pieView buttonAtIndex:0]];
+  
+	return self;
+}
+
+//_______________________________________________________________________________
+
+- (void) pieButtonPressed:(PieButton*)button
+{
+  editButton = button;
+  [self update];  
+}
+
+//_______________________________________________________________________________
+
+- (void) selectButtonAtIndex:(int)index
+{
+  //editButton = [[self pieView] buttonAtIndex:index];
+  //[pieView selectButton:editButton];
+  [self update];
+}
+
+//_______________________________________________________________________________
+
+- (void) update
+{
+  [commandField setText:[editButton commandString]];
+  
+  [self reloadData];
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) respondsToSelector:(SEL)sel
+{
+  return [super respondsToSelector:sel];
+}
+
+//_______________________________________________________________________________
+-(void) keyboardInputChanged:(UIFieldEditor*)fieldEditor
+{
+  [editButton setTitle:[commandField text]];
+}
+
+//_______________________________________________________________________________
+
+-(BOOL) keyboardInput:(id)fieldEditor shouldInsertText:(NSString*)text isMarkedText:(BOOL)marked
+{  
+  if ([fieldEditor proxiedView] == commandField && [text isEqualToString:@"\n"])
+  {
+    if ([self keyboard]) [self setKeyboardVisible:NO animated:YES];
+    [editButton setCommandString:[NSString stringWithString:[commandField text]]];
+    if ([editButton title] == nil || [[editButton title] length] == 0)
+    {
+      [editButton setTitle:[commandField text]];
+    }
+    
+    [self update];
+  }
+  return YES;
+}
+
+//_______________________________________________________________________________
+
+- (void) prepareToPop
+{
+  if ([self keyboard])
+  {    
+    [self setKeyboardVisible:NO animated:NO];
+  }
+}
+
+//_______________________________________________________________________________
+- (PieView*) pieView { return pieView; }
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
 @implementation MenuTableCell
 
 -(id) initWithFrame:(CGRect)frame
@@ -739,31 +877,6 @@
 
 //_______________________________________________________________________________
 - (MenuView*) menuView { return menuView; }
-
-@end
-
-//_______________________________________________________________________________
-//_______________________________________________________________________________
-
-@implementation GesturePreferences
-
-//_______________________________________________________________________________
-
--(id) initWithFrame:(CGRect)frame
-{
-	self = [super initWithFrame:frame];
-	
-	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
-	PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-	
-  [group addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
-	[prefGroups addGroup:group];
-  
-	[self setDataSource:prefGroups];
-	[self reloadData];
-	
-	return self;
-}
 
 @end
 

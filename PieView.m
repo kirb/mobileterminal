@@ -1,129 +1,233 @@
 #import "PieView.h"
+#import "Color.h"
+#import "Menu.h"
+#import "Settings.h"
+#import "Constants.h"
 #import "Log.h"
 
-@implementation PieView
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
+extern CGFontRef CGContextGetFont(CGContextRef);
+extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
+
+@implementation PieButton
 
 //_______________________________________________________________________________
 
-+ (PieView*)sharedInstance
+- (id)initWithFrame:(CGRect)frame identifier:(int)identifier_
 {
-  static PieView* instance = nil;
-  if (instance == nil) {
-    CGRect frame = CGRectMake(56.0f,16.0f,208.0f,213.0f);
-    instance = [[PieView alloc] initWithFrame:frame];
+  self = [super initWithTitle:@""];
+  
+  identifier = identifier_;
+  
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *imagePath = [bundle pathForResource:[NSString stringWithFormat:(identifier % 2 ? @"pie_gray%d" : @"pie_white%d"), (identifier+1)] ofType: @"png"];
+  UIImage * image = [[UIImage alloc] initWithContentsOfFile: imagePath];
+  [self setImage:image forState:0];
+  
+  imagePath = [bundle pathForResource: [NSString stringWithFormat:@"pie_blue%d",(identifier+1)] ofType: @"png"];
+  image = [[UIImage alloc] initWithContentsOfFile: imagePath];
+  [self setImage:image forState:1];
+  [self setImage:image forState:4];
+  
+  [self setDrawContentsCentered:YES];	
+  [self setAutosizesToFit:NO];
+  [self setEnabled: YES];		
+  [self setOpaque:NO];
+  
+  [self setTitleColor:colorWithRGBA(0,0,0,1) forState:0]; // normal
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:1]; // pressed
+  [self setTitleColor:colorWithRGBA(1,1,1,1) forState:4]; // selected  
+
+  [self setOrigin:frame.origin];
+  
+  unichar dotChar[1] = {0x2022};
+  dot = [[NSString stringWithCharacters:dotChar length:1] retain];  
+  
+  return self;
+}  
+
+//_______________________________________________________________________________
+
+- (void) drawTitleAtPoint:(CGPoint)point width:(float)width
+{  
+  CGContextRef context = UICurrentContext();
+  CGContextSaveGState(context);
+  
+  float height = 14.0f;
+
+  NSString *fontName = @"HelveticaBold";
+  CGContextSelectFont(context, [fontName cString], height, kCGEncodingMacRoman);
+  CGFontRef font = CGContextGetFont(context);
+
+  NSString * text = [self title];
+  size_t len = [text length];
+
+  CGContextSetTextDrawingMode(context, kCGTextInvisible); 
+  unichar chars[12] = {0};
+  CGGlyph glyphs[12] = {0};
+
+  int numChars = 12;
+  float textWidth = 100;
+  while (textWidth > 50 && numChars > 4)
+  {
+    len = len > numChars-1 ? numChars-1 : len;
+    [text getCharacters:chars range: NSMakeRange(0, len)];
+    
+    CGFontGetGlyphsForUnichars(font, chars, glyphs, len);
+    
+    CGContextSetTextPosition(context, 0, 0);    
+    CGContextShowGlyphs(context, glyphs, len);
+    CGPoint end = CGContextGetTextPosition(context);
+    
+    textWidth = end.x;
+    numChars--;
   }
-  return instance;
+  
+  CGAffineTransform scale = CGAffineTransformMake(1, 0, 0, -1, 0, 1.0);
+  float rot[8] = {M_PI/2, M_PI/4, 0, -M_PI/4, M_PI/2, M_PI/4,  0, -M_PI/4};
+  CGAffineTransform transform = CGAffineTransformRotate(scale, rot[identifier]);
+  
+  CGContextSetTextMatrix(context, transform);
+    
+  CGContextSetFont(context, font);
+  CGContextSetFontSize(context, height); 
+    
+  CGContextSetTextDrawingMode(context, kCGTextFill); 
+  CGContextSetFillColorWithColor(context, [self titleColorForState:[self state]]);
+  CGContextSetShadowWithColor(context, CGSizeMake(0.0f, -1.0f), 0.0f, colorWithRGBA(0.5, 0.5, 0.5, 1));
+  
+  CGPoint center = CGPointMake(-0.5f*textWidth, -0.25*height);
+  CGPoint p = CGPointApplyAffineTransform(center, transform);
+  CGContextShowGlyphsAtPoint(context, 0.5*[self bounds].size.width + p.x, 0.5*[self bounds].size.height + p.y, glyphs, len);
+  
+  CGContextRestoreGState(context);  
+  CGContextSetTextMatrix(context, CGAffineTransformIdentity);
 }
 
 //_______________________________________________________________________________
 
-- (BOOL)ignoresMouseEvents {
-  return YES;
+-(NSString*) dotStringWithCommand:(NSString*)cmd
+{
+  return [NSString stringWithFormat:@"%@%@", dot, cmd];
 }
+
+//_______________________________________________________________________________
+
+- (NSString*) command { return command; }
+- (void) setCommand:(NSString*)command_
+{
+  [command release];
+  command = [command_ copy];
+  [self setTitle:[self commandString]];
+}
+
+//_______________________________________________________________________________
+
+-(NSString*) commandString
+{
+  NSMutableString * str = [NSMutableString stringWithCapacity:64];
+  [str setString:[self command]];
+  int i = 0;
+  while (STRG_CTRL_MAP[i].str)
+  {
+    int toLength = 0;
+    while (STRG_CTRL_MAP[i].chars[toLength]) toLength++;
+    NSString * from = [self dotStringWithCommand:STRG_CTRL_MAP[i].str];
+    NSString * to = [NSString stringWithCharacters:STRG_CTRL_MAP[i].chars length:toLength];
+    
+    [str replaceOccurrencesOfString:to withString:from options:0 range:NSMakeRange(0, [str length])];
+    
+    i++;
+  }
+  return str;  
+}
+
+//_______________________________________________________________________________
+
+-(void) setCommandString:(NSString*)cmdString
+{
+  NSMutableString * cmd = [NSMutableString stringWithCapacity:64];
+  [cmd setString:cmdString];
+  
+  int i = 0;
+  while (STRG_CTRL_MAP[i].str)
+  {
+    int toLength = 0;
+    while (STRG_CTRL_MAP[i].chars[toLength]) toLength++;
+    NSString * from = [self dotStringWithCommand:STRG_CTRL_MAP[i].str];
+    NSString * to = [NSString stringWithCharacters:STRG_CTRL_MAP[i].chars length:toLength];
+    
+    [cmd replaceOccurrencesOfString:from withString:to options:0 range:NSMakeRange(0, [cmd length])];
+    
+    i++;
+  }
+  [self setCommand:cmd];
+}
+
+@end
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@implementation PieView
 
 //_______________________________________________________________________________
 
 - (id)initWithFrame:(CGRect)frame
 {
   self = [super initWithFrame:frame];
-  visibleFrame = frame;
-  location = CGPointMake(frame.origin.x + (frame.size.width*0.5f),
-                         frame.origin.y + (frame.size.height*0.5f));
-  _visible = YES;
 
+  buttons = [NSMutableArray arrayWithCapacity:8];
+  
   NSBundle *bundle = [NSBundle mainBundle];
-  NSString *pieImagePath = [bundle pathForResource: @"pie" ofType: @"png"];
-  UIImage *pieImage = [[UIImage alloc] initWithContentsOfFile: pieImagePath];
-  [self setImage: pieImage];
-  [self setAlpha: 0.9f];
+  NSString *imagePath = [bundle pathForResource: @"pie_back" ofType: @"png"];
+  pie_back = [[UIImage alloc] initWithContentsOfFile: imagePath];
+  int i;
+  
+  for (i = 0; i < 8; i++) 
+  {
+    const float x[]  = {   5.0,  12.0,  69.0, 126.0, 161.0, 126.0,  69.0,  12.0};
+    const float y[]  = {  73.0,  15.0,   7.0,  15.0,  73.0, 129.0, 165.0, 129.0};
+    
+    PieButton * button = [[PieButton alloc] initWithFrame:CGRectMake(x[i],y[i],0,0) identifier:i];
+    [buttons addObject:button];
+    [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
+    NSString * command = [[[Settings sharedInstance] swipeGestures] objectForKey:ZONE_KEYS[(i+8-2)%8]];
+    [button setCommand:command];
+    [self addSubview:button];
+  }
 
-  anim = [[UIAnimator alloc] init];
-	timer = nil;
-	
   return self;
 }
 
 //_______________________________________________________________________________
 
-- (void)showAtPoint:(CGPoint)p
+- (void) buttonPressed:(PieButton*)button
 {
-	//log(@"showAtPoint %f %f", p.x, p.y);
-	[self stopTimer];
-  location.x = (int)(p.x - visibleFrame.size.width*0.5f);
-  location.y = (int)(p.y - visibleFrame.size.height*0.5f);
-	//logPoint(@"location", location);
-	timer = [NSTimer scheduledTimerWithTimeInterval:PIE_MENU_DELAY target:self selector:@selector(fadeIn) userInfo:nil repeats:NO];
-}
-
-//_______________________________________________________________________________
-
--(void) stopTimer
-{
-	if (timer != nil) {
-		[timer invalidate];
-		timer = nil;
-	}
-}
-
-//_______________________________________________________________________________
-
-- (void) fadeIn
-{
-	timer = NULL;
-	
-  if (_visible) 
-	{
-    return;
+  if (button != activeButton)
+  {
+    if (activeButton) [activeButton setSelected:NO];
+    activeButton = button;
+    [activeButton setSelected:YES];
+    if ([self delegate] && [[self delegate] respondsToSelector:@selector(pieButtonPressed:)])
+      [[self delegate] performSelector:@selector(pieButtonPressed:) withObject:activeButton];
   }
-  _visible = YES;
-  visibleFrame.origin.x = 0.0f;
-  visibleFrame.origin.y = 0.0f;
-  [self setTransform:CGAffineTransformMake(1,0,0,1,0,0)];
-  [self setFrame: visibleFrame];
-  [self setTransform:CGAffineTransformMake(0.01f,0,0,0.01f,0,480)];
-  [self setAlpha: 0.0f];
-  UITransformAnimation *scaleAnim = [[UITransformAnimation alloc] initWithTarget: self];
-  [scaleAnim setStartTransform: CGAffineTransformMake(0.01f,0,0,0.01f,location.x,location.y)];
-  [scaleAnim setEndTransform:   CGAffineTransformMake(1,0,0,1,location.x,location.y)];
-  UIAlphaAnimation *alphaAnim = [[UIAlphaAnimation alloc] initWithTarget: self];
-  [alphaAnim setStartAlpha: 0.0f];
-  [alphaAnim setEndAlpha: 0.9f];
-  
-  [anim addAnimation:scaleAnim withDuration:PIE_MENU_FADE_IN_TIME start:YES]; 
-  [anim addAnimation:alphaAnim withDuration:PIE_MENU_FADE_IN_TIME start:YES];
 }
 
 //_______________________________________________________________________________
 
-- (void)hide {
-  [self hideSlow:NO];
+- (void)drawRect:(CGRect)rect
+{
+  [pie_back compositeToPoint: CGPointMake(0.0f, 0.0f) operation: 2];
 }
 
 //_______________________________________________________________________________
 
-- (void)hideSlow:(BOOL)slow
-{ 
-	[self stopTimer];
-	
-  if (!_visible) {
-    return;
-  }
-  UITransformAnimation *scaleAnim =
-    [[UITransformAnimation alloc] initWithTarget: self];
-  [scaleAnim setStartTransform:
-    CGAffineTransformMake(1,0,0,1,location.x,location.y)];
-  [scaleAnim setEndTransform:
-    CGAffineTransformMake(0.01f,0,0,0.01f,location.x,location.y)];
-  UIAlphaAnimation *alphaAnim =
-    [[UIAlphaAnimation alloc] initWithTarget: self];
-  [alphaAnim setStartAlpha: 0.9f];
-  [alphaAnim setEndAlpha: 0.0f];
-  float duration = slow ? 1.0f : PIE_MENU_FADE_OUT_TIME;
- 
-	[anim removeAnimationsForTarget:self];
-  if (!slow) [anim addAnimation:scaleAnim withDuration:duration start:YES]; 
-  [anim addAnimation:alphaAnim withDuration:duration start:YES];
-  _visible = NO;
-}
-
+- (BOOL)isOpaque { return NO; }
+- (BOOL)ignoresMouseEvents { return NO; }
+- (void) setDelegate:(id)delegate_ { delegate = delegate_; }
+- (id) delegate { return delegate; }
 @end

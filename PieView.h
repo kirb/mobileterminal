@@ -1,23 +1,47 @@
-
 #import <UIKit/UIKit.h>
-#import "Constants.h"
+#import <UIKit/UIImage.h>
+#import <CoreGraphics/CGGeometry.h>
+#import <CoreGraphics/CGColor.h>
+#import <CoreGraphics/CGColorSpace.h>
+#import <UIKit/NSString-UIStringDrawing.h>
+
+typedef enum {
+    kBlue = 1,
+    kGray = 2,
+    kWhite = 3,
+    kPressed = 4
+} kButtonStatus;
 
 //_______________________________________________________________________________
 
-@interface PieView : UIImageView 
+@interface PieButton : UIPushButton
 {
-	CGRect visibleFrame;
-  CGPoint location;
-  UIAnimator *anim;
-	NSTimer *timer;
-  BOOL _visible;
+  NSString * dot;
+  NSString * command;
+  int identifier;
 }
 
-+ (PieView*)sharedInstance;
+-(id) initWithFrame:(CGRect)frame identifier:(int)identifier;
 
-- (void)showAtPoint:(CGPoint)p;
-- (void)hide;
-- (void)stopTimer;
-- (void)hideSlow:(BOOL)slow;
+- (NSString*) command;
+- (NSString*) commandString;
+- (NSString*) dotStringWithCommand:(NSString *)command;
+- (void)      setCommandString:(NSString *)commandString;
+- (void)      setCommand:(NSString *)command;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface PieView : UIView 
+{
+  UIImage * pie_back;
+  NSMutableArray * buttons;
+  PieButton * activeButton;
+  id delegate;
+}
+
+-(void) setDelegate:(id)delegate;
+-(id) delegate;
 
 @end

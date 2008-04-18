@@ -17,6 +17,8 @@
 @class MobileTerminal;
 @class TerminalConfig;
 @class PreferencesGroup;
+@class PieView;
+@class PieButton;
 @class MenuView;
 @class MenuButton;
 
@@ -135,6 +137,36 @@
 
 //_______________________________________________________________________________
 
+@interface GestureTableCell : UIPreferencesTableCell
+{
+  PieView * pieView;
+}
+
+- (id) initWithFrame:(CGRect)frame;
+- (float) getHeight;
+
+@end
+
+//_______________________________________________________________________________
+
+@interface GesturePreferences : UIPreferencesTable
+{
+  PreferencesGroup  * menuGroup;
+  PieButton         * editButton;
+  UITextField       * commandField;
+  PieView           * pieView; 
+}
+
+- (id) initWithFrame:(CGRect)frame;
+- (void) pieButtonPressed:(PieButton*)button;
+- (void) selectButtonAtIndex:(int)index;
+- (void) update;
+- (PieView*) pieView;
+
+@end
+
+//_______________________________________________________________________________
+
 @interface MenuTableCell : UIPreferencesTableCell
 {
   MenuView * menu;
@@ -164,16 +196,6 @@
 - (void) selectButtonAtIndex:(int)index;
 - (void) update;
 - (MenuView*) menuView;
-
-@end
-
-//_______________________________________________________________________________
-
-@interface GesturePreferences : UIPreferencesTable
-{
-}
-
--(id) initWithFrame:(CGRect)frame;
 
 @end
 

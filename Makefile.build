@@ -19,6 +19,7 @@ Terminal: main.o \
 					SubProcess.o \
 					GestureView.o \
 					Menu.o \
+          PieView.o \
 					Preferences.o \
 					Constants.o \
           Tools.o \
