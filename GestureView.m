@@ -207,6 +207,11 @@
       }        
     }
 	} // end if menu invisible
+  else
+  {
+    log(@"<<<< :::::::::::: ++++++ hide menu");
+    [[MenuView sharedInstance] hide];
+  }
 	
 	[super mouseUp:event];
 }
@@ -330,12 +335,7 @@
 {
 	if (fingers == 1)
 	{
-    log(@"single finger tap: count %d menu visible %d tapped %d", count, [[MenuView sharedInstance] visible], menuTapped);
-    if (count == 1)
-    {
-      if ([[MenuView sharedInstance] visible] && !menuTapped) [[MenuView sharedInstance] hide];
-    }
-    else if (count == 2)
+    if (count == 2)
     {
       [[MenuView sharedInstance] hide];
       [self stopToggleKeyboardTimer];

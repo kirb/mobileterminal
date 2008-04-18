@@ -498,6 +498,7 @@
 
 - (NSString*) handleTrackingEnd
 {
+  log(@"<<<<< hiding menu");
   [self hide];
   if (activeButton && ![activeButton isMenuButton]) 
   {
