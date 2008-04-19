@@ -155,11 +155,12 @@
   PieButton         * editButton;
   UITextField       * commandField;
   PieView           * pieView; 
+  
+  int swipes;
 }
 
-- (id) initWithFrame:(CGRect)frame;
+- (id) initWithFrame:(CGRect)frame swipes:(int)swipes;
 - (void) pieButtonPressed:(PieButton*)button;
-- (void) selectButtonAtIndex:(int)index;
 - (void) update;
 - (PieView*) pieView;
 
@@ -268,6 +269,9 @@
 	ColorView           * colorView;
   MenuPreferences     * menuView;
   GesturePreferences  * gestureView;
+  GesturePreferences	* longSwipeView;
+  GesturePreferences	* twoFingerSwipeView;
+  
 	TerminalPreferences				* terminalView;
 
 	UIPreferencesTextTableCell * terminalButton1;
@@ -290,6 +294,8 @@
 -(TerminalPreferences*) terminalView;
 -(MenuPreferences*) menuView;
 -(GesturePreferences*) gestureView;
+-(GesturePreferences*) longSwipeView;
+-(GesturePreferences*) twoFingerSwipeView;
 -(UIPreferencesTable*) settingsView;
 
 -(void) setFontSize:(int)size;

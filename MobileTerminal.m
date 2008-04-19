@@ -269,9 +269,7 @@ static MobileTerminal * application;
 		}
   } 
 	else 
-	{
-    log(@"-ctrl %x", c);
-    
+	{    
     // was in ctrl key mode, got another key
     if (c < 0x60 && c > 0x40) 
 		{
@@ -284,8 +282,6 @@ static MobileTerminal * application;
       c -= 0x60;
     }
     [self setControlKeyMode:NO];
-    
-    log(@"+ctrl %x", c);
   }
   // Not sure if this actually matches anything.  Maybe support high bits later?
   if ((c & 0xff00) != 0) 
@@ -309,7 +305,6 @@ static MobileTerminal * application;
 
 - (void)hideMenu
 {
-  log(@"hideMenu");
   [[MenuView sharedInstance] hide];
 }
 
@@ -325,7 +320,32 @@ static MobileTerminal * application;
 - (void)handleInputFromMenu:(NSString*)input
 {
   if (input == nil) return;
-  [[self activeProcess] write:[input cString] length:[input length]];
+  
+  if ([input isEqualToString:@"[CTRL]"])
+  {
+    if (![[MobileTerminal application] controlKeyMode])
+      [[MobileTerminal application] setControlKeyMode:YES];
+  }
+  else if ([input isEqualToString:@"[KEYB]"])
+  {
+    [[MobileTerminal application] toggleKeyboard];
+  }
+  else if ([input isEqualToString:@"[NEXT]"])
+  {
+    [[MobileTerminal application] nextTerminal];
+  }
+  else if ([input isEqualToString:@"[PREV]"])
+  {
+    [[MobileTerminal application] prevTerminal];
+  }
+  else if ([input isEqualToString:@"[CONF]"])
+  {
+    [[MobileTerminal application] togglePreferences];
+  }
+  else
+  {
+    [[self activeProcess] write:[input cString] length:[input length]];
+  }    
 }
 
 //_______________________________________________________________________________
@@ -704,7 +724,7 @@ static MobileTerminal * application;
 		activeView = mainView;
 		
 		[settings writeUserDefaults];
-		[gestureView	setNeedsDisplay];
+		[gestureView setNeedsDisplay];
 		
 		if (numTerminals > 1 && ![settings multipleTerminals])
 		{

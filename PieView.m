@@ -88,7 +88,11 @@ extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
   
   CGAffineTransform scale = CGAffineTransformMake(1, 0, 0, -1, 0, 1.0);
   float rot[8] = {M_PI/2, M_PI/4, 0, -M_PI/4, M_PI/2, M_PI/4,  0, -M_PI/4};
-  CGAffineTransform transform = CGAffineTransformRotate(scale, rot[identifier]);
+  
+  CGAffineTransform transform = scale;
+  
+  if ((identifier % 4) != 0 || textWidth > 26)
+    transform = CGAffineTransformRotate(scale, rot[identifier]);
   
   CGContextSetTextMatrix(context, transform);
     
@@ -180,7 +184,7 @@ extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
 {
   self = [super initWithFrame:frame];
 
-  buttons = [NSMutableArray arrayWithCapacity:8];
+  buttons = [[NSMutableArray arrayWithCapacity:8] retain];
   
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *imagePath = [bundle pathForResource: @"pie_back" ofType: @"png"];
@@ -195,8 +199,6 @@ extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
     PieButton * button = [[PieButton alloc] initWithFrame:CGRectMake(x[i],y[i],0,0) identifier:i];
     [buttons addObject:button];
     [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
-    NSString * command = [[[Settings sharedInstance] swipeGestures] objectForKey:ZONE_KEYS[(i+8-2)%8]];
-    [button setCommand:command];
     [self addSubview:button];
   }
 
@@ -219,6 +221,30 @@ extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
 
 //_______________________________________________________________________________
 
+- (void) deselectButton:(PieButton*) button
+{
+  [button setSelected:NO];
+  if (button == activeButton) activeButton = nil;
+}
+
+//_______________________________________________________________________________
+
+- (void) selectButton:(PieButton*) button
+{
+  if (activeButton) [activeButton setSelected:NO];
+  [button setSelected:YES];
+  activeButton = button;
+}
+
+//_______________________________________________________________________________
+
+- (PieButton*) buttonAtIndex:(int)index
+{
+  return [[self buttons] objectAtIndex:index];
+}
+
+//_______________________________________________________________________________
+
 - (void)drawRect:(CGRect)rect
 {
   [pie_back compositeToPoint: CGPointMake(0.0f, 0.0f) operation: 2];
@@ -230,4 +256,5 @@ extern CGFontRef CGFontCreateWithFontName(CFStringRef name);
 - (BOOL)ignoresMouseEvents { return NO; }
 - (void) setDelegate:(id)delegate_ { delegate = delegate_; }
 - (id) delegate { return delegate; }
+- (NSArray*) buttons { return buttons; }
 @end

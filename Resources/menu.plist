@@ -172,7 +172,7 @@
 	</dict>
 	<dict>
 		<key>cmd</key>
-		<string>clear</string>
+		<string></string>
 		<key>title</key>
 		<string>clear</string>
 	</dict>
@@ -369,9 +369,9 @@
 		<array>
 			<dict>
 				<key>cmd</key>
-				<string></string>
+				<string>[CONF]</string>
 				<key>title</key>
-				<string></string>
+				<string>config</string>
 			</dict>
 			<dict>
 				<key>cmd</key>
@@ -404,7 +404,7 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string>sudo chmod </string>
+						<string>sudo chmod </string>
 						<key>title</key>
 						<string>chmod</string>
 					</dict>
@@ -416,7 +416,7 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string>sudo updatedb</string>
+						<string>sudo updatedb</string>
 						<key>title</key>
 						<string>update</string>
 					</dict>
@@ -446,7 +446,7 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string>sudo reboot</string>
+						<string>sudo reboot</string>
 						<key>title</key>
 						<string>reboot</string>
 					</dict>
@@ -509,9 +509,9 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string>[5~</string>
+						<string></string>
 						<key>title</key>
-						<string>pgup</string>
+						<string></string>
 					</dict>
 					<dict>
 						<key>cmd</key>
@@ -527,9 +527,9 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string>[6~</string>
+						<string>[5~</string>
 						<key>title</key>
-						<string>pgdwn</string>
+						<string>pgup</string>
 					</dict>
 					<dict>
 						<key>cmd</key>
@@ -545,9 +545,9 @@
 					</dict>
 					<dict>
 						<key>cmd</key>
-						<string></string>
+						<string>[6~</string>
 						<key>title</key>
-						<string></string>
+						<string>pgdwn</string>
 					</dict>
 					<dict>
 						<key>cmd</key>
@@ -585,9 +585,9 @@
 			</dict>
 			<dict>
 				<key>cmd</key>
-				<string>cp ~/Library/Preferences/com.googlecode.mobileterminal.menu.plist /Applications/Terminal.app/menu.plist</string>
+				<string></string>
 				<key>title</key>
-				<string>cpmnu</string>
+				<string></string>
 			</dict>
 		</array>
 		<key>title</key>
@@ -672,7 +672,7 @@
 			</dict>
 		</array>
 		<key>title</key>
-		<string>|~&gt;*</string>
+		<string>;~)</string>
 	</dict>
 </array>
 </plist>

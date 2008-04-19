@@ -12,8 +12,8 @@ struct StrCtrlMap STRG_CTRL_MAP[] = {
 { @"end",     {0x1B, 0x5B, 0x34, 0x7e} },
 { @"pgup",    {0x1B, 0x5B, 0x35, 0x7e} },
 { @"pgdown",  {0x1B, 0x5B, 0x36, 0x7e} },
-{ @"up",      {0x1B, 0x5B, 0x41} },
-{ @"down",    {0x1B, 0x5B, 0x42} },
+{ @"^",       {0x1B, 0x5B, 0x41} }, { @"up",      {0x1B, 0x5B, 0x41} }, 
+{ @"v",       {0x1B, 0x5B, 0x42} }, { @"down",    {0x1B, 0x5B, 0x42} },
 { @">",       {0x1B, 0x5B, 0x43} }, { @"right",   {0x1B, 0x5B, 0x43} }, 
 { @"<",       {0x1B, 0x5B, 0x44} }, { @"left",    {0x1B, 0x5B, 0x44} }, 
 { @"A",       {0x1} }, 
@@ -48,7 +48,7 @@ struct StrCtrlMap STRG_CTRL_MAP[] = {
 
 NSString * ZONE_KEYS[] =
 {
-  @"n", @"ne", @"e", @"se", @"s", @"sw", @"w", @"nw", @"ln", @"lne", @"le", @"lse", @"ls", @"lsw", @"lw", @"lnw", nil
+  @"n", @"ne", @"e", @"se", @"s", @"sw", @"w", @"nw", @"ln", @"lne", @"le", @"lse", @"ls", @"lsw", @"lw", @"lnw", @"2n", @"2ne", @"2e", @"2se", @"2s", @"2sw", @"2w", @"2nw", nil
 };
 
 NSString * DEFAULT_SWIPE_GESTURES[][2] = 
@@ -65,10 +65,18 @@ NSString * DEFAULT_SWIPE_GESTURES[][2] =
 { @"lne",  @""       },
 { @"le",   @"\x5"    }, // ctrl-e
 { @"lse",  @""       }, 
-{ @"ls",   @""       },
+{ @"ls",   @"\x0d"   }, // return
 { @"lsw",  @""       },
 { @"lw",   @"\x1"    }, // ctrl-a
 { @"lnw",  @""       },
+{ @"2n",   @"[CONF]" }, // settings
+{ @"2ne",  @""       },
+{ @"2e",   @"[PREV]" }, // previous terminal
+{ @"2se",  @""       }, 
+{ @"2s",   @"[KEYB]" }, // keyboard
+{ @"2sw",  @""       },
+{ @"2w",   @"[NEXT]" }, // next terminal
+{ @"2nw",  @""       },
 { nil,     nil       }
 };
 

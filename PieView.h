@@ -43,5 +43,8 @@ typedef enum {
 
 -(void) setDelegate:(id)delegate;
 -(id) delegate;
-
+- (PieButton*) buttonAtIndex:(int)index; 
+- (void) deselectButton:(PieButton*)button;
+- (void) selectButton:(PieButton*)button;
+- (NSArray*) buttons;
 @end

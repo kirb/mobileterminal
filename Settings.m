@@ -156,9 +156,7 @@
   
   NSArray * colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 0.05f));
   [d setObject:colorValues forKey:@"gestureFrameColor"];
-  
-  log(@"registering defaults %@", d);  
-  
+    
   [defaults registerDefaults:d];  
 }
 
@@ -184,7 +182,8 @@
 
   multipleTerminals = MULTIPLE_TERMINALS && [defaults boolForKey:@"multipleTerminals"];
   menu = [[defaults arrayForKey:@"menu"] retain];
-  swipeGestures = [[defaults objectForKey:@"swipeGestures"] retain];
+  swipeGestures = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
+  [swipeGestures setDictionary:[defaults objectForKey:@"swipeGestures"]];
   gestureFrameColor = RGBAColorMakeWithArray([defaults arrayForKey:@"gestureFrameColor"]);
 }
 
@@ -215,6 +214,13 @@
   [defaults setObject:RGBAColorToArray(gestureFrameColor) forKey:@"gestureFrameColor"];
   [defaults synchronize];
   [[[MobileTerminal menu] getArray] writeToFile:[NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/com.googlecode.mobileterminal.menu.plist"] atomically:YES];
+}
+
+//_______________________________________________________________________________
+
+-(void) setCommand:(NSString*)command forGesture:(NSString*)zone
+{
+  [swipeGestures setObject:command forKey:zone];
 }
 
 //_______________________________________________________________________________

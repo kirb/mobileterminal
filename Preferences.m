@@ -581,32 +581,52 @@
 
 @implementation GesturePreferences
 
--(id) initWithFrame:(CGRect)frame
+-(id) initWithFrame:(CGRect)frame swipes:(int)swipes_
 {
 	self = [super initWithFrame:frame];
 	
+  swipes = swipes_;
+  
 	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
 	menuGroup = [PreferencesGroup groupWithTitle:@"" icon:nil];
   
 	GestureTableCell * cell = [[GestureTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 235.0f)];
   pieView = [cell pieView];
+  
+  int i;
+  for (i = 0; i < 8; i++)
+  {
+    NSString * command = [[[Settings sharedInstance] swipeGestures] objectForKey:ZONE_KEYS[(i+8-2)%8 + swipes * 8]];
+    if (command != nil) [[pieView buttonAtIndex:i] setCommand:command];
+  }
+  
   [pieView setDelegate:self];
 	[menuGroup addCell:cell];
 
   commandField = [[menuGroup addTextField:@"Command" value:@""] textField];
-  [commandField setEditingDelegate:self];  
+  [commandField setEditingDelegate:self];
+  
+  [prefGroups addGroup:menuGroup];
 
-  [menuGroup addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
-    
-	[prefGroups addGroup:menuGroup];
+  if (swipes == 0) 
+  {
+    PreferencesGroup * group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+    [group addPageButton:@"Long Swipes"];
+    [group addPageButton:@"Two Finger Swipes"];
+    [prefGroups addGroup:group];
+
+    group = [PreferencesGroup groupWithTitle:@"" icon:nil];
+    [group addColorPageButton:@"Gesture Frame Color" colorRef:[[Settings sharedInstance] gestureFrameColorRef]];
+    [prefGroups addGroup:group];
+  }
   
 	[self setDataSource:prefGroups];
 	[self reloadData];
 	
   editButton = nil;
   
-  //[pieView selectButton:[pieView buttonAtIndex:0]];
-  //[self menuButtonPressed:[pieView buttonAtIndex:0]];
+  [pieView selectButton:[pieView buttonAtIndex:0]];
+  [self pieButtonPressed:[pieView buttonAtIndex:0]];
   
 	return self;
 }
@@ -621,15 +641,6 @@
 
 //_______________________________________________________________________________
 
-- (void) selectButtonAtIndex:(int)index
-{
-  //editButton = [[self pieView] buttonAtIndex:index];
-  //[pieView selectButton:editButton];
-  [self update];
-}
-
-//_______________________________________________________________________________
-
 - (void) update
 {
   [commandField setText:[editButton commandString]];
@@ -638,11 +649,12 @@
 }
 
 //_______________________________________________________________________________
-
+/*
 -(BOOL) respondsToSelector:(SEL)sel
 {
   return [super respondsToSelector:sel];
 }
+*/
 
 //_______________________________________________________________________________
 -(void) keyboardInputChanged:(UIFieldEditor*)fieldEditor
@@ -675,6 +687,14 @@
   if ([self keyboard])
   {    
     [self setKeyboardVisible:NO animated:NO];
+  }
+
+  int i;
+  for (i = 0; i < 8; i++)
+  {
+    NSString * command = [[pieView buttonAtIndex:i] command]; 
+    NSString * zone = ZONE_KEYS[(i+8-2)%8 + swipes * 8];
+    [[Settings sharedInstance] setCommand:command forGesture:zone];
   }
 }
 
@@ -1002,9 +1022,7 @@
 - (void) view: (UIView*) view handleTapWithCount: (int) count event: (id) event 
 {
 	NSString * title = [(UIPreferencesTextTableCell*)view title];
-	
-  log(@"handletapwithcount %@", title);
-  
+	  
 	if ([title isEqualToString:@"About"])
 	{
 		[self pushViewControllerWithView:[self aboutView] navigationTitle:@"About"];
@@ -1024,6 +1042,14 @@
 	else if ([title isEqualToString:@"Gestures"])
 	{
 		[self pushViewControllerWithView:[self gestureView] navigationTitle:title];
+	}  
+	else if ([title isEqualToString:@"Long Swipes"])
+	{
+		[self pushViewControllerWithView:[self longSwipeView] navigationTitle:title];
+	}  
+	else if ([title isEqualToString:@"Two Finger Swipes"])
+	{
+		[self pushViewControllerWithView:[self twoFingerSwipeView] navigationTitle:title];
 	}  
 	else
 	{
@@ -1117,8 +1143,24 @@
 
 -(GesturePreferences*) gestureView
 {
-	if (!gestureView) gestureView = [[GesturePreferences alloc] initWithFrame:[[super view] bounds]];
+	if (!gestureView) gestureView = [[GesturePreferences alloc] initWithFrame:[[super view] bounds] swipes:0];
 	return gestureView;
+}
+
+//_______________________________________________________________________________
+
+-(GesturePreferences*) longSwipeView
+{
+	if (!longSwipeView) longSwipeView = [[GesturePreferences alloc] initWithFrame:[[super view] bounds] swipes:1];
+	return longSwipeView;
+}
+
+//_______________________________________________________________________________
+
+-(GesturePreferences*) twoFingerSwipeView
+{
+	if (!twoFingerSwipeView) twoFingerSwipeView = [[GesturePreferences alloc] initWithFrame:[[super view] bounds] swipes:2];
+	return twoFingerSwipeView;
 }
 
 //_______________________________________________________________________________
@@ -1187,7 +1229,6 @@
 
 -(void) pushViewControllerWithView:(id)view navigationTitle:(NSString*)title
 {
-  //log(@"push view controller %@", [[self topViewController] view]);
   if ([view respondsToSelector:@selector(prepareToPush)])
   {
     [view performSelector:@selector(prepareToPush)];
@@ -1212,6 +1253,24 @@
     [terminalView removeFromSuperview];
     [terminalView autorelease];
     terminalView = nil;
+  }
+  else if (topView == gestureView)
+  {
+    [gestureView removeFromSuperview];
+    [gestureView autorelease];
+    gestureView = nil;
+  }
+  else if (topView == longSwipeView)
+  {
+    [longSwipeView removeFromSuperview];
+    [longSwipeView autorelease];
+    longSwipeView = nil;
+  }
+  else if (topView == twoFingerSwipeView)
+  {
+    [twoFingerSwipeView removeFromSuperview];
+    [twoFingerSwipeView autorelease];
+    twoFingerSwipeView = nil;
   }
   
 	[super _didFinishPoppingViewController];

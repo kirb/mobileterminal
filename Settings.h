@@ -38,7 +38,7 @@
 	NSArray * menu;
 	RGBAColor gestureFrameColor;
 	BOOL multipleTerminals;
-  NSDictionary * swipeGestures;
+  NSMutableDictionary * swipeGestures;
 }
 
 //_______________________________________________________________________________
@@ -58,6 +58,7 @@
 - (NSString*) arguments;
 - (NSArray*) menu;
 - (NSDictionary*) swipeGestures;
+- (void) setCommand:(NSString*)command forGesture:(NSString*)zone;
 - (RGBAColor) gestureFrameColor;
 - (RGBAColorRef) gestureFrameColorRef;
 

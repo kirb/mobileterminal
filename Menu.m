@@ -353,8 +353,6 @@
 
 - (void) loadMenu:(Menu*)menu
 {
-  log(@"+++++++++++ menu %@", menu);
-  
   activeButton = nil;
 	
 	float x = 0.0f, y = 0.0f;
@@ -394,7 +392,6 @@
 //_______________________________________________________________________________
 - (void) clearHistory
 {
-  log(@"clearHistory %d", [history count]);
   [history removeAllObjects];
 }
 
@@ -402,7 +399,6 @@
 
 - (void) popMenu
 {
-  log(@"popMenu %d", [history count]);
   if ([history count] > 1) [history removeLastObject];
   [self loadMenu:[history lastObject]];
 }
@@ -411,7 +407,6 @@
 
 - (void) pushMenu:(Menu*)menu
 {
-  log(@"pusMenu %d %@", [history count], menu);
   [history addObject:menu];
   [self loadMenu:menu];
 }
@@ -428,7 +423,6 @@
 
 - (void) buttonPressed:(id)button
 {
-  log(@"------------------ button pressed %@ %@", button, activeButton);
   if (button != activeButton)
   {
     //if (activeButton && (![activeButton isMenuButton] || [button isMenuButton]))
@@ -498,7 +492,6 @@
 
 - (NSString*) handleTrackingEnd
 {
-  log(@"<<<<< hiding menu");
   [self hide];
   if (activeButton && ![activeButton isMenuButton]) 
   {
@@ -628,14 +621,6 @@
   tapMode = tapMode_;
 }
 
-//_______________________________________________________________________________
-/*
--(BOOL) respondsToSelector:(SEL)sel
-{
-  log(@"responds to %s", sel);
-  return [super respondsToSelector:sel];
-}
-*/
 //_______________________________________________________________________________
 
 -(void) drawRect:(struct CGRect)rect

@@ -17,7 +17,7 @@
 
 //_______________________________________________________________________________
 
-- (id)initWithFrame:(CGRect)rect delegate:(id)inputDelegate
+- (id) initWithFrame:(CGRect)rect delegate:(id)inputDelegate
 {
   self = [super initWithFrame:rect];
   delegate = inputDelegate;
@@ -36,8 +36,6 @@
 
 -(BOOL) shouldTrack
 {
-  
-	log(@"should track %d", [[MenuView sharedInstance] visible]);
 	return ![[MenuView sharedInstance] visible];
 }
 
@@ -45,7 +43,6 @@
 
 - (BOOL) beginTrackingAt:(CGPoint)point withEvent:(id)event
 {
-  log(@"begin track");
 	return YES;
 }
 
@@ -56,7 +53,6 @@
   MenuView * menu = [MenuView sharedInstance];
   if (![menu visible])
   {
-    log(@"stop menu timer");
     [menu stopTimer];
   }
   else
@@ -72,7 +68,6 @@
 
 - (BOOL) endTrackingAt:(CGPoint)point previous:(CGPoint)prev withEvent:(id)event
 {
-  log(@"endTracking menuTapped:%d", menuTapped);
   if (!menuTapped)
   {
     [delegate handleInputFromMenu:[[MenuView sharedInstance] handleTrackingEnd]];
@@ -82,9 +77,8 @@
 
 //_______________________________________________________________________________
 
-- (void)mouseDown:(GSEvent*)event
+- (void) mouseDown:(GSEvent*)event
 {
-  log(@"mouseDown");
 	mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
   [delegate showMenu:mouseDownPos];
 	
@@ -101,10 +95,8 @@
 
 //_______________________________________________________________________________
 
-- (void)mouseUp:(GSEvent*)event
+- (void) mouseUp:(GSEvent*)event
 {
-  log(@"gestureMode %d", gestureMode);
-
 	if (gestureMode) 
 	{
 		gestureMode = NO;
@@ -124,13 +116,13 @@
 
 			if (gestureFingers >= 2)
 			{
-				switch (zone)
-				{
-					case ZONE_W: [[MobileTerminal application] nextTerminal]; break;
-					case ZONE_E: [[MobileTerminal application] prevTerminal]; break;
-					case ZONE_S: [[MobileTerminal application] handleKeyPress:0x0d]; break;
-          case ZONE_N: [[MobileTerminal application] togglePreferences]; break;
-				}
+        NSString * zoneName = ZONE_KEYS[zone+16];
+        NSString * characters = [[[Settings sharedInstance] swipeGestures] objectForKey:zoneName];
+        
+        if (characters)
+        {
+          [delegate handleInputFromMenu:characters];
+        }
 			}
 		}
 		
@@ -138,15 +130,12 @@
 		
 	} // end if gestureMode
 	
-  log(@"menu view visible %d", [[MenuView sharedInstance] visible]);
 	if (![[MenuView sharedInstance] visible])
 	{
 		CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
 		CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
 
 		float r = sqrtf(vector.x*vector.x + vector.y*vector.y);
-
-    log(@"swipe length %f", r);
     
 		int zone = [self zoneForVector:vector];
 		if (r > 30.0f) 
@@ -169,39 +158,24 @@
           characters = [swipeGestures objectForKey:zoneName]; 
         }
       }
-		
-      log(@"swipe characters %@ %@ %d", swipeGestures, zoneName, [characters length]);
-      
+		      
 			if (characters) 
 			{
 				[self stopToggleKeyboardTimer];
         
-        if ([characters isEqualToString:@"[CTRL]"])
-        {
-          if (![[MobileTerminal application] controlKeyMode])
-						[[MobileTerminal application] setControlKeyMode:YES];
-        }
-        else
-        {
-          //int i = 0;
-          //for (i = 0; i < [characters length]; i++) NSLog(@"%d %c %x", [characters characterAtIndex:i], [characters characterAtIndex:i], [characters characterAtIndex:i]);
-          [delegate handleInputFromMenu:characters];
-        }
+        [delegate handleInputFromMenu:characters];
 			}
 		}
     else if (r < 10.0f)
     {
-      log(@"single tap too short (%f): menu visible %d", [[MenuView sharedInstance] visible]);
       mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event)];
       if ([[MenuView sharedInstance] visible])
       {
-        log(@"menu already here, hide it");
         [[MenuView sharedInstance] hide];
       }
       else
       {
         [[MenuView sharedInstance] setDelegate:self];
-        log(@"------------------------------- show menu with delay: %f", r);
         menuTapped = YES;
         [[MenuView sharedInstance] showAtPoint:mouseDownPos delay:MENU_TAP_DELAY];
       }        
@@ -209,7 +183,6 @@
 	} // end if menu invisible
   else
   {
-    log(@"<<<< :::::::::::: ++++++ hide menu");
     [[MenuView sharedInstance] hide];
   }
 	
@@ -218,21 +191,21 @@
 
 //_______________________________________________________________________________
 
-- (BOOL)canHandleGestures
+- (BOOL) canHandleGestures
 {
   return YES;
 }
 
 //_______________________________________________________________________________
 
-- (BOOL)canHandleSwipes
+- (BOOL) canHandleSwipes
 {
 	return YES;
 }
 
 //_______________________________________________________________________________
 
--(CGPoint)gestureCenter:(GSEvent *)event
+-(CGPoint) gestureCenter:(GSEvent *)event
 {
 	float cx = 0, cy = 0;
 	int i;
@@ -248,9 +221,8 @@
 
 //_______________________________________________________________________________
 
-- (void)gestureStarted:(GSEvent *)event
+- (void) gestureStarted:(GSEvent*)event
 {
-  log(@"gesture start: hide menu");
 	[delegate hideMenu];
 	gestureMode = YES;
 	gestureStart = [delegate viewPointForWindowPoint:[self gestureCenter:event]]; 
@@ -258,15 +230,14 @@
 
 //_______________________________________________________________________________
 
-- (void)gestureChanged:(GSEvent *)event
+- (void) gestureChanged:(GSEvent*)event
 {
 }
 
 //_______________________________________________________________________________
 
-- (void)gestureEnded:(GSEvent *)event
+- (void) gestureEnded:(GSEvent*)event
 {
-  log(@"gesture end: hide menu");
 	[delegate hideMenu];
 	gestureEnd = [delegate viewPointForWindowPoint:[self gestureCenter:event]];
 	gestureFingers = ((GSEventStruct*)event)->numPoints;
@@ -285,9 +256,8 @@
 
 //_______________________________________________________________________________
 
-- (void)menuButtonPressed:(MenuButton*)button
+- (void) menuButtonPressed:(MenuButton*)button
 {
-  log(@">>>>>>>>>> menu button pressed");
   if (![button isMenuButton])
   {
     BOOL keepMenu = NO;
@@ -314,9 +284,6 @@
       [[MenuView sharedInstance] hide];      
     }        
 
-    //int i;
-    //for (i = 0; i < [command length]; i++) log(@"[%d] %x", i, [command characterAtIndex:i]);
-    
     [delegate handleInputFromMenu:command];
   }
 }
@@ -325,13 +292,12 @@
 
 - (void) menuFadedIn
 {
-  log(@"menuFadedIn");
   menuTapped = NO;
 }
 
 //_______________________________________________________________________________
 
-- (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEvent *)event fingerCount:(int)fingers
+- (void) view:(UIView*)view handleTapWithCount:(int)count event:(GSEvent*)event fingerCount:(int)fingers
 {
 	if (fingers == 1)
 	{
@@ -349,7 +315,7 @@
 
 //_______________________________________________________________________________
 
--(void)toggleKeyboard
+-(void) toggleKeyboard
 {	
 	[self stopToggleKeyboardTimer];
 	[delegate hideMenu];
@@ -358,14 +324,14 @@
 
 //_______________________________________________________________________________
 
-- (BOOL)canBecomeFirstResponder
+- (BOOL) canBecomeFirstResponder
 {
   return NO;
 }
 
 //_______________________________________________________________________________
 
-- (BOOL)isOpaque
+- (BOOL) isOpaque
 {
   return NO;
 }
