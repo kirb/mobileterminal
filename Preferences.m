@@ -563,6 +563,17 @@
   return self;
 }
 
+- (void)drawBackgroundInRect:(struct CGRect)fp8 withFade:(float)fp24
+{
+    [super drawBackgroundInRect: fp8 withFade: fp24];
+    CGContextRef context = UICurrentContext();
+    CGContextSaveGState(context);
+    CGContextAddPath(context, [_fillPath _pathRef]);
+    CGContextClip(context);
+    CGContextSetFillColorWithColor(context, colorWithRGBA(0,0,0,1));
+    CGContextFillRect(context, fp8);
+    CGContextRestoreGState(context);
+}
 //_______________________________________________________________________________
 
 - (float) getHeight
@@ -625,8 +636,8 @@
 	
   editButton = nil;
   
-  [pieView selectButton:[pieView buttonAtIndex:0]];
-  [self pieButtonPressed:[pieView buttonAtIndex:0]];
+  [pieView selectButton:[pieView buttonAtIndex:2]];
+  [self pieButtonPressed:[pieView buttonAtIndex:2]];
   
 	return self;
 }
