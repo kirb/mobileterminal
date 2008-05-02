@@ -151,10 +151,15 @@ static MobileTerminal * application;
 
 - (void)applicationResume:(GSEvent *)event
 {
-	if (keyboardShown)
+  [mainView addSubview:keyboardView];
+  
+	if (!keyboardShown)
 	{
-		[mainView addSubview:keyboardView];
-	}
+    CGRect kbFrame = [self keyboardFrame];
+		kbFrame.origin.y += kbFrame.size.height;
+		[keyboardView setFrame:kbFrame];
+		[keyboardView setAlpha:0.0f];		
+  }  
 	
 	[mainView addSubview:[keyboardView inputView]];
 	[mainView bringSubviewToFront:gestureView];
@@ -186,6 +191,9 @@ static MobileTerminal * application;
     exit(0);
   }
 
+  if (activeView != mainView) // preferences active
+    [self togglePreferences];
+  
   [[keyboardView inputView] removeFromSuperview];
   [keyboardView removeFromSuperview];
 	
@@ -646,16 +654,16 @@ static MobileTerminal * application;
 
 -(void) createTerminals
 {
-  log(@"createTerminals %d", MAXTERMINALS);
+  //log(@"createTerminals %d", MAXTERMINALS);
 	for (numTerminals = 1; numTerminals < MAXTERMINALS; numTerminals++)
 	{
-    log(@"create terminal");    
+    //log(@"create terminal");    
 		VT100Terminal * terminal = [[VT100Terminal alloc] init];
-    log(@"create screen");    
+    //log(@"create screen");    
 		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
-    log(@"create process");    
+    //log(@"create process");    
 		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
-    log(@"process created");    
+    //log(@"process created");    
 		UIScroller    * scroller = [[UIScroller alloc] init];
 
 		[screens   addObject: screen];
@@ -666,18 +674,18 @@ static MobileTerminal * application;
 		[screen setTerminal:terminal];
 		[terminal setScreen:screen];		
 
-    log(@"create textview");    
+    //log(@"create textview");    
 
 		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
 																												 source: screen
 																											 scroller: scroller
 																										 identifier: numTerminals];		
-    log(@"textview created");    
+    //log(@"textview created");    
 		[textviews addObject:textview];		
 	}
 
 	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
-  log(@"terminals created");  
+  //log(@"terminals created");  
 }
 
 //_______________________________________________________________________________
@@ -737,10 +745,6 @@ static MobileTerminal * application;
 	}
 	
 	LKAnimation * animation = [LKTransition animation];
-	// to make the compiler not complain
-	//[animation setType: @"oglFlip"];
-	//[animation setSubtype: (activeView == mainView) ? @"fromRight" : @"fromLeft"];
-	//[animation setTransitionFlags: 3];
 	[animation performSelector:@selector(setType:) withObject:@"oglFlip"];
 	[animation performSelector:@selector(setSubtype:) withObject:(activeView == mainView) ? @"fromRight" : @"fromLeft"];
 	[animation performSelector:@selector(setTransitionFlags:) withObject:[NSNumber numberWithInt:3]];

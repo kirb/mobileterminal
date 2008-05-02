@@ -563,6 +563,8 @@
   return self;
 }
 
+//_______________________________________________________________________________
+
 - (void)drawBackgroundInRect:(struct CGRect)fp8 withFade:(float)fp24
 {
     [super drawBackgroundInRect: fp8 withFade: fp24];
@@ -574,6 +576,7 @@
     CGContextFillRect(context, fp8);
     CGContextRestoreGState(context);
 }
+
 //_______________________________________________________________________________
 
 - (float) getHeight
@@ -727,10 +730,24 @@
   menu = [[MenuView alloc] init];
   [menu setShowsEmptyButtons:YES];
   [menu loadMenu];
-  [menu setOrigin:CGPointMake(70,10)];
+  [menu setOrigin:CGPointMake(70,30)];
 	[self addSubview:menu];
   
   return self;
+}
+
+//_______________________________________________________________________________
+
+- (void)drawBackgroundInRect:(struct CGRect)fp8 withFade:(float)fp24
+{
+  [super drawBackgroundInRect: fp8 withFade: fp24];
+  CGContextRef context = UICurrentContext();
+  CGContextSaveGState(context);
+  CGContextAddPath(context, [_fillPath _pathRef]);
+  CGContextClip(context);
+  CGContextSetFillColorWithColor(context, colorWithRGBA(0,0,0,1));
+  CGContextFillRect(context, fp8);
+  CGContextRestoreGState(context);
 }
 
 //_______________________________________________________________________________
@@ -758,7 +775,7 @@
 	PreferencesGroups * prefGroups = [[PreferencesGroups alloc] init];
 	menuGroup = [PreferencesGroup groupWithTitle:@"" icon:nil];
 
-	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 195.0f)];
+	MenuTableCell * cell = [[MenuTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 235.0f)];
   menuView = [cell menu];
   [menuView setDelegate:self];
 	[menuGroup addCell:cell];
