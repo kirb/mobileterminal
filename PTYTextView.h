@@ -10,8 +10,6 @@
 
 @interface PTYTextView : UITiledView
 {
-  BOOL CURSOR;
-
   // geometry
   float lineHeight;
   float lineWidth;

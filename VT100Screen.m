@@ -1293,8 +1293,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   // do not send explicit video information
   //if(x1 == 0 && x2 == WIDTH)
   //{
-  //	fgCode = DEFAULT_FG_COLOR_CODE;
-  //	bgCode = DEFAULT_BG_COLOR_CODE;
+  //	fgCode = FG_COLOR_CODE;
+  //	bgCode = BG_COLOR_CODE;
   //}
   //else
   //{

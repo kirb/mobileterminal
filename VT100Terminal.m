@@ -1163,8 +1163,8 @@ autorelease]; */
   bold=blink=reversed=under=0;
   saveBold=saveBlink=saveReversed=saveUnder = 0;
   highlight = saveHighlight = NO;
-  FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-  BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+  FG_COLORCODE = FG_COLOR_CODE;
+  BG_COLORCODE = BG_COLOR_CODE;
   MOUSE_MODE = MOUSE_REPORTING_NONE;
 
   TRACE = NO;
@@ -1282,8 +1282,8 @@ autorelease]; */
   bold=blink=reversed=under=0;
   saveBold=saveBlink=saveReversed=saveUnder = 0;
   highlight = saveHighlight = NO;
-  FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-  BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+  FG_COLORCODE = FG_COLOR_CODE;
+  BG_COLORCODE = BG_COLOR_CODE;
   MOUSE_MODE = MOUSE_REPORTING_NONE;
 
   TRACE = NO;
@@ -1882,8 +1882,8 @@ autorelease]; */
     if (token.u.csi.count == 0) {
       // all attribute off
       bold=under=blink=reversed=highlight=0;
-      FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-      BG_COLORCODE = DEFAULT_BG_COLOR_CODE; 
+      FG_COLORCODE = FG_COLOR_CODE;
+      BG_COLORCODE = BG_COLOR_CODE; 
     } else {
       int i;
       for (i = 0; i < token.u.csi.count; ++i) {
@@ -1892,8 +1892,8 @@ autorelease]; */
           case VT100CHARATTR_ALLOFF:
             // all attribute off
             bold=under=blink=reversed=highlight=0;
-            FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-            BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+            FG_COLORCODE = FG_COLOR_CODE;
+            BG_COLORCODE = BG_COLOR_CODE;
             break;
 
           case VT100CHARATTR_BOLD:
@@ -1921,10 +1921,10 @@ autorelease]; */
             reversed=0;
             break;
           case VT100CHARATTR_FG_DEFAULT:
-            FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
+            FG_COLORCODE = FG_COLOR_CODE;
             break;
           case VT100CHARATTR_BG_DEFAULT:
-            BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+            BG_COLORCODE = BG_COLOR_CODE;
             break;
           case VT100CHARATTR_FG_256:
             if (token.u.csi.count==3 && i==0 && token.u.csi.p[1]==5) {

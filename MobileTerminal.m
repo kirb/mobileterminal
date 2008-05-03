@@ -12,6 +12,7 @@
 #include "Menu.h"
 #include "Preferences.h"
 #include "Settings.h"
+#include "ColorMap.h"
 
 #import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
@@ -104,9 +105,12 @@ static MobileTerminal * application;
   gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
 
   mainView = [[[UIView alloc] initWithFrame:frame] retain];
-	[mainView setBackgroundColor:colorWithRGBA(0,0,0,1)];
+  [mainView setBackgroundColor:colorWithRGB(0,0,0)];
 	for (i = 0; i < numTerminals; i++)
+  {
+    [[scrollers objectAtIndex:i] setBackgroundColor:[[ColorMap sharedInstance] colorForCode:BG_COLOR_CODE termid:i]];
 		[mainView addSubview:[scrollers objectAtIndex:i]];
+  }
   [mainView addSubview:keyboardView];	
   [mainView addSubview:[keyboardView inputView]];
   [mainView addSubview:gestureView];

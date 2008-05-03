@@ -6,6 +6,7 @@
 #import "Constants.h"
 #import "MobileTerminal.h"
 #import "Menu.h"
+#import "ColorMap.h"
 #import <Foundation/NSUserDefaults.h>
 
 //_______________________________________________________________________________
@@ -60,6 +61,10 @@
   }
 }
 
+- (RGBAColor*) colors {
+  return colors;
+}
+
 //_______________________________________________________________________________
 
 @synthesize width;
@@ -68,6 +73,7 @@
 @synthesize fontWidth;
 @dynamic font;
 @dynamic args;
+@dynamic colors;
 
 @end
 
@@ -149,7 +155,44 @@
     [tc setObject:[NSNumber numberWithInt:12]     forKey:@"fontSize"];
     [tc setObject:[NSNumber numberWithFloat:0.6f] forKey:@"fontWidth"];
     [tc setObject:@"CourierNewBold" forKey:@"font"];
-    [tc setObject:@"" forKey:@"args"];
+    [tc setObject:(i > 0 ? @"clear" : @"") forKey:@"args"];
+
+    NSMutableArray * ca = [NSMutableArray arrayWithCapacity:NUM_TERMINAL_COLORS];
+    NSArray * colorValues;
+
+    switch (i) { // bg color
+      case 1:  colorValues = RGBAColorToArray(RGBAColorMake(0.1, 0, 0, 1));  break;
+      case 2:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0.1, 1));  break;
+      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 1));   break;
+      default: colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));    break;
+    };
+    [ca addObject:colorValues];
+    
+    switch (i) { // fg color
+      case 3:   colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));  break; 
+      default:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 1));  break;
+    };    
+    [ca addObject:colorValues]; 
+    
+    switch (i) { // bold color
+      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0.5, 1)); break;
+      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
+    };
+    [ca addObject:colorValues]; 
+    
+    switch (i) { // cursor text
+      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
+      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 0, 0, 1));   break;
+    };
+    [ca addObject:colorValues]; 
+    
+    switch (i) { // cursor color
+      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));   break;
+      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
+    };
+    [ca addObject:colorValues]; 
+    
+    [tc setObject:ca forKey:@"colors"];
     [tcs addObject:tc];
   }
   [d setObject:tcs forKey:@"terminals"];
@@ -164,7 +207,7 @@
 
 -(void) readUserDefaults
 {
-  int i;
+  int i, c;
   NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
   NSArray * tcs = [defaults arrayForKey:@"terminals"];
     
@@ -178,6 +221,11 @@
     config.fontWidth =  [[tc objectForKey:@"fontWidth"] floatValue];
     config.font =        [tc objectForKey:@"font"];
     config.args =        [tc objectForKey:@"args"];
+    for (c = 0; c < NUM_TERMINAL_COLORS; c++)
+    {
+      config.colors[c] = RGBAColorMakeWithArray([[tc objectForKey:@"colors"] objectAtIndex:c]);
+      [[ColorMap sharedInstance] setTerminalColor:CGColorWithRGBAColor(config.colors[c]) atIndex:c termid:i];
+    }
   }
 
   multipleTerminals = MULTIPLE_TERMINALS && [defaults boolForKey:@"multipleTerminals"];
@@ -191,7 +239,7 @@
 
 -(void) writeUserDefaults
 {
-  int i;
+  int i, c;
   NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
   NSMutableArray * tcs = [NSMutableArray arrayWithCapacity:MAXTERMINALS];
 
@@ -205,6 +253,17 @@
     [tc setObject:[NSNumber numberWithFloat:config.fontWidth] forKey:@"fontWidth"];
     [tc setObject:config.font forKey:@"font"];
     [tc setObject:config.args ? config.args : @"" forKey:@"args"];
+
+    NSMutableArray * ca = [NSMutableArray arrayWithCapacity:NUM_TERMINAL_COLORS];
+    NSArray * colorValues;
+
+    for (c = 0; c < NUM_TERMINAL_COLORS; c++)
+    {
+      colorValues = RGBAColorToArray(config.colors[c]); 
+      [ca addObject:colorValues]; 
+    }
+    
+    [tc setObject:ca forKey:@"colors"];    
     [tcs addObject:tc];
   }
   [defaults setObject:tcs forKey:@"terminals"];

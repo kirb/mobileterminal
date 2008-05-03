@@ -3,6 +3,7 @@
 //  Terminal
 
 #import <Foundation/Foundation.h>
+#import "Constants.h"
 #import "Color.h"
 
 //_______________________________________________________________________________
@@ -15,11 +16,14 @@
 	BOOL autosize;
 		
   NSString * font;
-  NSString * args;	
+  NSString * args;
+  
+  RGBAColor colors[NUM_TERMINAL_COLORS];
 }
 
 - (NSString*) fontDescription;
 
+@property RGBAColor * colors;
 @property BOOL autosize;
 @property int width;
 @property int fontSize;

@@ -248,12 +248,6 @@
 	widthSlider = [cell control];
 	[prefGroups addGroup:group];
 
-	/*
-	group = [PreferencesGroup groupWithTitle:@"" icon:nil];
-	[group addSwitch:@"Monospace"];
-	[prefGroups addGroup:group];
-	 */
-	
 	[self setDataSource:prefGroups];
 	[self reloadData];
 	
@@ -311,6 +305,14 @@
 -(RGBAColor) color 
 {
 	return * colorRef;
+}
+
+//_______________________________________________________________________________
+
+-(void) setColorRef:(RGBAColorRef)cref
+{
+  colorRef = cref;
+  [self setNeedsDisplay];  
 }
 
 //_______________________________________________________________________________
@@ -462,6 +464,14 @@
   [argumentField setEditingDelegate:self];  
 	[prefGroups addGroup:group];	
   
+	group = [PreferencesGroup groupWithTitle:@"Colors" icon:nil];
+  color0 = [group addColorPageButton:@"Background"         colorRef:nil];
+  color1 = [group addColorPageButton:@"Normal Text"        colorRef:nil];
+  color2 = [group addColorPageButton:@"Bold Text"          colorRef:nil];
+  color3 = [group addColorPageButton:@"Cursor Text"        colorRef:nil];
+  color4 = [group addColorPageButton:@"Cursor Background"  colorRef:nil];
+	[prefGroups addGroup:group];	
+
 	[self setDataSource:prefGroups];
 	[self reloadData];
 
@@ -505,6 +515,13 @@
 	{
 		[sizeGroup addCell:widthCell];
 	}
+  
+  [color0 setColorRef:&config.colors[0]];
+  [color1 setColorRef:&config.colors[1]];
+  [color2 setColorRef:&config.colors[2]];
+  [color3 setColorRef:&config.colors[3]];
+  [color4 setColorRef:&config.colors[4]];
+  
 	[self reloadData];		
 }
 
@@ -1640,7 +1657,7 @@
 	[[cell textField] setTapDelegate:colorButton];
 	[cell setTapDelegate:colorButton];
 	
-	return cell;
+	return colorButton;
 }
 
 //_______________________________________________________________________________

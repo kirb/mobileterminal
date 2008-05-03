@@ -8,6 +8,7 @@
 
 #define MULTIPLE_TERMINALS      YES
 #define MAXTERMINALS            4
+#define NUM_TERMINAL_COLORS     5
 
 #define TOGGLE_KEYBOARD_DELAY		 0.15
 

@@ -37,7 +37,6 @@
 	[self setPositionsTilesFromOrigin:YES];
 	[self setTileOrigin:CGPointMake(0,0)];
 
-  CURSOR = YES;
   dataSource = screen;
 
   textScroller = scroller;
@@ -161,8 +160,6 @@
 	
   CGRect visibleRect = CGRectMake(0, [self frame].size.height, 0, 0);
 	
-	//logRect(@"visibleRect", visibleRect);
-	
   [textScroller scrollRectToVisible:visibleRect animated:YES];
   [dataSource releaseLock];
 }
@@ -222,7 +219,6 @@
 - (void) willSlideOut
 {
 	scrollOffset = [textScroller offset];
-	//logPoint(@"scrollOffset", scrollOffset);
 }
 
 //_______________________________________________________________________________
@@ -230,7 +226,6 @@
 - (void) willSlideIn
 {
 	[textScroller setOffset:scrollOffset];
-	//logPoint(@"scrollOffset", scrollOffset);
 }
 
 //XXX: put me in a standard header somewhere
@@ -361,9 +356,9 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   // row with the background color  
 	
   [self drawBox:context 
-					color:[[ColorMap sharedInstance] colorForCode:DEFAULT_BG_COLOR_CODE]
+					color:[[ColorMap sharedInstance] colorForCode:BG_COLOR_CODE termid:termid]
 				boxRect:CGRectMake(rect.origin.x, rect.origin.y, charWidth * width, lineHeight)];
-
+  
   // now specially paint any exceptional backgrounds
   unsigned int col1 = 0, bg1 = theLine[0].bg_color;
     for (column = 1; column < width; column++) 
@@ -371,8 +366,8 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
         unsigned int bgcode = theLine[column].bg_color;
         if(bgcode != bg1) {
             charRect.size.width = charWidth * (column - col1);
-            if (bg1 != DEFAULT_BG_COLOR_CODE) {
-                CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1];
+            if (bg1 != BG_COLOR_CODE) {
+                CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1 termid:termid];
                 [self drawBox:context color:bg boxRect:charRect];
             }
             charRect.origin.x += charRect.size.width;
@@ -381,12 +376,31 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
         }
     }
     charRect.size.width = charWidth * (column - col1);
-    if (bg1 != DEFAULT_BG_COLOR_CODE) {
-        CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1];
+    if (bg1 != BG_COLOR_CODE) {
+        CGColorRef bg = [[ColorMap sharedInstance] colorForCode:bg1 termid:termid];
         [self drawBox:context color:bg boxRect:charRect];
     }
-    
 
+  // Fill a rectangle with the cursor. drawRow consideres scrollback buffer;
+  // cursorY is relative to the non-scrollback screen.
+  int cursorY = [dataSource cursorY];
+  int cursorX = [dataSource cursorX];
+  unsigned int cursorSaveColor = 0;
+  if ([dataSource numberOfLines] > [dataSource height])  cursorY += ([dataSource numberOfLines] - [dataSource height]);
+	
+  if (row == cursorY) 
+	{
+    CGRect cursorRect = CGRectMake(rect.origin.x, rect.origin.y, charWidth, lineHeight);
+    cursorRect.origin.x += cursorX * charWidth;
+    BOOL ctrlMode = [[MobileTerminal application] controlKeyMode];
+
+    CGColorRef cursorColor = [[ColorMap sharedInstance] colorForCode:(ctrlMode ? CURSOR_TEXT : CURSOR_BG) termid:termid];
+    [self drawBox:context color:cursorColor boxRect:cursorRect];
+    
+    cursorSaveColor = theLine[cursorX].fg_color;
+    theLine[cursorX].fg_color = ctrlMode ? CURSOR_BG : CURSOR_TEXT;
+  }
+    
   // Set font and mirror text; start one line lower to account for text flip
   [self setupTextForContext:context];
   // TODO: Text adjustment (3 px) should be font line height dependent.  Needs
@@ -408,40 +422,21 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   for (column = 0; column < n; column++) 
 	{
     unsigned int fgcode = theLine[column].fg_color;
-    if(fgcode != fg1) {
-        CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1];
+    if (fgcode != fg1) 
+    {
+        CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1 termid:termid];
         [self drawChars:context characters:characters+col1 count:(column - col1) color:fg point:charRect.origin];
         charRect.origin.x += charWidth * (column - col1);
         fg1 = fgcode;
         col1 = column;
     }
   }
-  CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1];
+  CGColorRef fg = [[ColorMap sharedInstance] colorForCode:fg1 termid:termid];
   [self drawChars:context characters:characters+col1 count:(n-col1) color:fg point:charRect.origin];
 
-  // Fill a rectangle with the cursor. drawRow consideres scrollback buffer;
-  // cursorY is relative to the non-scrollback screen.
-  int cursorY = [dataSource cursorY];
-  int height = [dataSource height];
-  int lines = [dataSource numberOfLines];
-  if (lines > height) {
-    cursorY += (lines - height);
-  }
-	
-  if (CURSOR && row == cursorY) 
-	{
-    int cursorX = [dataSource cursorX];
-    CGRect cursorRect = CGRectMake(rect.origin.x, rect.origin.y,
-                                   charWidth, lineHeight);
-    cursorRect.origin.x += cursorX * charWidth;
-    CGColorRef cursorColor = [[ColorMap sharedInstance] defaultCursorColor];
-		if ([[MobileTerminal application] controlKeyMode])
-		{
-			cursorColor = [[ColorMap sharedInstance] colorForCode:1];
-		}
-    [self drawBox:context color:cursorColor boxRect:cursorRect];
-  }
-
+  if (row == cursorY)
+    theLine[cursorX].fg_color = cursorSaveColor;
+  
   [dataSource releaseLock];
 }
 

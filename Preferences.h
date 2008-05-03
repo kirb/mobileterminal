@@ -88,6 +88,7 @@
 
 - (id) initWithFrame:(CGRect)frame colorRef:(RGBAColorRef)c;
 - (void) colorChanged:(NSArray*)colorValues;
+- (void) setColorRef:(RGBAColorRef)colorRef;
 
 @end
 
@@ -122,6 +123,12 @@
 	UISliderControl   * autosizeSwitch;
 	PreferencesGroup  * sizeGroup;
 	UIPreferencesControlTableCell * widthCell;
+
+  ColorButton * color0;
+  ColorButton * color1;
+  ColorButton * color2;
+  ColorButton * color3;
+  ColorButton * color4;
 
 	TerminalConfig * config;
 	int							 terminalIndex;

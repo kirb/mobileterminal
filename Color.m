@@ -39,6 +39,13 @@ NSArray * RGBAColorToArray(RGBAColor c)
 
 //_______________________________________________________________________________
 
+CGColorRef colorWithRGB(float red, float green, float blue)
+{
+  return colorWithRGBA(red, green, blue, 1);
+}
+
+//_______________________________________________________________________________
+
 CGColorRef colorWithRGBA(float red, float green, float blue, float alpha)
 {
 	float rgba[4] = { MIN(MAX(0, red),   1), 
