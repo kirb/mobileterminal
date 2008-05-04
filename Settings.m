@@ -265,7 +265,7 @@
     
     [tc setObject:ca forKey:@"colors"];    
     [tcs addObject:tc];
-  }
+  }  
   [defaults setObject:tcs forKey:@"terminals"];
   [defaults setBool:multipleTerminals forKey:@"multipleTerminals"];
   [defaults setObject:[[MobileTerminal menu] getArray] forKey:@"menu"];

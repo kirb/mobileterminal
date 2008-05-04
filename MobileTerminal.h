@@ -73,6 +73,7 @@
 - (void) handleKeyPress:(unichar)c;
 
 - (void) updateStatusBar;
+- (void) updateColors;
 - (void) updateFrames:(BOOL)needsRefresh;
 - (void) setOrientation:(int)degrees;
 - (CGPoint) viewPointForWindowPoint:(CGPoint)point;

@@ -489,6 +489,22 @@ static MobileTerminal * application;
 
 //_______________________________________________________________________________
 
+- (void) updateColors
+{
+  int i, c;
+  for (i = 0; i < numTerminals; i++)
+  {
+    TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:i];
+    for (c = 0; c < NUM_TERMINAL_COLORS; c++)
+      [[ColorMap sharedInstance] setTerminalColor:CGColorWithRGBAColor(config.colors[c]) atIndex:c termid:i];
+    [[scrollers objectAtIndex:i] setBackgroundColor:[[ColorMap sharedInstance] colorForCode:BG_COLOR_CODE termid:i]];
+    [[textviews objectAtIndex:i] setNeedsDisplay];
+  }
+  [self updateFrames:YES];
+}
+
+//_______________________________________________________________________________
+
 -(CGRect) keyboardFrame
 {
 	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
@@ -736,6 +752,7 @@ static MobileTerminal * application;
 		activeView = mainView;
 		
 		[settings writeUserDefaults];
+    [self updateColors];
 		[gestureView setNeedsDisplay];
 		
 		if (numTerminals > 1 && ![settings multipleTerminals])
