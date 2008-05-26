@@ -3,11 +3,10 @@ SOURCEDIR	= .
 APPNAME   = Terminal
 APPDIR		= ./$(APPNAME).app
 
-#all: copySources Terminal package sendToiPod killOniPod startOniPod removeSources done
 all: copySources depend Terminal package sendToiPod killOniPod done
 
 svnversion:
-	$(shell python svnversion.py)
+	$(shell python ./Sources/Misc/svnversion.py)
 
 copySources:
 	@echo ... copying sources ...

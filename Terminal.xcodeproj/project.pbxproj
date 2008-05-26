@@ -8,7 +8,6 @@
 
 /* Begin PBXFileReference section */
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C30257DF0DA6AEB500AAA6EA /* svnversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnversion.h; sourceTree = "<group>"; };
 		C3186B800DEB5D7100825724 /* CDStructures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDStructures.h; path = Sources/Headers/CDStructures.h; sourceTree = "<group>"; };
 		C3186B810DEB5D7100825724 /* UIFieldEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIFieldEditor.h; path = Sources/Headers/UIFieldEditor.h; sourceTree = "<group>"; };
 		C3186B820DEB5D7100825724 /* UIGradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIGradient.h; path = Sources/Headers/UIGradient.h; sourceTree = "<group>"; };
@@ -48,6 +47,7 @@
 		C3186BAE0DEB628500825724 /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Settings.m; path = Sources/Misc/Settings.m; sourceTree = "<group>"; };
 		C3186BAF0DEB628500825724 /* Tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Tools.h; path = Sources/Misc/Tools.h; sourceTree = "<group>"; };
 		C3186BB00DEB628500825724 /* Tools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Tools.m; path = Sources/Misc/Tools.m; sourceTree = "<group>"; };
+		C3186BBA0DEB652A00825724 /* svnversion.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = svnversion.py; path = Sources/Misc/svnversion.py; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
 		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
@@ -132,7 +132,7 @@
 				C3186BAE0DEB628500825724 /* Settings.m */,
 				C3186BAF0DEB628500825724 /* Tools.h */,
 				C3186BB00DEB628500825724 /* Tools.m */,
-				C30257DF0DA6AEB500AAA6EA /* svnversion.h */,
+				C3186BBA0DEB652A00825724 /* svnversion.py */,
 			);
 			name = Misc;
 			sourceTree = "<group>";
