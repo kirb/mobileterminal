@@ -52,6 +52,7 @@ clean:
 	@echo ... cleaning up ...
 	rm -fr $(BUILDDIR)
 	rm -fr *.o $(APPNAME).app $(APPNAME).zip
+	rm -f svnversion.h
 
 dist: svnversion copySources depend Terminal package
 	zip -r $(APPNAME).zip $(APPDIR)
