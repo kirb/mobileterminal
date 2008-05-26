@@ -1,5 +1,5 @@
-// ShellKeyboard.m
-#import "ShellKeyboard.h"
+// Keyboard.m
+#import "Keyboard.h"
 
 // Override settings of the default keyboard implementation
 @implementation UIKeyboardImpl (DisableFeatures)

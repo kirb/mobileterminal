@@ -2,7 +2,7 @@
 #define DEBUG_METHOD_TRACE    0
 
 #include "MobileTerminal.h"
-#include "ShellKeyboard.h"
+#include "Keyboard.h"
 #include "PTYTextView.h"
 #include "SubProcess.h"
 #include "VT100Terminal.h"

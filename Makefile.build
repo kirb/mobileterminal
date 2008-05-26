@@ -15,7 +15,7 @@ Terminal: main.o \
 					Color.o \
 					ColorMap.o \
 					Settings.o \
-					ShellKeyboard.o \
+					Keyboard.o \
 					SubProcess.o \
 					GestureView.o \
 					Menu.o \

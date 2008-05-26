@@ -7,50 +7,50 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C30257DF0DA6AEB500AAA6EA /* svnversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnversion.h; sourceTree = "<group>"; };
-		C308937B0D969034009430B9 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
-		C31614260DA2D23E004157BB /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
-		C31614270DA2D23E004157BB /* Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Color.m; sourceTree = "<group>"; };
 		C3186B800DEB5D7100825724 /* CDStructures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDStructures.h; path = Sources/Headers/CDStructures.h; sourceTree = "<group>"; };
 		C3186B810DEB5D7100825724 /* UIFieldEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIFieldEditor.h; path = Sources/Headers/UIFieldEditor.h; sourceTree = "<group>"; };
 		C3186B820DEB5D7100825724 /* UIGradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIGradient.h; path = Sources/Headers/UIGradient.h; sourceTree = "<group>"; };
 		C3186B830DEB5D7100825724 /* UINavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UINavigationController.h; path = Sources/Headers/UINavigationController.h; sourceTree = "<group>"; };
 		C3186B840DEB5D7100825724 /* UIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIViewController.h; path = Sources/Headers/UIViewController.h; sourceTree = "<group>"; };
+		C3186B850DEB614D00825724 /* GestureView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GestureView.h; path = Sources/UI/GestureView.h; sourceTree = "<group>"; };
+		C3186B860DEB614D00825724 /* GestureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GestureView.m; path = Sources/UI/GestureView.m; sourceTree = "<group>"; };
+		C3186B870DEB614D00825724 /* Keyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Keyboard.h; path = Sources/UI/Keyboard.h; sourceTree = "<group>"; };
+		C3186B880DEB614D00825724 /* Keyboard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Keyboard.m; path = Sources/UI/Keyboard.m; sourceTree = "<group>"; };
+		C3186B890DEB614D00825724 /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Menu.h; path = Sources/UI/Menu.h; sourceTree = "<group>"; };
+		C3186B8A0DEB614D00825724 /* Menu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Menu.m; path = Sources/UI/Menu.m; sourceTree = "<group>"; };
+		C3186B8B0DEB614D00825724 /* PieView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PieView.h; path = Sources/UI/PieView.h; sourceTree = "<group>"; };
+		C3186B8C0DEB614D00825724 /* PieView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PieView.m; path = Sources/UI/PieView.m; sourceTree = "<group>"; };
+		C3186B8D0DEB614D00825724 /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Preferences.h; path = Sources/UI/Preferences.h; sourceTree = "<group>"; };
+		C3186B8E0DEB614D00825724 /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Preferences.m; path = Sources/UI/Preferences.m; sourceTree = "<group>"; };
+		C3186B8F0DEB614D00825724 /* PTYTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTYTextView.h; path = Sources/UI/PTYTextView.h; sourceTree = "<group>"; };
+		C3186B900DEB614D00825724 /* PTYTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTYTextView.m; path = Sources/UI/PTYTextView.m; sourceTree = "<group>"; };
+		C3186B9B0DEB61F200825724 /* SubProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SubProcess.h; path = Sources/Terminal/SubProcess.h; sourceTree = "<group>"; };
+		C3186B9C0DEB61F200825724 /* SubProcess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SubProcess.m; path = Sources/Terminal/SubProcess.m; sourceTree = "<group>"; };
+		C3186B9D0DEB61F200825724 /* VT100Screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VT100Screen.h; path = Sources/Terminal/VT100Screen.h; sourceTree = "<group>"; };
+		C3186B9E0DEB61F200825724 /* VT100Screen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = VT100Screen.m; path = Sources/Terminal/VT100Screen.m; sourceTree = "<group>"; };
+		C3186B9F0DEB61F200825724 /* VT100Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VT100Terminal.h; path = Sources/Terminal/VT100Terminal.h; sourceTree = "<group>"; };
+		C3186BA00DEB61F200825724 /* VT100Terminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = VT100Terminal.m; path = Sources/Terminal/VT100Terminal.m; sourceTree = "<group>"; };
+		C3186BA10DEB625000825724 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Sources/main.m; sourceTree = "<group>"; };
+		C3186BA20DEB626100825724 /* MobileTerminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MobileTerminal.h; path = Sources/MobileTerminal.h; sourceTree = "<group>"; };
+		C3186BA30DEB626100825724 /* MobileTerminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MobileTerminal.m; path = Sources/MobileTerminal.m; sourceTree = "<group>"; };
+		C3186BA40DEB628500825724 /* charmaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = charmaps.h; path = Sources/Misc/charmaps.h; sourceTree = "<group>"; };
+		C3186BA50DEB628500825724 /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Color.h; path = Sources/Misc/Color.h; sourceTree = "<group>"; };
+		C3186BA60DEB628500825724 /* Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Color.m; path = Sources/Misc/Color.m; sourceTree = "<group>"; };
+		C3186BA70DEB628500825724 /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ColorMap.h; path = Sources/Misc/ColorMap.h; sourceTree = "<group>"; };
+		C3186BA80DEB628500825724 /* ColorMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ColorMap.m; path = Sources/Misc/ColorMap.m; sourceTree = "<group>"; };
+		C3186BA90DEB628500825724 /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Constants.h; path = Sources/Misc/Constants.h; sourceTree = "<group>"; };
+		C3186BAA0DEB628500825724 /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Constants.m; path = Sources/Misc/Constants.m; sourceTree = "<group>"; };
+		C3186BAB0DEB628500825724 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Log.h; path = Sources/Misc/Log.h; sourceTree = "<group>"; };
+		C3186BAC0DEB628500825724 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Log.m; path = Sources/Misc/Log.m; sourceTree = "<group>"; };
+		C3186BAD0DEB628500825724 /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Settings.h; path = Sources/Misc/Settings.h; sourceTree = "<group>"; };
+		C3186BAE0DEB628500825724 /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Settings.m; path = Sources/Misc/Settings.m; sourceTree = "<group>"; };
+		C3186BAF0DEB628500825724 /* Tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Tools.h; path = Sources/Misc/Tools.h; sourceTree = "<group>"; };
+		C3186BB00DEB628500825724 /* Tools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Tools.m; path = Sources/Misc/Tools.m; sourceTree = "<group>"; };
 		C3267EDD0D93143D00A0F396 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; };
 		C3267EF20D93175100A0F396 /* Makefile.build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.build; sourceTree = "<group>"; };
-		C34DCB5D0DABD31300EB4BC5 /* Tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tools.h; sourceTree = "<group>"; };
-		C34DCB5E0DABD31300EB4BC5 /* Tools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Tools.m; sourceTree = "<group>"; };
-		C35DF9E30DB8D70100295F11 /* PieView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PieView.h; sourceTree = "<group>"; };
-		C35DF9E40DB8D70100295F11 /* PieView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PieView.m; sourceTree = "<group>"; };
-		C37DAB6F0D93475A00FC5BC7 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
-		C37DAB700D93475A00FC5BC7 /* Log.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Log.m; sourceTree = "<group>"; };
-		C390BE9A0D9EF05800FAD5B0 /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Menu.h; sourceTree = "<group>"; };
-		C390BE9B0D9EF05800FAD5B0 /* Menu.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Menu.m; sourceTree = "<group>"; };
-		C39C17DA0D968CA600BB3EEC /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
-		C39C17DB0D968CA600BB3EEC /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Preferences.m; sourceTree = "<group>"; };
-		C3A4E5E30D91AA86009A610C /* charmaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = charmaps.h; sourceTree = "<group>"; };
-		C3A4E5E40D91AA86009A610C /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
-		C3A4E5E50D91AA86009A610C /* ColorMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ColorMap.m; sourceTree = "<group>"; };
-		C3A4E5E60D91AA86009A610C /* GestureView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GestureView.h; sourceTree = "<group>"; };
-		C3A4E5E70D91AA86009A610C /* GestureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GestureView.m; sourceTree = "<group>"; };
-		C3A4E5E80D91AA86009A610C /* MobileTerminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MobileTerminal.h; sourceTree = "<group>"; };
-		C3A4E5E90D91AA86009A610C /* MobileTerminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MobileTerminal.m; sourceTree = "<group>"; };
-		C3A4E5EC0D91AA86009A610C /* PTYTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTYTextView.h; sourceTree = "<group>"; };
-		C3A4E5ED0D91AA86009A610C /* PTYTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTYTextView.m; sourceTree = "<group>"; };
-		C3A4E5F00D91AA86009A610C /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Settings.h; sourceTree = "<group>"; };
-		C3A4E5F10D91AA86009A610C /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Settings.m; sourceTree = "<group>"; };
-		C3A4E5F20D91AA86009A610C /* ShellKeyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShellKeyboard.h; sourceTree = "<group>"; };
-		C3A4E5F30D91AA86009A610C /* ShellKeyboard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShellKeyboard.m; sourceTree = "<group>"; };
-		C3A4E5F40D91AA86009A610C /* SubProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubProcess.h; sourceTree = "<group>"; };
-		C3A4E5F50D91AA86009A610C /* SubProcess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubProcess.m; sourceTree = "<group>"; };
-		C3A4E5F60D91AA86009A610C /* VT100Screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Screen.h; sourceTree = "<group>"; };
-		C3A4E5F70D91AA86009A610C /* VT100Screen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Screen.m; sourceTree = "<group>"; };
-		C3A4E5F80D91AA86009A610C /* VT100Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VT100Terminal.h; sourceTree = "<group>"; };
-		C3A4E5F90D91AA86009A610C /* VT100Terminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VT100Terminal.m; sourceTree = "<group>"; };
 		C3CC8EDB0D9324DB0064D6AE /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
-		C3E137B20D95F931005B2F2D /* Constants.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = Constants.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -71,7 +71,7 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				29B97316FDCFA39411CA2CEA /* main.m */,
+				C3186BA10DEB625000825724 /* main.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -87,18 +87,18 @@
 		C3186B400DEB489800825724 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				C3A4E5EC0D91AA86009A610C /* PTYTextView.h */,
-				C3A4E5ED0D91AA86009A610C /* PTYTextView.m */,
-				C39C17DA0D968CA600BB3EEC /* Preferences.h */,
-				C39C17DB0D968CA600BB3EEC /* Preferences.m */,
-				C390BE9A0D9EF05800FAD5B0 /* Menu.h */,
-				C390BE9B0D9EF05800FAD5B0 /* Menu.m */,
-				C3A4E5E60D91AA86009A610C /* GestureView.h */,
-				C3A4E5E70D91AA86009A610C /* GestureView.m */,
-				C35DF9E30DB8D70100295F11 /* PieView.h */,
-				C35DF9E40DB8D70100295F11 /* PieView.m */,
-				C3A4E5F20D91AA86009A610C /* ShellKeyboard.h */,
-				C3A4E5F30D91AA86009A610C /* ShellKeyboard.m */,
+				C3186B850DEB614D00825724 /* GestureView.h */,
+				C3186B860DEB614D00825724 /* GestureView.m */,
+				C3186B8F0DEB614D00825724 /* PTYTextView.h */,
+				C3186B900DEB614D00825724 /* PTYTextView.m */,
+				C3186B870DEB614D00825724 /* Keyboard.h */,
+				C3186B880DEB614D00825724 /* Keyboard.m */,
+				C3186B890DEB614D00825724 /* Menu.h */,
+				C3186B8A0DEB614D00825724 /* Menu.m */,
+				C3186B8B0DEB614D00825724 /* PieView.h */,
+				C3186B8C0DEB614D00825724 /* PieView.m */,
+				C3186B8D0DEB614D00825724 /* Preferences.h */,
+				C3186B8E0DEB614D00825724 /* Preferences.m */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -106,12 +106,12 @@
 		C3186B410DEB48A100825724 /* Terminal */ = {
 			isa = PBXGroup;
 			children = (
-				C3A4E5F60D91AA86009A610C /* VT100Screen.h */,
-				C3A4E5F70D91AA86009A610C /* VT100Screen.m */,
-				C3A4E5F80D91AA86009A610C /* VT100Terminal.h */,
-				C3A4E5F90D91AA86009A610C /* VT100Terminal.m */,
-				C3A4E5F40D91AA86009A610C /* SubProcess.h */,
-				C3A4E5F50D91AA86009A610C /* SubProcess.m */,
+				C3186B9B0DEB61F200825724 /* SubProcess.h */,
+				C3186B9C0DEB61F200825724 /* SubProcess.m */,
+				C3186B9D0DEB61F200825724 /* VT100Screen.h */,
+				C3186B9E0DEB61F200825724 /* VT100Screen.m */,
+				C3186B9F0DEB61F200825724 /* VT100Terminal.h */,
+				C3186BA00DEB61F200825724 /* VT100Terminal.m */,
 			);
 			name = Terminal;
 			sourceTree = "<group>";
@@ -119,19 +119,19 @@
 		C3186B420DEB48A900825724 /* Misc */ = {
 			isa = PBXGroup;
 			children = (
-				C3E137B20D95F931005B2F2D /* Constants.h */,
-				C308937B0D969034009430B9 /* Constants.m */,
-				C3A4E5F00D91AA86009A610C /* Settings.h */,
-				C3A4E5F10D91AA86009A610C /* Settings.m */,
-				C34DCB5D0DABD31300EB4BC5 /* Tools.h */,
-				C34DCB5E0DABD31300EB4BC5 /* Tools.m */,
-				C31614260DA2D23E004157BB /* Color.h */,
-				C31614270DA2D23E004157BB /* Color.m */,
-				C3A4E5E40D91AA86009A610C /* ColorMap.h */,
-				C3A4E5E50D91AA86009A610C /* ColorMap.m */,
-				C37DAB6F0D93475A00FC5BC7 /* Log.h */,
-				C37DAB700D93475A00FC5BC7 /* Log.m */,
-				C3A4E5E30D91AA86009A610C /* charmaps.h */,
+				C3186BA40DEB628500825724 /* charmaps.h */,
+				C3186BA50DEB628500825724 /* Color.h */,
+				C3186BA60DEB628500825724 /* Color.m */,
+				C3186BA70DEB628500825724 /* ColorMap.h */,
+				C3186BA80DEB628500825724 /* ColorMap.m */,
+				C3186BA90DEB628500825724 /* Constants.h */,
+				C3186BAA0DEB628500825724 /* Constants.m */,
+				C3186BAB0DEB628500825724 /* Log.h */,
+				C3186BAC0DEB628500825724 /* Log.m */,
+				C3186BAD0DEB628500825724 /* Settings.h */,
+				C3186BAE0DEB628500825724 /* Settings.m */,
+				C3186BAF0DEB628500825724 /* Tools.h */,
+				C3186BB00DEB628500825724 /* Tools.m */,
 				C30257DF0DA6AEB500AAA6EA /* svnversion.h */,
 			);
 			name = Misc;
@@ -143,8 +143,8 @@
 				C3186B410DEB48A100825724 /* Terminal */,
 				C3186B400DEB489800825724 /* UI */,
 				C3186B420DEB48A900825724 /* Misc */,
-				C3A4E5E80D91AA86009A610C /* MobileTerminal.h */,
-				C3A4E5E90D91AA86009A610C /* MobileTerminal.m */,
+				C3186BA20DEB626100825724 /* MobileTerminal.h */,
+				C3186BA30DEB626100825724 /* MobileTerminal.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
