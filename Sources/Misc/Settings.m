@@ -161,36 +161,17 @@
     NSArray * colorValues;
 
     switch (i) { // bg color
-      case 1:  colorValues = RGBAColorToArray(RGBAColorMake(0.1, 0, 0, 1));  break;
-      case 2:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0.1, 1));  break;
-      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 1));   break;
       default: colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));    break;
+      case 1:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0.05, 0, 1)); break;
+      case 2:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0.1, 1));  break;
+      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(0.1, 0, 0, 1));  break;
     };
     [ca addObject:colorValues];
     
-    switch (i) { // fg color
-      case 3:   colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));  break; 
-      default:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 1, 1));  break;
-    };    
-    [ca addObject:colorValues]; 
-    
-    switch (i) { // bold color
-      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0.5, 1)); break;
-      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
-    };
-    [ca addObject:colorValues]; 
-    
-    switch (i) { // cursor text
-      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
-      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 0, 0, 1));   break;
-    };
-    [ca addObject:colorValues]; 
-    
-    switch (i) { // cursor color
-      case 3:  colorValues = RGBAColorToArray(RGBAColorMake(0, 0, 0, 1));   break;
-      default: colorValues = RGBAColorToArray(RGBAColorMake(1, 1, 0, 1));   break;
-    };
-    [ca addObject:colorValues]; 
+    [ca addObject:RGBAColorToArray(RGBAColorMake(1, 1, 1, 1))]; // fg color    
+    [ca addObject:RGBAColorToArray(RGBAColorMake(1, 1, 0, 1))]; // bold color
+    [ca addObject:RGBAColorToArray(RGBAColorMake(1, 0, 0, 1))]; // cursor text
+    [ca addObject:RGBAColorToArray(RGBAColorMake(1, 1, 0, 1))]; // cursor color
     
     [tc setObject:ca forKey:@"colors"];
     [tcs addObject:tc];

@@ -48,7 +48,7 @@ removeSources:
 	@echo ... removing sources ...
 	$(shell rm -f $(BUILDDIR)/*.c $(BUILDDIR)/*.h $(BUILDDIR)/*.m)
 
-clean: 
+clean:
 	@echo ... cleaning up ...
 	rm -fr $(BUILDDIR)
 	rm -fr *.o $(APPNAME).app $(APPNAME).zip
@@ -56,6 +56,7 @@ clean:
 
 dist: svnversion copySources depend Terminal package
 	zip -r $(APPNAME).zip $(APPDIR)
+	python -c "v='`svnversion`'; v=v.find(':')!=-1 and v.split(':')[1] or v;cmd='mv Terminal.zip Terminal-'+v.rstrip('MS')+'.zip'; import os; os.system(cmd)"
 
 done:
 	@echo ... done
