@@ -25,6 +25,7 @@
 
 #import "VT100Terminal.h"
 #import "VT100Screen.h"
+#import "Log.h"
 #include <term.h>
 
 #define DEBUG_ALLOC 0
@@ -209,7 +210,7 @@ static size_t getCSIParam(unsigned char *datap,
     datap ++;
     datalen --;
   }
-  // check for secondsry device attribute modifier
+  // check for secondry device attribute modifier
   else if (datalen > 0 && *datap == '>')
   {
     param->modifier = '>';
@@ -1126,10 +1127,6 @@ autorelease]; */
 
 - (id)init
 {
-
-#if DEBUG_ALLOC
-  NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
-#endif
   int i;
 
   if ([super init] == nil)
@@ -1164,8 +1161,8 @@ autorelease]; */
   bold=blink=reversed=under=0;
   saveBold=saveBlink=saveReversed=saveUnder = 0;
   highlight = saveHighlight = NO;
-  FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-  BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+  FG_COLORCODE = FG_COLOR_CODE;
+  BG_COLORCODE = BG_COLOR_CODE;
   MOUSE_MODE = MOUSE_REPORTING_NONE;
 
   TRACE = NO;
@@ -1178,8 +1175,9 @@ autorelease]; */
 
   numLock = YES;
 
-  // TODO: Tweakable?
   [self setTermType:@"vt100"];
+  
+  log(@"terminal initialized %@", self);
 
   return self;
 }
@@ -1212,29 +1210,34 @@ autorelease]; */
     return termType;
 }
 
-- (void)setTermType:(NSString *)termtype
+- (void)setTermType:(NSString *)ttype
 {
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s(%d):-[VT100Screen setTermType:%@]",
-      __FILE__, __LINE__, termtype);
-#endif
   if (termType) [termType release];
-  termType = [termtype retain];
+  termType = [[NSString stringWithString:ttype] retain];
 
   NSRange range = [termType rangeOfString:@"xterm"];
   allowKeypadMode = range.location != NSNotFound;
 
   int i;
-  int r;
-  setupterm((char *)[termtype cString], fileno(stdout), &r);
+  int r=0;
 
-  if (r!=1) {
-    NSLog(@"Terminal type %s is not defined.\n",[termtype cString]);
-    for(i = 0; i < TERMINFO_KEYS; i ++) {
+  static int issetup = 0;
+  if (!issetup) { issetup = 1;
+  // this crashes on non-Cydia systems when called multiple times  
+  setupterm((char *)[termType cString], fileno(stdout), &r);
+  }
+
+  if (r!=1) 
+  {
+    log(@"Terminal type %s is not defined (%d)", [termType cString], r);
+    for(i = 0; i < TERMINFO_KEYS; i ++) 
+    {
       if (key_strings[i]) free(key_strings[i]);
       key_strings[i]=NULL;
     }
-  } else {
+  } 
+  else 
+  {
     char *key_names[] = {
       key_left, key_right, key_up, key_down,
       key_home, key_end, key_npage, key_ppage,
@@ -1277,8 +1280,8 @@ autorelease]; */
   bold=blink=reversed=under=0;
   saveBold=saveBlink=saveReversed=saveUnder = 0;
   highlight = saveHighlight = NO;
-  FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-  BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+  FG_COLORCODE = FG_COLOR_CODE;
+  BG_COLORCODE = BG_COLOR_CODE;
   MOUSE_MODE = MOUSE_REPORTING_NONE;
 
   TRACE = NO;
@@ -1877,8 +1880,8 @@ autorelease]; */
     if (token.u.csi.count == 0) {
       // all attribute off
       bold=under=blink=reversed=highlight=0;
-      FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-      BG_COLORCODE = DEFAULT_BG_COLOR_CODE; 
+      FG_COLORCODE = FG_COLOR_CODE;
+      BG_COLORCODE = BG_COLOR_CODE; 
     } else {
       int i;
       for (i = 0; i < token.u.csi.count; ++i) {
@@ -1887,8 +1890,8 @@ autorelease]; */
           case VT100CHARATTR_ALLOFF:
             // all attribute off
             bold=under=blink=reversed=highlight=0;
-            FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
-            BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+            FG_COLORCODE = FG_COLOR_CODE;
+            BG_COLORCODE = BG_COLOR_CODE;
             break;
 
           case VT100CHARATTR_BOLD:
@@ -1916,10 +1919,10 @@ autorelease]; */
             reversed=0;
             break;
           case VT100CHARATTR_FG_DEFAULT:
-            FG_COLORCODE = DEFAULT_FG_COLOR_CODE;
+            FG_COLORCODE = FG_COLOR_CODE;
             break;
           case VT100CHARATTR_BG_DEFAULT:
-            BG_COLORCODE = DEFAULT_BG_COLOR_CODE;
+            BG_COLORCODE = BG_COLOR_CODE;
             break;
           case VT100CHARATTR_FG_256:
             if (token.u.csi.count==3 && i==0 && token.u.csi.p[1]==5) {

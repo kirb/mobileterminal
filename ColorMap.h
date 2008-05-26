@@ -4,29 +4,24 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import "Constants.h"
+
+enum {
+  BG_COLOR = 16,
+  FG_COLOR,
+  FG_COLOR_BOLD,
+  FG_COLOR_CURSOR,
+  BG_COLOR_CURSOR,
+  NUM_COLORS = BG_COLOR + MAXTERMINALS *  NUM_TERMINAL_COLORS,
+};
 
 @interface ColorMap : NSObject
 {
-  CGColorRef table[16];
-  CGColorRef defaultFGColor;
-  CGColorRef defaultBGColor;
-  CGColorRef defaultBoldColor;
-  CGColorRef defaultCursorColor;
-  CGColorRef defaultCursorTextColor;
+  CGColorRef table[NUM_COLORS];
 }
 
 + (ColorMap*)sharedInstance;
-
-- (CGColorRef)defaultFGColor;
-- (CGColorRef)defaultBGColor;
-- (CGColorRef)defaultBoldColor;
-- (CGColorRef)colorForCode:(unsigned int)index;
-- (CGColorRef)defaultCursorColor;
-- (CGColorRef)defaultCursorTextColor;
-- (void)setFGColor:(CGColorRef)color;
-- (void)setBGColor:(CGColorRef)color;
-- (void)setBoldColor:(CGColorRef)color;
-- (void)setCursorColor:(CGColorRef)color;
-- (void)setCursorTextColor:(CGColorRef)color;
+- (CGColorRef)colorForCode:(unsigned int)index termid:(int)termid;
+- (void)setTerminalColor:(CGColorRef)color atIndex:(int)index termid:(int)termid;
 
 @end

@@ -1,24 +1,71 @@
-// Settings.h
+//
+//  Settings.h
+//  Terminal
 
 #import <Foundation/Foundation.h>
+#import "Constants.h"
+#import "Color.h"
 
-// TODO: Listeners for when settings change
-@interface Settings : NSObject
+//_______________________________________________________________________________
+
+@interface TerminalConfig : NSObject
 {
   int width;
-  int height;
-  NSString* font;
+	int fontSize;
+	float fontWidth;
+	BOOL autosize;
+		
+  NSString * font;
+  NSString * args;
+  
+  RGBAColor colors[NUM_TERMINAL_COLORS];
 }
 
-+ (Settings*)sharedInstance;
+- (NSString*) fontDescription;
 
-- (id)init;
+@property RGBAColor * colors;
+@property BOOL autosize;
+@property int width;
+@property int fontSize;
+@property float fontWidth;
+@property (readwrite, copy) NSString * font;
+@property (readwrite, copy) NSString * args;
 
-- (int)width;
-- (int)height;
-- (NSString*)font;
-- (void)setWidth:(int)width;
-- (void)setHeight:(int)height;
-- (void)setFont:(NSString*)terminalFont;
+@end
+
+//_______________________________________________________________________________
+
+@interface Settings : NSObject
+{
+	NSString * arguments;
+	NSArray * terminalConfigs;
+	NSArray * menu;
+	RGBAColor gestureFrameColor;
+	BOOL multipleTerminals;
+  NSMutableDictionary * swipeGestures;
+}
+
+//_______________________________________________________________________________
+
+@property BOOL multipleTerminals;
+
++ (Settings*) sharedInstance;
+
+- (id) init;
+
+- (void) registerDefaults;
+- (void) readUserDefaults;
+- (void) writeUserDefaults;
+
+- (NSArray*) terminalConfigs;
+- (void) setArguments: (NSString*)arguments;
+- (NSString*) arguments;
+- (NSArray*) menu;
+- (NSDictionary*) swipeGestures;
+- (void) setCommand:(NSString*)command forGesture:(NSString*)zone;
+- (RGBAColor) gestureFrameColor;
+- (RGBAColorRef) gestureFrameColorRef;
+
+//_______________________________________________________________________________
 
 @end

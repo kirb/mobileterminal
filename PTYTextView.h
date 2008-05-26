@@ -1,55 +1,78 @@
 // PTYTextView.h
+//
+// PTYTextView creates PTYTiles, which call back to PTYTextView when they
+// are asked to be drawn.
+
 #import <UIKit/UIKit.h>
 #import <UIKit/UITiledView.h>
+#import <UIKit/UITile.h>
 
 #include <sys/time.h>
 
 @class VT100Screen;
 
+//_______________________________________________________________________________
+
+@interface PTYTile : UITile
+{
+}
+
+- (void)drawRect:(CGRect)rect;
+
+@end
+
+//_______________________________________________________________________________
+
 @interface PTYTextView : UITiledView
 {
-  BOOL CURSOR;
-
   // geometry
   float lineHeight;
   float lineWidth;
   float charWidth;
   int numberOfLines;
-
-  int margin;
-  int vmargin;
+	
+	int termid;
 
   // data source
   VT100Screen *dataSource;
   UIScroller *textScroller;
 
+	CGPoint scrollOffset;
+	
   // cached font details
   CGFontRef fontRef;
   float fontSize;
 }
 
-+ (PTYTextView*)sharedInstance;
+//_______________________________________________________________________________
+
 + (Class)tileClass;
 
-- (id)initWithFrame:(CGRect)rect
-             source:(VT100Screen*)screen
-           scroller:(UIScroller*)scroller;
+- (id)initWithFrame:(CGRect)frame source:(VT100Screen*)screen scroller:(UIScroller*)scroller identifier:(int)index;
 - (void)dealloc;
+
+- (void)setSource:(VT100Screen*)screen;
+- (void)updateAll;
 
 - (void)drawTileFrame:(CGRect)frame tileRect:(CGRect)rect;
 - (void)drawRow:(unsigned int)row tileRect:(CGRect)rect;
 - (void)refresh;
+- (void)refreshCursorRow;
+- (void)resetFont;
 
-// Only draws tiles which are dirty
 - (void)updateIfNecessary;
 - (void)updateAndScrollToEnd;
+
+- (void)willSlideIn;
+- (void)willSlideOut;
 
 - (void)drawBox:(CGContextRef)context
           color:(CGColorRef)color
         boxRect:(CGRect)rect;
 
-- (void)drawChar:(CGContextRef)context
-       character:(char)c
+- (void)drawChars:(CGContextRef)context
+       characters:(unichar*)characters
+           count:(int)count
            color:(CGColorRef)color
            point:(CGPoint)point;
 

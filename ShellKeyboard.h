@@ -2,8 +2,6 @@
 #import <UIKit/UIKit.h>
 #import <UIKit/UITextView.h>
 
-@class ShellView;
-
 @protocol KeyboardInputProtocol
 - (void)handleKeyPress:(unichar)c;
 @end

@@ -28,12 +28,14 @@
 #define DEBUG_METHOD_TRACE 0
 
 #import "VT100Screen.h"
+#import "Constants.h"
 
 #include <string.h>
 #include <unistd.h>
 #import "charmaps.h"
 #import "PTYTextView.h"
 #import "Settings.h"
+#import "Log.h"
 
 #define MAX_SCROLLBACK_LINES 100000
 
@@ -103,10 +105,10 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 @end
 
+//_______________________________________________________________________________
+
 @implementation VT100Screen
 
-#define DEFAULT_WIDTH     80
-#define DEFAULT_HEIGHT    25
 #define DEFAULT_SCROLLBACK 1000
 
 #define MIN_WIDTH     10
@@ -114,7 +116,9 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 #define TABSIZE     8
 
-- (id)init
+//_______________________________________________________________________________
+
+- (id)initWithIdentifier:(int)identifier
 {
 #if DEBUG_ALLOC
   NSLog(@"%s: 0x%x", __PRETTY_FUNCTION__, self);
@@ -122,8 +126,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   if ((self = [super init]) == nil)
     return nil;
 
-  WIDTH = DEFAULT_WIDTH;
-  HEIGHT = DEFAULT_HEIGHT;
+  WIDTH = DEFAULT_TERMINAL_WIDTH;
+  HEIGHT = DEFAULT_TERMINAL_HEIGHT;
 
   CURSOR_X = CURSOR_Y = 0;
   SAVE_CURSOR_X = SAVE_CURSOR_Y = 0;
@@ -158,9 +162,11 @@ static __inline__ screen_char_t *incrementLinePointer(
   newIconTitle = nil;
   bell =  NO;
   scrollUpLines = 0;
+	
+	termid = identifier;
 
-  Settings* settings = [Settings sharedInstance];
-  [self initScreenWithWidth:[settings width] Height:[settings height]];
+	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:termid];
+  [self initScreenWithWidth:[config width] Height:DEFAULT_TERMINAL_HEIGHT];
 
   return self;
 }
@@ -301,19 +307,18 @@ static __inline__ screen_char_t *incrementLinePointer(
   }
 }
 
+//_______________________________________________________________________________
 
 - (void)resizeWidth:(int)width height:(int)height
 {
   int i, total_height, new_total_height;
   screen_char_t *bl, *aLine, *c1, *c2, *new_scrollback_top;
 
-#if DEBUG_METHOD_TRACE
-  NSLog(@"%s:%d :%d]", __PRETTY_FUNCTION__, width, height);
-#endif
-
-  if (WIDTH == 0 || HEIGHT == 0 || (width==WIDTH && height==HEIGHT)) {
+  if (WIDTH == 0 || HEIGHT == 0 || (width==WIDTH && height==HEIGHT)) 
+	{
     return;
   }
+		
   [self acquireLock];
 
   total_height = max_scrollback_lines + HEIGHT;
@@ -478,6 +483,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   // adjusted to fit the new size
   [display setNeedsDisplay];
 }
+
+//_______________________________________________________________________________
 
 - (void)reset
 {
@@ -1286,8 +1293,8 @@ static __inline__ screen_char_t *incrementLinePointer(
   // do not send explicit video information
   //if(x1 == 0 && x2 == WIDTH)
   //{
-  //	fgCode = DEFAULT_FG_COLOR_CODE;
-  //	bgCode = DEFAULT_BG_COLOR_CODE;
+  //	fgCode = FG_COLOR_CODE;
+  //	bgCode = BG_COLOR_CODE;
   //}
   //else
   //{
@@ -1598,7 +1605,6 @@ static __inline__ screen_char_t *incrementLinePointer(
   NSLog(@"%s(%d):-[VT100Screen insertBlank; %d]", __FILE__, __LINE__, n);
 #endif
 
-
   //    NSLog(@"insertBlank[%d@(%d,%d)]",n,CURSOR_X,CURSOR_Y);
 
   if (CURSOR_X>=WIDTH) return;
@@ -1748,12 +1754,12 @@ static __inline__ screen_char_t *incrementLinePointer(
 
 - (int) cursorX
 {
-  return CURSOR_X+1;
+  return CURSOR_X;
 }
 
 - (int) cursorY
 {
-    return CURSOR_Y+1;
+    return CURSOR_Y;
 }
 
 - (void)clearTabStop
@@ -1818,7 +1824,6 @@ static __inline__ screen_char_t *incrementLinePointer(
 {
   scrollUpLines = 0;
 }
-
 
 @end
 
