@@ -1,59 +1,63 @@
 //
-//  Constants.h
-//  Terminal
+// Constants.h
+// Terminal
 
-#import <UIKit/UIKit.h>
 #import <Foundation/NSString.h>
+
 #import "svnversion.h"
 
-#define MULTIPLE_TERMINALS      YES
-#define MAXTERMINALS            4
-#define NUM_TERMINAL_COLORS     5
+#define TERMINATION_DELAY 0.7f
 
-#define TOGGLE_KEYBOARD_DELAY		 0.15
+#define MAX_TERMINALS 4
+#define NUM_TERMINAL_COLORS 5
+#define DEFAULT_TERMINAL_WIDTH 80
+#define DEFAULT_TERMINAL_HEIGHT 25
+#define TERMINAL_LINE_SPACING 3.0f
 
-#define MENU_DELAY							 0.10 
-#define MENU_TAP_DELAY           0.20
-#define MENU_FADE_IN_TIME				 0.10
-#define MENU_FADE_OUT_TIME			 0.10
-#define MENU_SLOW_FADE_OUT_TIME	 1.00
-#define MENU_BUTTON_HEIGHT      44.0f
-#define MENU_BUTTON_WIDTH       60.0f
-#define KEYBOARD_FADE_OUT_TIME   0.5f
-#define KEYBOARD_FADE_IN_TIME    0.5f
+#define TAP_DELAY 0.30f
 
-#define DEFAULT_TERMINAL_WIDTH	80
-#define DEFAULT_TERMINAL_HEIGHT	25
+#define MENU_DELAY 0.20f
+#define MENU_TAP_DELAY 0.20f
+#define MENU_FADE_IN_TIME 0.10f
+#define MENU_FADE_OUT_TIME 0.10f
+#define MENU_SLOW_FADE_OUT_TIME 1.0f
+#define MENU_BUTTON_HEIGHT 44.0f
+#define MENU_BUTTON_WIDTH 60.0f
 
-#define TERMINAL_LINE_SPACING   3.0f
+#define TOGGLE_KEYBOARD_DELAY 0.15f
+#define KEYBOARD_ANIMATE_OUT_TIME 0.5f
+#define KEYBOARD_ANIMATE_IN_TIME 0.5f
+
 
 // gesture pie zones
-
 enum {
-	ZONE_N,
-	ZONE_NE,
-	ZONE_E,
-	ZONE_SE,
-	ZONE_S,
-	ZONE_SW,
-	ZONE_W,
-	ZONE_NW
+    ZONE_N,
+    ZONE_NE,
+    ZONE_E,
+    ZONE_SE,
+    ZONE_S,
+    ZONE_SW,
+    ZONE_W,
+    ZONE_NW
 };
 
 #define MENU_BUTTON_DICT_KEYS 24
 
-#define MENU_CMD      @"cmd"
-#define MENU_TITLE    @"title"
-#define MENU_SUBMENU  @"submenu"
+#define MENU_CMD @"cmd"
+#define MENU_TITLE @"title"
+#define MENU_SUBMENU @"submenu"
 
-struct StrCtrlMap 
+
+struct StrCtrlMap
 {
-  NSString * str; 
-  unichar chars[6];
+    NSString *str;
+    unichar chars[6];
 };
 
 extern struct StrCtrlMap STRG_CTRL_MAP[];
 
-extern NSString * ZONE_KEYS[];
-extern NSString * DEFAULT_SWIPE_GESTURES[][2];
-extern NSString * DEFAULT_MENU_BUTTONS[][MENU_BUTTON_DICT_KEYS];
+extern NSString *ZONE_KEYS[];
+extern NSString *DEFAULT_SWIPE_GESTURES[][2];
+extern NSString *DEFAULT_MENU_BUTTONS[][MENU_BUTTON_DICT_KEYS];
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

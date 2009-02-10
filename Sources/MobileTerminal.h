@@ -2,10 +2,12 @@
 // MobileTerminal.h
 // Terminal
 
-#import <UIKit/UIKit.h>
 #import <GraphicsServices/GraphicsServices.h>
+#import <UIKit/UIKit.h>
+
 #import "Constants.h"
 #import "Log.h"
+
 
 @class PTYTextView;
 @class ShellKeyboard;
@@ -14,96 +16,90 @@
 @class VT100Terminal;
 @class GestureView;
 @class PieView;
+@class MainViewController;
 @class PreferencesController;
 @class MobileTerminal;
 @class Settings;
 @class Menu;
 
+@interface Terminal : NSObject
+{
+    int identifier;
+
+    SubProcess *process;
+    VT100Screen *screen;
+    VT100Terminal *terminal;
+}
+
+@property(nonatomic, readonly) int identifier;
+@property(nonatomic, readonly) SubProcess *process;
+@property(nonatomic, readonly) VT100Screen *screen;
+@property(nonatomic, readonly) VT100Terminal *terminal;
+
+- (id)initWithIdentifier:(int)identifier delegate:(id)delegate;
+
+@end
+
+//_______________________________________________________________________________
 //_______________________________________________________________________________
 
 @interface MobileTerminal : UIApplication
 {
-  UIWindow	  					*	window;
+    UIWindow *window;
 
-  ShellKeyboard					* keyboardView;	
-	UITransitionView			* contentView;
-  UIView								* mainView;
+    MainViewController *mainController;
+    PreferencesController *preferencesController;
 
-	UIView								* activeView;
+    NSMutableArray *processes;
+    NSMutableArray *screens;
+    NSMutableArray *terminals;
 
-  GestureView						* gestureView;
-	
-	PreferencesController	* preferencesController;
-	
-  NSMutableArray				* processes;
-  NSMutableArray				* screens;
-  NSMutableArray				* terminals;
-  NSMutableArray				* textviews;
-  NSMutableArray				* scrollers;
+    Settings *settings;
+    Menu *menu;
 
-  Settings              * settings;
-  Menu                  * menu;
-	
-  int numTerminals;
-  int activeTerminal;	
+    int numTerminals;
+    int activeTerminalIndex;
 
-  BOOL controlKeyMode;
-  BOOL keyboardShown;
-	BOOL landscape;
-	int  degrees;
+    BOOL controlKeyMode;
+    BOOL landscape;
 }
 
 @property BOOL landscape;
-@property int  degrees;
+
+@property(readonly) NSArray *scrollers;
 @property BOOL controlKeyMode;
-@property (readonly) Menu 				* menu;
-@property (readonly) UIView				* activeView;
-@property (readonly) UIView				* mainView;
-@property (readonly) GestureView	* gestureView;
-@property (readonly) PTYTextView	* textView;
+@property(readonly) Menu *menu;
+@property(readonly) int numTerminals;
+@property(nonatomic, readonly, getter=indexOfActiveTerminal) int activeTerminalIndex;
 
-+ (MobileTerminal*) application;
-+ (Menu*) menu;
+@property(nonatomic, readonly) Terminal *activeTerminal;
+@property(nonatomic, readonly) UIView *activeView;
 
-- (void) applicationDidFinishLaunching:(NSNotification *)aNotification;
-- (void) applicationSuspend:(GSEvent *)event;
-- (void) applicationResume:(GSEvent *)event;
++ (MobileTerminal *)application;
++ (Menu *)menu;
 
-- (void) handleStreamOutput:(const char*)c length:(unsigned int)len identifier:(int)tid;
-- (void) handleKeyPress:(unichar)c;
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
+- (void)applicationSuspend:(GSEventRef)event;
 
-- (void) updateStatusBar;
-- (void) updateColors;
-- (void) updateFrames:(BOOL)needsRefresh;
-- (void) setOrientation:(int)degrees;
-- (CGPoint) viewPointForWindowPoint:(CGPoint)point;
+- (void)handleStreamOutput:(const char *)c length:(unsigned int)len identifier:(int)tid;
+- (void)handleKeyPress:(unichar)c;
 
--(SubProcess*) activeProcess;
--(VT100Screen*) activeScreen;
--(VT100Terminal*) activeTerminal;
--(NSArray*) textviews;
+- (void)togglePreferences;
 
--(UIView*) mainView;
--(UIView*) activeView;
--(GestureView*) gestureView;
--(PTYTextView*) textView;
--(UIScroller*) textScroller;
--(CGRect) keyboardFrame;
+// StatusBar methods
+- (void)setStatusBarHidden:(BOOL)hidden duration:(double)duration;
+- (void)setStatusIconVisible:(BOOL)visible forTerminal:(int)index;
 
-- (void) togglePreferences;
-
-// Invoked by GestureMenu
-- (void) hideMenu;
-- (void) showMenu:(CGPoint)point;
-- (void) handleInputFromMenu:(NSString*)input;
-- (void) toggleKeyboard;
+// Invoked by MenuView
+- (void)handleInputFromMenu:(NSString *)input;
 
 // Invoked by SwitcherMenu
-- (void) prevTerminal;
-- (void) nextTerminal;
-- (void) createTerminals;
-- (void) destroyTerminals;
-- (void) setActiveTerminal:(int)active;
-- (void) setActiveTerminal:(int)active direction:(int)direction;
+- (void)setActiveTerminal:(int)terminal;
+- (void)setActiveTerminal:(int)terminal direction:(int)direction;
+- (void)prevTerminal;
+- (void)nextTerminal;
+- (void)createTerminalWithIdentifier:(int)identifier;
 
 @end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

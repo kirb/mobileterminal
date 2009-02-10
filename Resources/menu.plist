@@ -85,7 +85,7 @@
 	</dict>
 	<dict>
 		<key>cmd</key>
-		<string>killall Terminal</string>
+		<string>[QUIT]</string>
 		<key>title</key>
 		<string>exit</string>
 	</dict>

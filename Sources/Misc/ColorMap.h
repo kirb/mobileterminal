@@ -2,26 +2,34 @@
 //
 // ColorMap is not at all thread safe.
 
-#import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <Foundation/Foundation.h>
+
 #import "Constants.h"
 
+@class UIColor;
+
 enum {
-  BG_COLOR = 16,
-  FG_COLOR,
-  FG_COLOR_BOLD,
-  FG_COLOR_CURSOR,
-  BG_COLOR_CURSOR,
-  NUM_COLORS = BG_COLOR + MAXTERMINALS *  NUM_TERMINAL_COLORS,
+    BG_COLOR = 16,
+    FG_COLOR,
+    FG_COLOR_BOLD,
+    FG_COLOR_CURSOR,
+    BG_COLOR_CURSOR,
+    NUM_COLORS = BG_COLOR + MAX_TERMINALS * NUM_TERMINAL_COLORS,
 };
+
+//_______________________________________________________________________________
+//_______________________________________________________________________________
 
 @interface ColorMap : NSObject
 {
-  CGColorRef table[NUM_COLORS];
+    UIColor *table[NUM_COLORS];
 }
 
-+ (ColorMap*)sharedInstance;
-- (CGColorRef)colorForCode:(unsigned int)index termid:(int)termid;
-- (void)setTerminalColor:(CGColorRef)color atIndex:(int)index termid:(int)termid;
++ (ColorMap *)sharedInstance;
+- (UIColor *)colorForCode:(unsigned int)index termid:(int)termid;
+- (void)setTerminalColor:(UIColor *)color atIndex:(int)index termid:(int)termid;
 
 @end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

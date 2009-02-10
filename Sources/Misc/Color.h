@@ -2,18 +2,28 @@
 //  Color.h
 //  Terminal
 
+#import <UIKit/UIColor.h>
+
+UIColor *colorWithRGBA(float red, float green, float blue, float alpha);
+
+//_______________________________________________________________________________
 //_______________________________________________________________________________
 
-typedef struct {
-	float r, g, b, a;
-} RGBAColor;
+@interface UIColor(ArraySupport)
 
-typedef RGBAColor * RGBAColorRef;
++ (UIColor *)colorWithArray:(NSArray *)array;
+- (id)initWithArray:(NSArray *)array;
 
-CGColorRef colorWithRGB (float red, float green, float blue);
-CGColorRef colorWithRGBA(float red, float green, float blue, float alpha);
-CGColorRef CGColorWithRGBAColor(RGBAColor c);
-RGBAColor RGBAColorMake (float r, float g, float b, float a);
-RGBAColor RGBAColorMakeWithArray (NSArray * array);
-NSArray * RGBAColorToArray (RGBAColor c);
+@end
 
+//_______________________________________________________________________________
+//_______________________________________________________________________________
+
+@interface NSArray(ColorSupport)
+
++ (NSArray *)arrayWithColor:(UIColor *)color;
+- (id)initWithColor:(UIColor *)color;
+
+@end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

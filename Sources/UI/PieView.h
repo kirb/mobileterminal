@@ -1,50 +1,55 @@
-#import <UIKit/UIKit.h>
-#import <UIKit/UIImage.h>
-#import <CoreGraphics/CGGeometry.h>
-#import <CoreGraphics/CGColor.h>
-#import <CoreGraphics/CGColorSpace.h>
+#import <CoreGraphics/CoreGraphics.h>
+#import <Foundation/Foundation.h>
 #import <UIKit/NSString-UIStringDrawing.h>
+#import <UIKit/UIPushButton.h>
+#import <UIKit/UIView.h>
 
-typedef enum {
-    kBlue = 1,
-    kGray = 2,
-    kWhite = 3,
-    kPressed = 4
-} kButtonStatus;
 
-//_______________________________________________________________________________
+@class UIImage;
 
 @interface PieButton : UIPushButton
 {
-  NSString * dot;
-  NSString * command;
-  int identifier;
+    NSString *dot;
+    NSString *command;
+    int identifier;
 }
 
--(id) initWithFrame:(CGRect)frame identifier:(int)identifier;
+@property(nonatomic, copy) NSString *command;
+@property(nonatomic, copy) NSString *commandString;
 
-- (NSString*) command;
-- (NSString*) commandString;
-- (NSString*) dotStringWithCommand:(NSString *)command;
-- (void)      setCommandString:(NSString *)commandString;
-- (void)      setCommand:(NSString *)command;
+- (id)initWithFrame:(CGRect)frame identifier:(int)identifier;
+- (NSString *)dotStringWithCommand:(NSString *)command;
 
 @end
 
 //_______________________________________________________________________________
+//_______________________________________________________________________________
 
-@interface PieView : UIView 
+@interface PieView : UIView
 {
-  UIImage * pie_back;
-  NSMutableArray * buttons;
-  PieButton * activeButton;
-  id delegate;
+    UIImage *pie_back;
+    NSMutableArray *buttons;
+    PieButton *activeButton;
+
+    CGPoint location;
+    BOOL visible;
+    id delegate;
 }
 
--(void) setDelegate:(id)delegate;
--(id) delegate;
-- (PieButton*) buttonAtIndex:(int)index; 
-- (void) deselectButton:(PieButton*)button;
-- (void) selectButton:(PieButton*)button;
-- (NSArray*) buttons;
+@property(nonatomic, readonly) NSMutableArray *buttons;
+@property(nonatomic, readonly, getter=isVisible) BOOL visible;
+@property(nonatomic, assign) id delegate;
+
++ (PieView *)sharedInstance;
+
+- (PieButton *)buttonAtIndex:(int)index;
+- (void)selectButton:(PieButton *)button;
+- (void)deselectButton:(PieButton *)button;
+
+- (void)showAtPoint:(CGPoint)point;
+- (void)fadeIn;
+- (void)hide;
+
 @end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

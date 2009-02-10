@@ -1,791 +1,436 @@
 // MobileTerminal.h
-#define DEBUG_METHOD_TRACE    0
+#define DEBUG_METHOD_TRACE 0
 
 #include "MobileTerminal.h"
-#include "Keyboard.h"
-#include "PTYTextView.h"
-#include "SubProcess.h"
-#include "VT100Terminal.h"
-#include "VT100Screen.h"
-#include "GestureView.h"
-#include "PieView.h"
-#include "Menu.h"
-#include "Preferences.h"
-#include "Settings.h"
-#include "ColorMap.h"
 
+#import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
+
+@protocol UIAlertViewDelegate;
+#import <UIKit/UIAlertView.h>
+#import <UIKit/UIScreen.h>
 #import <UIKit/UIView-Geometry.h>
-#import <LayerKit/LKAnimation.h>
-#import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIWindow.h>
+
+#import "ColorMap.h"
+#import "GestureView.h"
+#import "Keyboard.h"
+#import "MainViewController.h"
+#import "Menu.h"
+#import "PieView.h"
+#import "Preferences.h"
+#import "PTYTextView.h"
+#import "Settings.h"
+#import "SubProcess.h"
+#import "VT100Screen.h"
+#import "VT100Terminal.h"
+
+
+@implementation Terminal
+
+@synthesize identifier;
+@synthesize process, screen, terminal;
+
+- (id)initWithIdentifier:(int)identifier_ delegate:(id)delegate
+{
+    self = [super init];
+    if (self) {
+        identifier = identifier_;
+
+        screen = [[VT100Screen alloc] initWithIdentifier:identifier];
+        terminal = [[VT100Terminal alloc] init];
+        [screen setTerminal:terminal];
+        [terminal setScreen:screen];
+
+        process = [[SubProcess alloc]
+            initWithDelegate:delegate identifier:identifier];
+    }
+    return self;
+}
+
+@end
 
 //_______________________________________________________________________________
 //_______________________________________________________________________________
 
 @implementation MobileTerminal
 
-@synthesize landscape, degrees, controlKeyMode;
+@synthesize scrollers;
+@synthesize activeTerminalIndex;
 
-static MobileTerminal * application;
+@synthesize landscape;
+@synthesize controlKeyMode;
+@synthesize menu;
 
-//_______________________________________________________________________________
+@synthesize numTerminals;
 
-+ (MobileTerminal*) application
++ (MobileTerminal *)application
 {
-	return application;
+    return [UIApplication sharedApplication];
 }
 
-//_______________________________________________________________________________
-
-+ (Menu*) menu
++ (Menu *)menu
 {
-	return [application menu];
+    return [[UIApplication sharedApplication] menu];
 }
 
-//_______________________________________________________________________________
-
-- (void) applicationDidFinishLaunching:(NSNotification*)unused
+- (void)applicationDidFinishLaunching:(NSNotification *)unused
 {
-	application = self;
-	
-	int i;
-	
-	settings = [[Settings sharedInstance] retain];
-	[settings registerDefaults];
-	[settings readUserDefaults];
+    settings = [[Settings sharedInstance] retain];
+    [settings registerDefaults];
+    [settings readUserDefaults];
 
-  menu = [Menu menuWithArray:[settings menu]];
-  
-	activeTerminal = 0;
-	
-  controlKeyMode = NO;
-  keyboardShown = YES;
+    menu = [[Menu menuWithArray:[settings menu]] retain];
 
-	degrees = 0;
-	landscape = NO;
-	
-	CGSize screenSize = [UIHardware mainScreenSize];
-  CGRect frame = CGRectMake(0, 0, screenSize.width, screenSize.height);
+    mainController = [[MainViewController alloc] init];
 
-	processes = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-  screens   = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-  terminals = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-	scrollers = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-	textviews = [[NSMutableArray arrayWithCapacity: MAXTERMINALS] retain];
-  	
-	for (numTerminals = 0; numTerminals < ([settings multipleTerminals] ? MAXTERMINALS : 1); numTerminals++)
-	{
-		VT100Terminal * terminal = [[VT100Terminal alloc] init];
-		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
-		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
-		UIScroller    * scroller = [[UIScroller alloc] init];
-		
-		[screens   addObject: screen];
-		[terminals addObject: terminal];
-		[processes addObject: process];
-		[scrollers addObject: scroller];
-		
-		[screen setTerminal:terminal];
-		[terminal setScreen:screen];		
-		
-		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
-																												 source: screen
-																											 scroller: scroller
-																										 identifier: numTerminals];		
-		[textviews addObject:textview];
-	}
-	
-  keyboardView = [[[ShellKeyboard alloc] initWithFrame:CGRectMake(0.0f, 244.0f, 320.0f, 460.0f-244.0f)] retain];
-  [keyboardView setInputDelegate:self];
+    // --------------------------------------------------------- setup terminals
 
-	CGRect gestureFrame = CGRectMake(0.0f, 0.0f, 240.0f, 250.0f);
-  gestureView = [[GestureView alloc] initWithFrame:gestureFrame delegate:self];
+    terminals = [[NSMutableArray alloc] initWithCapacity:MAX_TERMINALS];
 
-  mainView = [[[UIView alloc] initWithFrame:frame] retain];
-  [mainView setBackgroundColor:colorWithRGB(0,0,0)];
-	for (i = 0; i < numTerminals; i++)
-  {
-    [[scrollers objectAtIndex:i] setBackgroundColor:[[ColorMap sharedInstance] colorForCode:BG_COLOR_CODE termid:i]];
-		[mainView addSubview:[scrollers objectAtIndex:i]];
-  }
-  [mainView addSubview:keyboardView];	
-  [mainView addSubview:[keyboardView inputView]];
-  [mainView addSubview:gestureView];
-	[mainView addSubview:[MenuView sharedInstance]];
-	activeView = mainView;
+    for (numTerminals = 0; numTerminals < MAX_TERMINALS; numTerminals++)
+        [self createTerminalWithIdentifier:numTerminals];
 
-	contentView = [[UITransitionView alloc] initWithFrame: frame];
-	[contentView addSubview:mainView];
-	
-	window = [[UIWindow alloc] initWithFrame: frame];
-	[window setContentView: contentView]; 
-	[window orderFront: self];
-	[window makeKey: self];
-	[window _setHidden: NO];
-	[window retain];	
-			
-  // Shows momentarily and hides so the user knows its there
-  [[MenuView sharedInstance] hideSlow:YES];
+    // ------------------------------------------------------------- setup views
+ 
+    window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    [window addSubview:[mainController view]];
+    [window makeKeyAndVisible];
 
-  // Input focus
-  [[keyboardView inputView] becomeFirstResponder];
-		
-	if (numTerminals > 1)
-	{
-		for (i = numTerminals-1; i >= 0; i--)
-		{
-			[self setActiveTerminal:i];
-		}
-	}
-	else
-	{
-		[self updateFrames:YES];
-	}
+    if (numTerminals > 1) {
+        for (int i = numTerminals - 1; i >= 0; i--)
+            [self setActiveTerminal:i];
+    } else {
+        [mainController updateFrames:YES];
+    }
 }
 
-// Suspend/Resume: We have to hide then show again the keyboard view to get it
-// to properly acheive focus on suspend and resume.
+#pragma mark Confirmation dialog methods
 
-//_______________________________________________________________________________
-
-- (void)applicationResume:(GSEvent *)event
+- (void)confirmWithQuestion:(NSString *)question
 {
-  [mainView addSubview:keyboardView];
-  
-	if (!keyboardShown)
-	{
-    CGRect kbFrame = [self keyboardFrame];
-		kbFrame.origin.y += kbFrame.size.height;
-		[keyboardView setFrame:kbFrame];
-		[keyboardView setAlpha:0.0f];		
-  }  
-	
-	[mainView addSubview:[keyboardView inputView]];
-	[mainView bringSubviewToFront:gestureView];
-	[mainView bringSubviewToFront:[MenuView sharedInstance]];
-	[[keyboardView inputView] becomeFirstResponder];
-	
-	[self setActiveTerminal:0];
-	[self updateStatusBar];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:question message:nil
+        delegate:self defaultButton:@"Yes" cancelButton:@"No" otherButtons:nil];
+    [alert show];
+    [alert release];
 }
 
-//_______________________________________________________________________________
-
-- (void)applicationSuspend:(GSEvent *)event
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)index
 {
-	BOOL shouldQuit;
-	int i;
-	shouldQuit = YES;
-	
-	[settings writeUserDefaults];
-	
-	for (i = 0; i < [processes count]; i++) {
-		if ([ [processes objectAtIndex: i] isRunning]) {
-			shouldQuit = NO;
-			break;
-		}
-	}
-	
-  if (shouldQuit) {		
-    exit(0);
-  }
-
-  if (activeView != mainView) // preferences active
-    [self togglePreferences];
-  
-  [[keyboardView inputView] removeFromSuperview];
-  [keyboardView removeFromSuperview];
-	
-	for (i = 0; i < MAXTERMINALS; i++)
-		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", i]];
+    // NOTE: Currently only one alert view is used, so no need to ID the view
+    if (index == 0)
+        [self terminate];
 }
 
-//_______________________________________________________________________________
+#pragma mark Application events methods
 
-- (void)applicationExited:(GSEvent *)event
+- (BOOL)shouldTerminate
 {
-	int i;
-	
-	[settings writeUserDefaults];
-	
-	for (i = 0; i < [processes count]; i++) {
-		[[processes objectAtIndex: i] close];
-	}	
-
-	for (i = 0; i < MAXTERMINALS; i++)
-		[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", i]];
+    BOOL ret = YES;
+    for (Terminal *terminal in terminals) {
+        if ([terminal.process isRunning]) {
+            ret = NO;
+            break;
+        }
+    }
+    return ret;
 }
 
-//_______________________________________________________________________________
+- (void)applicationDidResume
+{
+    [self setStatusIconVisible:YES forTerminal:activeTerminalIndex];
+}
+
+- (void)applicationWillSuspend
+{
+    // FIXME: seems to not handle statusbar correctly
+    if (self.activeView != [mainController view]) // preferences active
+        [self togglePreferences];
+
+    [self setStatusIconVisible:NO forTerminal:activeTerminalIndex];
+}
+
+// NOTE: must override this method to prevent application termination
+- (void)applicationSuspend:(GSEventRef)event
+{
+    if ([self shouldTerminate])
+        [self terminate];
+}
+
+- (void)applicationWillTerminate
+{
+    for (Terminal *terminal in terminals)
+        [terminal.process close];
+
+    [self setStatusIconVisible:NO forTerminal:activeTerminalIndex];
+}
+
+#pragma mark SubProcess delegate methods
+
+- (void)process:(SubProcess *)process didExitWithCode:(NSInteger)code
+{
+    // Add delay so as not to jar user
+    [NSThread sleepForTimeInterval:TERMINATION_DELAY];
+
+    if ([self shouldTerminate])
+        [self terminate];
+    else
+        [self nextTerminal];
+}
+
+#pragma mark IO handling methods
 
 // Process output from the shell and pass it to the screen
-- (void)handleStreamOutput:(const char*)c length:(unsigned int)len identifier:(int)tid
+- (void)handleStreamOutput:(const char *)c length:(unsigned int)len identifier:(int)tid
 {
-	if (tid < 0 || tid >= [terminals count]) {
-		return;
-  }
-	
-  VT100Terminal* terminal = [terminals objectAtIndex: tid];
-  VT100Screen* screen = [screens objectAtIndex: tid];
-  	
-  [terminal putStreamData:c length:len];
+    if (tid < 0 || tid >= [terminals count])
+        return;
 
-  // Now that we've got the raw data from the sub process, write it to the
-  // terminal.  We get back tokens to display on the screen and pass the
-  // update in the main thread.
-  VT100TCC token;
-  while((token = [terminal getNextToken]),
-    token.type != VT100_WAIT && token.type != VT100CC_NULL) {
-    // process token
-    if (token.type != VT100_SKIP) {
-      if (token.type == VT100_NOTSUPPORT) {
-        NSLog(@"%s(%d):not support token", __FILE__ , __LINE__);
-      } else {
-        [screen putToken:token];
-      }
-    } else {
-      NSLog(@"%s(%d):skip token", __FILE__ , __LINE__);
+    Terminal *terminal = [terminals objectAtIndex: tid];
+
+    [terminal.terminal putStreamData:c length:len];
+
+    // Now that we've got the raw data from the sub process, write it to the
+    // terminal. We get back tokens to display on the screen and pass the
+    // update in the main thread.
+    VT100TCC token;
+    while((token = [terminal.terminal getNextToken]),
+            token.type != VT100_WAIT && token.type != VT100CC_NULL) {
+        // process token
+        if (token.type != VT100_SKIP) {
+            if (token.type == VT100_NOTSUPPORT) {
+                NSLog(@"%s(%d):not support token", __FILE__ , __LINE__);
+            } else {
+                [terminal.screen putToken:token];
+            }
+        } else {
+            NSLog(@"%s(%d):skip token", __FILE__ , __LINE__);
+        }
     }
-  }
-	
-  if (tid == activeTerminal) 
-	{
-		[[self textView] performSelectorOnMainThread:@selector(updateAndScrollToEnd)
-																			withObject:nil
-																	 waitUntilDone:NO];
-	}	
-}
 
-//_______________________________________________________________________________
+    if (tid == activeTerminalIndex) {
+        [[mainController activeTextView].tiledView performSelectorOnMainThread:@selector(updateAndScrollToEnd)
+                                          withObject:nil
+                                       waitUntilDone:NO];
+    }
+}
 
 // Process input from the keyboard
 - (void)handleKeyPress:(unichar)c
 {
-  if (!controlKeyMode) 
-	{
-    if (c == 0x2022) 
-		{
-      controlKeyMode = YES;
-      return;
+    if (!controlKeyMode) {
+        if (c == 0x2022) {
+            controlKeyMode = YES;
+            return;
+        } else if (c == 0x0a) // LF from keyboard RETURN
+        {
+            c = 0x0d; // convert to CR
+        }
+    } else {
+        // was in ctrl key mode, got another key
+        if (c < 0x60 && c > 0x40) {
+            // Uppercase
+            c -= 0x40;
+        } else if (c < 0x7B && c > 0x60) {
+            // Lowercase
+            c -= 0x60;
+        }
+        [self setControlKeyMode:NO];
     }
-		else if (c == 0x0a) // LF from keyboard RETURN
-		{
-			c = 0x0d; // convert to CR
-		}
-  } 
-	else 
-	{    
-    // was in ctrl key mode, got another key
-    if (c < 0x60 && c > 0x40) 
-		{
-      // Uppercase
-      c -= 0x40;
-    } 
-		else if (c < 0x7B && c > 0x60) 
-		{
-      // Lowercase
-      c -= 0x60;
+    // Not sure if this actually matches anything. Maybe support high bits later?
+    if ((c & 0xff00) != 0) {
+        NSLog(@"Unsupported unichar: %x", c);
+        return;
     }
-    [self setControlKeyMode:NO];
-  }
-  // Not sure if this actually matches anything.  Maybe support high bits later?
-  if ((c & 0xff00) != 0) 
-	{
-    NSLog(@"Unsupported unichar: %x", c);
-    return;
-  }
-  char simple_char = (char)c;
-	
-  [[self activeProcess] write:&simple_char length:1];
+    char simple_char = (char)c;
+
+    [self.activeTerminal.process write:&simple_char length:1];
 }
 
-//_______________________________________________________________________________
+#pragma mark StatusBar methods
 
--(CGPoint) viewPointForWindowPoint:(CGPoint)point
+- (void)setStatusBarHidden:(BOOL)hidden duration:(double)duration
 {
-	return [mainView convertPoint:point fromView:window];
+    [self setStatusBarMode:(hidden ? 104 : 0) duration:duration];
+    [self setStatusBarHidden:hidden animated:NO];
 }
 
-//_______________________________________________________________________________
-
-- (void)hideMenu
+- (void)setStatusIconVisible:(BOOL)visible forTerminal:(int)index
 {
-  [[MenuView sharedInstance] hide];
+    if (visible) {
+        NSString *name = [NSString stringWithFormat:@"MobileTerminal%d", index];
+        if ([self respondsToSelector:@selector(addStatusBarImageNamed:removeOnExit:)])
+            [self addStatusBarImageNamed:name removeOnExit:YES];
+        else
+            [self addStatusBarImageNamed:name removeOnAbnormalExit:YES];
+    } else {
+        [self removeStatusBarImageNamed:
+            [NSString stringWithFormat:@"MobileTerminal%d", index]];
+    }
 }
 
-//_______________________________________________________________________________
-
-- (void)showMenu:(CGPoint)point
+- (void)statusBarMouseUp:(GSEventRef)event
 {
-  [[MenuView sharedInstance] showAtPoint:point];
+    if (numTerminals > 1) {
+        CGPoint pos = GSEventGetLocationInWindow(event).origin;
+        float width = landscape ? window.frame.size.height : window.frame.size.width;
+        if (pos.x > width/2 && pos.x < width *3/4) {
+            [self prevTerminal];
+        } else if (pos.x > width *3/4) {
+            [self nextTerminal];
+        } else {
+            if (self.activeView == [mainController view])
+                [self togglePreferences];
+        }
+    } else {
+        if (self.activeView == [mainController view])
+            [self togglePreferences];
+    }
 }
 
-//_______________________________________________________________________________
+#pragma mark MenuView delegate methods
 
-- (void)handleInputFromMenu:(NSString*)input
+- (void)handleInputFromMenu:(NSString *)input
 {
-  if (input == nil) return;
-  
-  if ([input isEqualToString:@"[CTRL]"])
-  {
-    if (![[MobileTerminal application] controlKeyMode])
-      [[MobileTerminal application] setControlKeyMode:YES];
-  }
-  else if ([input isEqualToString:@"[KEYB]"])
-  {
-    [[MobileTerminal application] toggleKeyboard];
-  }
-  else if ([input isEqualToString:@"[NEXT]"])
-  {
-    [[MobileTerminal application] nextTerminal];
-  }
-  else if ([input isEqualToString:@"[PREV]"])
-  {
-    [[MobileTerminal application] prevTerminal];
-  }
-  else if ([input isEqualToString:@"[CONF]"])
-  {
-    [[MobileTerminal application] togglePreferences];
-  }
-  else
-  {
-    [[self activeProcess] write:[input cString] length:[input length]];
-  }    
+    if (input == nil) return;
+
+    if ([input isEqualToString:@"[CTRL]"]) {
+        if (![[MobileTerminal application] controlKeyMode])
+            [[MobileTerminal application] setControlKeyMode:YES];
+    } else if ([input isEqualToString:@"[KEYB]"]) {
+        [mainController toggleKeyboard];
+    } else if ([input isEqualToString:@"[NEXT]"]) {
+        [self nextTerminal];
+    } else if ([input isEqualToString:@"[PREV]"]) {
+        [self prevTerminal];
+    } else if ([input isEqualToString:@"[CONF]"]) {
+        [self togglePreferences];
+    } else if ([input isEqualToString:@"[QUIT]"]) {
+        [self confirmWithQuestion:@"Quit Terminal?"];
+    } else {
+        [self.activeTerminal.process write:[input UTF8String] length:[input length]];
+    }
 }
 
-//_______________________________________________________________________________
-
-- (void)toggleKeyboard
+- (void)setControlKeyMode:(BOOL)mode
 {
-	if (keyboardShown) 
-	{
-		keyboardShown = NO;
-		
-		[UIView beginAnimations:@"keyboardFadeOut"];
-		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
-		CGRect kbFrame = [self keyboardFrame];
-		kbFrame.origin.y += kbFrame.size.height;
-		[keyboardView setFrame:kbFrame];
-		[keyboardView setAlpha:0.0f];		
-		[UIView endAnimations];		
-	}
-	else
-	{
-		keyboardShown = YES;
-		
-		[UIView beginAnimations:@"keyboardFadeIn"];
-		[UIView setAnimationDuration: KEYBOARD_FADE_OUT_TIME];
-		[keyboardView setFrame:[self keyboardFrame]];
-		[keyboardView setAlpha:1.0f];		
-		[UIView endAnimations];		
-	}
-		
-	[self updateFrames:NO];
+    controlKeyMode = mode;
+    [[mainController activeTextView].tiledView refreshCursorRow];
 }
 
-//_______________________________________________________________________________
+#pragma mark Terminal methods
 
--(void) setControlKeyMode:(BOOL)mode
+- (void)setActiveTerminal:(int)terminal
 {
-	controlKeyMode = mode;
-	[[self textView] refreshCursorRow];
+    [self setActiveTerminal:terminal direction:0];
 }
 
-//_______________________________________________________________________________
-
-- (void) statusBarMouseUp:(GSEvent*)event
+- (void)setActiveTerminal:(int)terminal direction:(int)direction
 {
-	if (numTerminals > 1)
-	{
-		CGPoint pos = GSEventGetLocationInWindow(event);
-		float width = landscape ? window.frame.size.height : window.frame.size.width;
-		if (pos.x > width/2 && pos.x < width*3/4)
-		{
-			[self prevTerminal];
-		}
-		else if (pos.x > width*3/4)
-		{
-			[self nextTerminal];
-		}
-		else
-		{
-			if (activeView == mainView)
-				[self togglePreferences];
-		}
-	}
-	else
-	{
-		if (activeView == mainView)
-			[self togglePreferences];
-	}
-}	
-
-//_______________________________________________________________________________
-
-- (void) deviceOrientationChanged: (GSEvent*)event 
-{
-	switch ([UIHardware deviceOrientation:YES])
-	{
-		case 1: [self setOrientation:  0]; break;
-		case 3: [self setOrientation: 90]; break;
-		case 4: [self setOrientation:-90]; break;
-	}
+    activeTerminalIndex = terminal;
+    [mainController switchToTerminal:terminal direction:direction];
 }
 
-//_______________________________________________________________________________
--(void) setOrientation:(int)angle
+- (void)prevTerminal
 {
-	if (degrees == angle || activeView != mainView) return;
-
-	struct CGAffineTransform transEnd;
-	switch(angle) 
-	{
-		case  90: transEnd = CGAffineTransformMake(0,  1, -1, 0, 0, 0); landscape = true;  break;
-		case -90: transEnd = CGAffineTransformMake(0, -1,  1, 0, 0, 0); landscape = true;  break;
-		case   0: transEnd = CGAffineTransformMake(1,  0,  0, 1, 0, 0); landscape = false; break;
-		default:  return;
-	}
-
-	CGSize screenSize = [UIHardware mainScreenSize];
-	CGRect contentBounds;
-
-	if (landscape)
-		contentBounds = CGRectMake(0, 0, screenSize.height, screenSize.width);
-	else
-		contentBounds = CGRectMake(0, 0, screenSize.width, screenSize.height);
-
-	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
-	CGRect keybRect = CGRectMake(0, contentBounds.size.height - keybSize.height, contentBounds.size.height, keybSize.height);	
-	
-	[UIView beginAnimations:@"screenRotation"];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-	[contentView setTransform:transEnd];
-	[contentView setBounds:contentBounds];
-	[keyboardView setFrame:keybRect];
-	[UIView endAnimations];
-
-	degrees = angle;
-	[self updateStatusBar];
+    if (numTerminals > 1) {
+        int active = activeTerminalIndex - 1;
+        if (active < 0)
+            active = numTerminals-1;
+        [self setActiveTerminal:active direction:-1];
+    }
 }
 
-//_______________________________________________________________________________
-
--(void) updateStatusBar
+- (void)nextTerminal
 {
-	[self setStatusBarMode: [self statusBarMode]
-						 orientation: degrees
-								duration: 0.5 
-								 fenceID: 0 
-							 animation: 0];	
+    if (numTerminals > 1) {
+        int active = activeTerminalIndex + 1;
+        if (active >= numTerminals)
+            active = 0;
+        [self setActiveTerminal:active direction:1];
+    }
 }
 
-//_______________________________________________________________________________
-
-- (void) updateColors
+- (void)createTerminalWithIdentifier:(int)identifier
 {
-  int i, c;
-  for (i = 0; i < numTerminals; i++)
-  {
-    TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:i];
-    for (c = 0; c < NUM_TERMINAL_COLORS; c++)
-      [[ColorMap sharedInstance] setTerminalColor:CGColorWithRGBAColor(config.colors[c]) atIndex:c termid:i];
-    [[scrollers objectAtIndex:i] setBackgroundColor:[[ColorMap sharedInstance] colorForCode:BG_COLOR_CODE termid:i]];
-    [[textviews objectAtIndex:i] setNeedsDisplay];
-  }
-  [self updateFrames:YES];
+    Terminal *terminal = [[Terminal alloc]
+        initWithIdentifier:numTerminals delegate:self];
+    [terminals addObject:terminal];
+
+    [mainController addViewForTerminal:terminal];
+    [terminal release];
 }
 
-//_______________________________________________________________________________
-
--(CGRect) keyboardFrame
+- (void)destroyTerminalAtIndex:(int)index
 {
-	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
-	return CGRectMake(0, mainView.bounds.size.height - keybSize.height, 
-											 mainView.bounds.size.width, keybSize.height);
+    Terminal *terminal = [terminals objectAtIndex:index];
+    [terminal.process closeSession];
+
+    [mainController resetViewForTerminal:index];
+    [terminals removeObject:terminal];
 }
 
-//_______________________________________________________________________________
+#pragma mark App/Preferences switching methods
 
-- (void) updateFrames:(BOOL)needsRefresh
+#define fromRight 1
+#define fromLeft 2
+
+- (void)togglePreferences
 {
-	CGRect contentRect;
-	CGRect textFrame;
-	CGRect textScrollerFrame;
-	CGRect gestureFrame;
-	int columns, rows;
-	
-	struct CGSize size = [UIHardware mainScreenSize];
-	CGSize keybSize = [UIKeyboard defaultSizeForOrientation:(landscape ? 90 : 0)];
+    // Handle status bar and orientation
+    if (self.activeView == [mainController view]) {
+        preferencesController = [[PreferencesController alloc] init];
+        if ([window interfaceOrientation] != 1) {
+            // set orientation to portrait
+            [self setStatusBarOrientation:1 animated:YES];
+            [window _setRotatableViewOrientation:1 duration:0];
+        }
+    }
 
-	float statusBarHeight = [UIHardware statusBarHeight];
-	
-	if (landscape) contentRect = CGRectMake(0, statusBarHeight, size.height, size.width-statusBarHeight);
-	else           contentRect = CGRectMake(0, statusBarHeight, size.width, size.height-statusBarHeight);
+    // Change the view
+	[UIView beginAnimations:nil context:NULL];
+	[UIView setAnimationDuration:0.75f];
+    [UIView setAnimationTransition:
+        (self.activeView == [mainController view] ? fromRight : fromLeft)
+        forView:window cache:YES];
+    [UIView setAnimationDelegate:self];
 
-	[mainView setFrame:contentRect];
-		
-	TerminalConfig * config = [[[Settings sharedInstance] terminalConfigs] objectAtIndex:activeTerminal];
+    if (self.activeView == [mainController view]) {
+        [[mainController view] removeFromSuperview];
+        [window addSubview:[preferencesController view]];
+    } else {
+        [[preferencesController view] removeFromSuperview];
+        [window addSubview:[mainController view]];
+    }
 
-	float availableWidth = mainView.bounds.size.width;
-	float availableHeight= mainView.bounds.size.height;
-	
-	if (keyboardShown) 
-	{
-		availableHeight -= keybSize.height;
-	}
-			
-	float lineHeight = [config fontSize] + TERMINAL_LINE_SPACING;
-	float charWidth  = [config fontSize]*[config fontWidth];
-	
-	rows = availableHeight / lineHeight;
-	
-	if ([config autosize])
-	{
-		columns = availableWidth / charWidth;
-	}
-	else
-	{
-		columns = [config width];
-	}
-
-	textFrame				  = CGRectMake(0.0f, 0.0f, columns * charWidth, rows * lineHeight);
-	gestureFrame			= CGRectMake(0.0f, 0.0f, availableWidth-40.0f, availableHeight-(columns * charWidth > availableWidth ? 40.0f : 0));
-	textScrollerFrame = CGRectMake(0.0f, 0.0f, availableWidth, availableHeight);
-
-	[[self textView]     setFrame:textFrame];
-	[[self textScroller] setFrame:textScrollerFrame];
-	[[self textScroller] setContentSize:textFrame.size];
-	[gestureView         setFrame:gestureFrame];
-	[gestureView				 setNeedsDisplay];
-	
-	[[self activeProcess] setWidth:columns    height:rows];
-	[[self activeScreen]  resizeWidth:columns height:rows];
-		
-	if (needsRefresh) 
-	{
-		[[self textView] refresh];	
-		[[self textView] updateIfNecessary];
-	}
+	[UIView commitAnimations];
 }
 
-//_______________________________________________________________________________
-
--(void) setActiveTerminal:(int)active
+- (void)animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
-	[self setActiveTerminal:active direction:0];
+    if (self.activeView == [mainController view]) {
+        // The Preferences view has just been closed, release it
+        [preferencesController release];
+        preferencesController = nil;
+
+        // reload settings
+        [mainController updateColors];
+    }
 }
 
-//_______________________________________________________________________________
+#pragma mark Properties
 
--(void) setActiveTerminal:(int)active direction:(int)direction
+- (Terminal *)activeTerminal
 {
-	[[self textView] willSlideOut];
-		
-	if (direction)
-	{
-		[UIView beginAnimations:@"slideOut"];
-		[UIView setAnimationDelegate:self];
-		[UIView setAnimationDidStopSelector: @selector(animationDidStop:finished:context:)];
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-direction * [mainView frame].size.width, 0)];
-		[UIView endAnimations];
-	}
-	else
-	{
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(-[mainView frame].size.width,0)];
-	}
-	
-	if (numTerminals > 1) [self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal]];
-	
-	activeTerminal = active;
-	
-	if (numTerminals > 1)	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal%d", activeTerminal] 
-																removeOnAbnormalExit:YES];
-	
-	[mainView insertSubview:[self textScroller] below:keyboardView];
-
-	if (direction)
-	{
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(direction * [mainView frame].size.width,0)];
-		
-		[UIView beginAnimations:@"slideIn"];
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(0,0)];
-		[UIView endAnimations];
-	}
-	else
-	{
-		[(UIView*)[self textScroller] setTransform:CGAffineTransformMakeTranslation(0,0)];
-	}
-		
-	[self updateFrames:YES];
-	
-	[[self textView] willSlideIn];
+    return [terminals objectAtIndex:activeTerminalIndex];
 }
 
-//_______________________________________________________________________________
-
-- (void) animationDidStop:(NSString*)animationID finished:(NSNumber*)finished context:(void*)context 
+- (UIView *)activeView
 {
-	if ([animationID isEqualToString:@"slideOut"])
-	{
-		int i;
-		for (i = 0; i < numTerminals; i++)
-		{
-			if (i != activeTerminal) [[scrollers objectAtIndex:i] removeFromSuperview];
-		}
-	}
-	else if ([animationID isEqualToString:@"screenRotation"])
-	{
-		[self updateFrames:YES];
-		[keyboardView setFrame:[self keyboardFrame]];
-	}
+    return [[window subviews] objectAtIndex:0];
 }
-
-//_______________________________________________________________________________
-
--(void) prevTerminal
-{
-	if (numTerminals < 2) return;
-	int active = activeTerminal - 1;
-	if (active < 0) active = numTerminals-1;
-	[self setActiveTerminal:active direction:-1];
-}
-
-//_______________________________________________________________________________
-
--(void) nextTerminal
-{
-	if (numTerminals < 2) return;
-	int active = activeTerminal + 1;
-	if (active >= numTerminals) active = 0;
-	[self setActiveTerminal:active direction:1];
-}
-
-//_______________________________________________________________________________
-
--(void) createTerminals
-{
-	for (numTerminals = 1; numTerminals < MAXTERMINALS; numTerminals++)
-	{
-		VT100Terminal * terminal = [[VT100Terminal alloc] init];
-		VT100Screen   * screen   = [[VT100Screen alloc] initWithIdentifier: numTerminals];
-		SubProcess    * process  = [[SubProcess alloc] initWithDelegate:self identifier: numTerminals];
-		UIScroller    * scroller = [[UIScroller alloc] init];
-
-		[screens   addObject: screen];
-		[terminals addObject: terminal];
-		[processes addObject: process];
-		[scrollers addObject: scroller];
-		
-		[screen setTerminal:terminal];
-		[terminal setScreen:screen];		
-
-		PTYTextView * textview = [[PTYTextView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 244.0f)
-																												 source: screen
-																											 scroller: scroller
-																										 identifier: numTerminals];		
-		[textviews addObject:textview];		
-	}
-
-	[self addStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"] removeOnAbnormalExit:YES];
-}
-
-//_______________________________________________________________________________
-
--(void) destroyTerminals
-{
-	[self setActiveTerminal:0];
-	
-	[self removeStatusBarImageNamed:[NSString stringWithFormat:@"MobileTerminal0"]];
-	
-	for (numTerminals = MAXTERMINALS; numTerminals > 1; numTerminals--)
-	{
-		SubProcess * process = [processes lastObject];
-		[process closeSession];
-		[[textviews lastObject] removeFromSuperview];
-		
-		[screens   removeLastObject];
-		[terminals removeLastObject];
-		[processes removeLastObject];
-		[scrollers removeLastObject];
-		[textviews removeLastObject];
-	}
-}
-	
-//_______________________________________________________________________________
-
--(void) togglePreferences
-{
-	if (preferencesController == nil)
-	{
-		preferencesController = [PreferencesController sharedInstance];
-		[preferencesController initViewStack];
-	}
-	
-	if (activeView == mainView)
-	{
-		if (landscape) [self setOrientation:0];
-		[contentView transition:0 toView:[preferencesController view]];
-		activeView = [preferencesController view];
-	}
-	else
-	{
-		[contentView transition:0 toView:mainView];
-		activeView = mainView;
-		
-		[settings writeUserDefaults];
-    [self updateColors];
-		[gestureView setNeedsDisplay];
-		
-		if (numTerminals > 1 && ![settings multipleTerminals])
-		{
-			[self destroyTerminals];
-		}
-		else if (numTerminals == 1 && [settings multipleTerminals])
-		{
-			[self createTerminals];
-		}
-	}
-	
-	LKAnimation * animation = [LKTransition animation];
-	[animation performSelector:@selector(setType:) withObject:@"oglFlip"];
-	[animation performSelector:@selector(setSubtype:) withObject:(activeView == mainView) ? @"fromRight" : @"fromLeft"];
-	[animation performSelector:@selector(setTransitionFlags:) withObject:[NSNumber numberWithInt:3]];
-	[animation setTimingFunction: [LKTimingFunction functionWithName: @"easeInEaseOut"]];
-	[animation setSpeed: 0.25f];
-	[contentView addAnimation:(id)animation forKey:@"flip"];
-}
-
-//_______________________________________________________________________________
-
--(SubProcess*) activeProcess
-{
-	return [processes objectAtIndex: activeTerminal];
-}
-
--(VT100Screen*) activeScreen
-{
-	return [screens objectAtIndex: activeTerminal];
-}
-
--(VT100Terminal*) activeTerminal
-{
-	return [terminals objectAtIndex: activeTerminal];
-}
-
--(NSArray *) textviews
-{
-	return textviews;
-}
-
-//_______________________________________________________________________________
-
--(Menu*) menu { return menu; }
--(UIView*) mainView { return mainView; }
--(UIView*) activeView { return activeView; }
--(GestureView*) gestureView { return gestureView; }
--(PTYTextView*) textView { return [textviews objectAtIndex:activeTerminal]; }
--(UIScroller*) textScroller { return [scrollers objectAtIndex:activeTerminal]; }
 
 @end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
