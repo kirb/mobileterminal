@@ -1,4 +1,3 @@
-// MobileTerminal.h
 #define DEBUG_METHOD_TRACE 0
 
 #include "MobileTerminal.h"
@@ -6,12 +5,6 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
-
-@protocol UIAlertViewDelegate;
-#import <UIKit/UIAlertView.h>
-#import <UIKit/UIScreen.h>
-#import <UIKit/UIView-Geometry.h>
-#import <UIKit/UIWindow.h>
 
 #import "ColorMap.h"
 #import "GestureView.h"
@@ -110,8 +103,9 @@
 
 - (void)confirmWithQuestion:(NSString *)question
 {
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:question message:nil
-        delegate:self defaultButton:@"Yes" cancelButton:@"No" otherButtons:nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:question
+        delegate:self cancelButtonTitle:@"No" destructiveButtonTitle:@"Yes"
+        otherButtonTitles:nil];
     [alert show];
     [alert release];
 }
