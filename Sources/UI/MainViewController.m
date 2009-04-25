@@ -281,7 +281,8 @@ extern void UIGraphicsEndImageContext();
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)orientation
 {
-    if ( [self interfaceOrientation] != orientation ) {
+    int currentOrientation = [self interfaceOrientation];
+    if (currentOrientation && currentOrientation != orientation) {
         targetOrientation_ = orientation;
 
         [application setStatusBarHidden:YES duration:0.1f];
