@@ -103,9 +103,8 @@
 
 - (void)confirmWithQuestion:(NSString *)question
 {
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:question
-        delegate:self cancelButtonTitle:@"No" destructiveButtonTitle:@"Yes"
-        otherButtonTitles:nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:question message:nil
+        delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes",nil];
     [alert show];
     [alert release];
 }
@@ -113,7 +112,7 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)index
 {
     // NOTE: Currently only one alert view is used, so no need to ID the view
-    if (index == 0)
+    if (index == 1)
         [self terminate];
 }
 
