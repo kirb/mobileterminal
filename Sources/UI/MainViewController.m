@@ -93,22 +93,6 @@ extern void UIGraphicsEndImageContext();
     [super dealloc];
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-}
-
 - (void)applicationWillSuspend
 {
     //[keyboardView setEnabled:NO];
