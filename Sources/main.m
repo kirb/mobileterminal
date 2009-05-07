@@ -1,10 +1,13 @@
 // main.m
 
+#include <objc/runtime.h>
+
 #import <UIKit/UIKit.h>
 
 #import "MobileTerminal.h"
 #import "Settings.h"
 
+void UIApplicationUseLegacyEvents(BOOL use);
 
 int main(int argc, char **argv)
 {
@@ -21,6 +24,7 @@ int main(int argc, char **argv)
         [[Settings sharedInstance] setArguments:args];
     }
 
+    UIApplicationUseLegacyEvents(1);
     int ret = UIApplicationMain(argc, argv, @"MobileTerminal", @"MobileTerminal");
 
     [pool release];

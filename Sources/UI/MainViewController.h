@@ -6,10 +6,8 @@
 #import <UIKit/UIKit.h>
 
 @class GestureView;
-@class MenuView;
 @class MobileTerminal;
 @class NSMutableArray;
-@class PieView;
 @class PTYTextView;
 @class ShellKeyboard;
 @class Terminal;
@@ -23,8 +21,6 @@
     UIView *mainView;
     ShellKeyboard *keyboardView;
     GestureView *gestureView;
-    PieView *pieView;
-    MenuView *menuView;
 
     NSMutableArray *textviews;
 
@@ -38,12 +34,6 @@
 @property(nonatomic, readonly) PTYTextView *activeTextView;
 
 - (void)toggleKeyboard;
-
-- (void)showPie:(CGPoint)point;
-- (void)hidePie;
-
-- (void)showMenu:(CGPoint)point;
-- (void)hideMenu;
 
 - (void)addViewForTerminal:(Terminal *)terminal;
 - (void)resetViewForTerminal:(int)index;

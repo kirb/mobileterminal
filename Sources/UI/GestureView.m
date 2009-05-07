@@ -8,16 +8,12 @@
 
 #import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UIColor.h>
-#import <UIKit/UIEvent.h>
-#import <UIKit/UITouch.h>
 #import <UIKit/UIView.h>
 
 #import "Menu.h"
 #import "MobileTerminal.h"
-#import "PieView.h"
 #import "Settings.h"
 #import "Tools.h"
-
 
 @protocol UITouchCompatibility
 
@@ -36,12 +32,9 @@
     self = [super initWithFrame:rect];
     if (self) {
         delegate = inputDelegate;
-        menuView = [MenuView sharedInstance];
-        pieView = [PieView sharedInstance];
+        [super setTapDelegate: self];
         [self setBackgroundColor:[UIColor clearColor]];
         [self setOpaque:NO];
-        [self setMultipleTouchEnabled:YES];
-        //[super setTapDelegate:self];
     }
     return self;
 }
@@ -74,76 +67,92 @@
     CGContextFlush(context);
 }
 
-#pragma mark UIControl input tracking methods
-// FIXME: is using a UIControl necessary now?
+#pragma mark Other
 
-#pragma mark View toggle methods
-
-- (void)toggleMenuView
+- (void)stopToggleKeyboardTimer
 {
-    if ([menuView isVisible])
-        [menuView hide];
-    else
-        [delegate showMenu:touchPos];
+    if (toggleKeyboardTimer != nil) {
+        [toggleKeyboardTimer invalidate];
+        toggleKeyboardTimer = nil;
+    }
 }
 
-- (void)togglePieView
+- (void)toggleKeyboard
 {
-    if ([pieView isVisible])
-        [pieView hide];
-    else
-        [delegate showPie:touchPos];
+    [self stopToggleKeyboardTimer];
+    [delegate hideMenu];
+    [delegate toggleKeyboard];
+}
+
+# pragma mark UIView delegate methods
+
+- (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEventRef)event fingerCount:(int)fingers
+{
+    if (fingers == 1) {
+        if (count == 2) {
+            [[MenuView sharedInstance] hide];
+            [self stopToggleKeyboardTimer];
+            toggleKeyboardTimer = [NSTimer scheduledTimerWithTimeInterval:TOGGLE_KEYBOARD_DELAY
+                target:self selector:@selector(toggleKeyboard) userInfo:nil repeats:NO];
+        }
+    }
+}
+
+#pragma mark UIControl input tracking methods
+
+- (BOOL)shouldTrack
+{
+    return ![[MenuView sharedInstance] visible];
+}
+
+- (BOOL)beginTrackingAt:(CGPoint)point withEvent:(id)event
+{
+    return YES;
+}
+
+- (BOOL)continueTrackingAt:(CGPoint)point previous:(CGPoint)prev withEvent:(id)event
+{
+    MenuView *menu = [MenuView sharedInstance];
+    if (![menu visible]) {
+        [menu stopTimer];
+    } else {
+        [menu handleTrackingAt:[menu convertPoint:point fromView:self]];
+        return YES;
+    }
+
+    return NO;
+}
+
+- (BOOL)endTrackingAt:(CGPoint)point previous:(CGPoint)prev withEvent:(id)event
+{
+    if (!menuTapped)
+        [delegate handleInputFromMenu:[[MenuView sharedInstance] handleTrackingEnd]];
+    return YES;
+}
+
+- (BOOL)beginTrackingWithTouch:(id)touch withEvent:(id)event
+{
+    return [self beginTrackingAt:[touch locationInView:self] withEvent:event];
+}
+
+- (BOOL)continueTrackingWithTouch:(id)touch withEvent:(id)event
+{
+    return [self continueTrackingAt:[touch locationInView:self] previous:[touch previousLocationInView:self] withEvent:event];
+}
+
+- (void)endTrackingWithTouch:(id)touch withEvent:(id)event
+{
+    [self endTrackingAt:[touch locationInView:self] previous:[touch previousLocationInView:self] withEvent:event];
 }
 
 #pragma mark UIResponder touch input methods
 
-static CGPoint getCenterPoint(NSSet *touches, UIView *view)
+- (void)mouseDown:(GSEventRef)event
 {
-    // Calculate the average values of coordinates x and y
-    float cx = 0, cy = 0;
-    CGPoint p;
-    for (UITouch *touch in touches) {
-        p = [touch locationInView:view];
-        cx += p.x;
-        cy += p.y;
-    }
+    mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+    [delegate showMenu:mouseDownPos];
 
-    int count = [touches count];
-    cx /= count;
-    cy /= count;
-
-    return CGPointMake(cx,cy);
-}
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    // If first touch in a sequence, record the initial point
-    if (fingersDown_ == 0)
-        touchInitialPoint_ = getCenterPoint(touches, self);
-
-    // Track number of fingers that have touched the screen in a given sequence
-    fingersDown_ = MAX(fingersDown_, [[event allTouches] count]);
-
-    // As we don't differntiate fingers, any touch will do
-    UITouch *touch = [touches anyObject];
-    int tc = [touch tapCount];
-    if (tc == 2) {
-        // Is a double-tap, cancel show/hide menu request
-        [NSObject cancelPreviousPerformRequestsWithTarget:self];
-    } else if (tc == 1) {
-        // Schedule display of pie view
-        touchPos  = [touch locationInView:self];
-        [self performSelector:@selector(togglePieView)
-            withObject:nil afterDelay:TAP_DELAY];
-    }
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if (![pieView isVisible])
-        [NSObject cancelPreviousPerformRequestsWithTarget:self];
-    //else
-    //    [pieView handleTrackingAt:[menuView convertPoint:point fromView:self]];
+    [super mouseDown:event];
 }
 
 static int zoneForVector(CGPoint vector)
@@ -152,89 +161,112 @@ static int zoneForVector(CGPoint vector)
     return ((7 - (lround(theta / M_PI_4 ) + 4) % 8) + 7) % 8;
 }
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)mouseUp:(GSEventRef)event
 {
-    int fingersUp = [touches count];
-    BOOL sequenceEnded = (fingersUp == [[event allTouches] count]);
+    if (gestureMode) {
+        gestureMode = NO;
 
-    if (![pieView isVisible])
-        // Cancel display of the pie view
-        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        CGPoint vector = CGPointMake(gestureEnd.x - gestureStart.x, gestureEnd.y - gestureStart.y);
+        float r = sqrtf(vector.x *vector.x + vector.y *vector.y);
 
-    if (sequenceEnded) {
-        // NOTE: [touch isTap] alone is not used as the time delay that it allows
-        //       for a touch to be recognized as a tap is unacceptably long
-        UITouch *touch = [touches anyObject];
-        if ([touch isTap] && ![pieView isVisible] && fingersDown_ == 1) {
-            switch ([touch tapCount]) {
-                case 1: // single tap
-                    [self performSelector:@selector(toggleMenuView)
-                        withObject:nil
-                        afterDelay:MENU_DELAY];
-                    break;
-                case 2: // double tap
-                    [delegate toggleKeyboard];
-                    break;
-               default: // triple (or greater) tap
-                    // Ignore (for now)
-                    break;
-            }
-        } else { // a swipe
-            CGPoint touchFinalPoint = getCenterPoint(touches, self);
-            CGPoint vector = CGPointMake(touchFinalPoint.x - touchInitialPoint_.x,
-                    touchFinalPoint.y - touchInitialPoint_.y);
-            float r = sqrtf(vector.x * vector.x + vector.y * vector.y);
-
-            if ([pieView isVisible])
-                [pieView hide];
-
-            // NOTE: Once multiple fingers touch the screen in a given sequence,
-            //       the gesture becomes "two-finger", even if one of the fingers
-            //       is removed before the other.
-            //       This is done as it is difficult to remove both fingers from
-            //       the screen at exactly the same time.
-            NSDictionary *swipeGestures = [[Settings sharedInstance] swipeGestures];
-            int zone = zoneForVector(vector);
-            NSString *command = nil;
-            switch (fingersDown_) {
-                case 1:
-                    // one-finger swipe
-                    // NOTE: swipes less than 10 pixels get ignored
-                    if ( r > 150.0f) { // long swipe
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone + 8]];
-                        if (![command length])
-                            // Long not defined for this zone, fallback to short
-                            command = [swipeGestures objectForKey:ZONE_KEYS[zone]];
-                    } else if (r > 10.0f) { // short swipe
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone]];
-                    }
-                    break;
-                case 2:
-                default:
-                    // two-finger swipe
-                    if (r > 10.0f)
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone + 16]];
-                    break;
-            }
-
-            if (command)
-                [[MobileTerminal application] handleInputFromMenu:command];
-
-            // All fingers have left the screen, reset finger tracking
-            fingersDown_ = 0;
-        }
-    } else {
-        // FIXME: Adjust pie view, if visible/appropriate
-        if ([pieView isVisible]) {
+        if (r < 10) {
+            if (gestureFingers == 2)
+                [[MobileTerminal application] toggleKeyboard];
             return;
+        } else if (r > 30) {
+            int zone = zoneForVector(vector);
+
+            if (gestureFingers >= 2) {
+                NSString *zoneName = ZONE_KEYS[zone+16];
+                NSString *characters = [[[Settings sharedInstance] swipeGestures] objectForKey:zoneName];
+
+                if (characters) {
+                    [delegate handleInputFromMenu:characters];
+                }
+            }
         }
+
+        return;
+
+    } // end if gestureMode
+
+    if (![[MenuView sharedInstance] visible]) {
+        CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+        CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
+
+        float r = sqrtf(vector.x *vector.x + vector.y *vector.y);
+
+        int zone = zoneForVector(vector);
+        if (r > 30.0f) {
+            NSString *characters = nil;
+
+            NSDictionary *swipeGestures = [[Settings sharedInstance] swipeGestures];
+            NSString *zoneName = ZONE_KEYS[zone];
+
+            if (r < 150.0f) {
+                characters = [swipeGestures objectForKey:zoneName];
+            } else {
+                NSString *longZoneName = ZONE_KEYS[zone+8];
+                characters = [swipeGestures objectForKey:longZoneName];
+                if (![characters length]) {
+                    characters = [swipeGestures objectForKey:zoneName];
+                }
+            }
+
+            if (characters) {
+                [self stopToggleKeyboardTimer];
+
+                [delegate handleInputFromMenu:characters];
+            }
+        } else if (r < 10.0f) {
+            mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+            if ([[MenuView sharedInstance] visible]) {
+                [[MenuView sharedInstance] hide];
+            } else {
+                [[MenuView sharedInstance] setDelegate:self];
+                menuTapped = YES;
+                [[MenuView sharedInstance] showAtPoint:mouseDownPos delay:MENU_TAP_DELAY];
+            }
+        }
+    } // end if menu invisible
+    else {
+        [[MenuView sharedInstance] hide];
     }
+
+    [super mouseUp:event];
 }
 
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
+#pragma mark UIResponder gesture input methods
+
+static CGPoint gestureCenter(GSEventRef event)
 {
-    // Reset all touch information
-    fingersDown_ = 0;
+    float cx = 0, cy = 0;
+    int i;
+    for (i = 0; i < ((GSEventStruct *)event)->numPoints; i++) {
+        cx += ((GSEventStruct *)event)->points[i].x;
+        cy += ((GSEventStruct *)event)->points[i].y;
+    }
+    cx /= ((GSEventStruct *)event)->numPoints;
+    cy /= ((GSEventStruct *)event)->numPoints;
+    return CGPointMake(cx,cy);
+}
+
+- (void)gestureStarted:(GSEventRef)event
+{
+    [delegate hideMenu];
+    gestureMode = YES;
+    gestureStart = [delegate viewPointForWindowPoint:gestureCenter(event)];
+}
+
+- (void)gestureChanged:(GSEventRef)event
+{
+}
+
+- (void)gestureEnded:(GSEventRef)event
+{
+    [delegate hideMenu];
+    gestureEnd = [delegate viewPointForWindowPoint:gestureCenter(event)];
+    gestureFingers = ((GSEventStruct *)event)->numPoints;
 }
 
 #pragma mark MenuView delegate methods
@@ -253,22 +285,22 @@ static int zoneForVector(CGPoint vector)
 
         if ([command hasSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]]) {
             [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]];
-            [menuView deselectButton:button];
+            [[MenuView sharedInstance] deselectButton:button];
             keepMenu = YES;
         }
 
         if ([command hasSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]]) {
             [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]];
-            [menuView popMenu];
+            [[MenuView sharedInstance] popMenu];
             keepMenu = YES;
         }
 
         if (!keepMenu) {
-            [menuView setDelegate:nil];
-            [menuView hide];
+            [[MenuView sharedInstance] setDelegate:nil];
+            [[MenuView sharedInstance] hide];
         }
 
-        [[MobileTerminal application] handleInputFromMenu:command];
+        [delegate handleInputFromMenu:command];
     }
 }
 

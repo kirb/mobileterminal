@@ -2,9 +2,7 @@
 
 #import <CoreGraphics/CGColor.h>
 #import <UIKit/UIControl-UIControlPrivate.h>
-#import <UIKit/UIHardware.h>
 #import <UIKit/UIImage-UIImageDeprecated.h>
-#import <UIKit/UIView-Animation.h>
 #import <UIKit/UIView-Geometry.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Rendering.h>
@@ -206,36 +204,24 @@ static NSMutableString *convertCommandString(PieButton *button, NSString *cmd, B
 @implementation PieView
 
 @synthesize buttons;
-@synthesize visible;
 @synthesize delegate;
 
-+ (PieView *)sharedInstance
+- (id)initWithFrame:(CGRect)frame
 {
-    static PieView *instance = nil;
-    if (instance == nil) {
-        instance = [[PieView alloc] init];
-    }
-    return instance;
-}
-
-- (id)init
-{
-    self = [super initWithFrame:CGRectMake(0, 0, 210, 215)];
+    self = [super initWithFrame:frame];
     if (self) {
-        visible = YES;
         [self setOpaque:NO];
+        buttons = [[NSMutableArray alloc] initWithCapacity:8];
 
         NSBundle *bundle = [NSBundle mainBundle];
         NSString *imagePath = [bundle pathForResource: @"pie_back" ofType: @"png"];
-        pie_back = [[UIImage alloc] initWithContentsOfFile:imagePath];
+        pie_back = [[UIImage alloc] initWithContentsOfFile: imagePath];
 
-        buttons = [[NSMutableArray alloc] initWithCapacity:8];
         for (int i = 0; i < 8; i++) {
             const float x[] = { 5.0, 12.0, 69.0, 126.0, 161.0, 126.0, 69.0, 12.0};
             const float y[] = { 73.0, 15.0, 7.0, 15.0, 73.0, 129.0, 165.0, 129.0};
 
-            PieButton *button = [[PieButton alloc]
-                initWithFrame:CGRectMake(x[i], y[i], 0, 0) identifier:i];
+            PieButton *button = [[PieButton alloc] initWithFrame:CGRectMake(x[i],y[i],0,0) identifier:i];
             [buttons addObject:button];
             [button addTarget:self action:@selector(buttonPressed:) forEvents:64];
             [self addSubview:button];
@@ -253,9 +239,9 @@ static NSMutableString *convertCommandString(PieButton *button, NSString *cmd, B
     [super dealloc];
 }
 
-- (void)drawRect:(CGRect)frame
+- (void)drawRect:(CGRect)rect
 {
-    [pie_back compositeToPoint:CGPointMake(0.0f, 0.0f) operation:2];
+    [pie_back compositeToPoint: CGPointMake(0.0f, 0.0f) operation: 2];
 }
 
 #pragma mark UIView methods
@@ -293,62 +279,6 @@ static NSMutableString *convertCommandString(PieButton *button, NSString *cmd, B
         if ([delegate respondsToSelector:@selector(pieButtonPressed:)])
             [delegate performSelector:@selector(pieButtonPressed:) withObject:activeButton];
     }
-}
-
-#pragma mark Display-related methods
-
-- (void)showAtPoint:(CGPoint)point
-{
-    if (!visible) {
-        CGSize selfSize = [self bounds].size;
-        location.x = point.x - selfSize.width / 2.0f;
-        location.y = point.y - selfSize.height / 2.0f;
-        [self fadeIn];
-    }
-}
-
-- (void)fadeIn
-{
-    if (!visible) {
-        visible = YES;
-
-        float statusBarHeight = [UIHardware statusBarHeight];
-        CGSize superSize = [[self superview] bounds].size;
-        superSize.height -= statusBarHeight;
-
-        [self setOrigin:CGPointMake(location.x, location.y + statusBarHeight)];
-        [self setAlpha:0.0f];
-
-        [UIView beginAnimations:@"fadeIn"];
-        [UIView setAnimationDelegate:self];
-        [UIView setAnimationDidStopSelector:
-                 @selector(animationDidStop:finished:context:)];
-        [UIView setAnimationDuration:MENU_FADE_IN_TIME];
-        [self setAlpha:0.5f];
-        [UIView commitAnimations];
-    }
-}
-
-- (void)hide
-{
-    if (visible) {
-        [UIView beginAnimations:@"fadeOut"];
-        [UIView setAnimationDuration: MENU_FADE_OUT_TIME];
-        [self setAlpha:0];
-        [UIView endAnimations];
-
-        visible = NO;
-    }
-    [self setDelegate:nil];
-}
-
-#pragma mark Animation-related delegate methods
-
-- (void)animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
-{
-    if ([animationID isEqualToString:@"fadeIn"] && [finished boolValue] == YES)
-        if ([delegate respondsToSelector:@selector(pieDidAppear)])
-            [delegate performSelector:@selector(pieDidAppear)];
 }
 
 @end

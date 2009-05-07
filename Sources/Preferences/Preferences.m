@@ -336,9 +336,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         [self setShowSelection:NO];
-        pieView = [[PieView alloc] init];
-        [pieView setCenter:CGPointMake(
-                160.0f, [self bounds].size.height / 2.0f)];
+        pieView = [[PieView alloc] initWithFrame:frame];
+        [pieView setOrigin:CGPointMake(57, 10)];
         [self addSubview:pieView];
     }
     return self;
@@ -416,8 +415,7 @@
 
     // --------------------------------------------------------- the gesture pie
  
-    GestureTableCell *cell = [[GestureTableCell alloc]
-        initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 235.0f)];
+    GestureTableCell *cell = [[GestureTableCell alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 300.0f, 235.0f)];
     pieView = [cell pieView];
     NSDictionary * sg = [[Settings sharedInstance] swipeGestures];
     for (int i = 0; i < 8; i++) {

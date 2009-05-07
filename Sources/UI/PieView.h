@@ -30,25 +30,15 @@
     UIImage *pie_back;
     NSMutableArray *buttons;
     PieButton *activeButton;
-
-    CGPoint location;
-    BOOL visible;
     id delegate;
 }
 
-@property(nonatomic, readonly) NSMutableArray *buttons;
-@property(nonatomic, readonly, getter=isVisible) BOOL visible;
 @property(nonatomic, assign) id delegate;
-
-+ (PieView *)sharedInstance;
+@property(nonatomic, readonly) NSMutableArray *buttons;
 
 - (PieButton *)buttonAtIndex:(int)index;
 - (void)selectButton:(PieButton *)button;
 - (void)deselectButton:(PieButton *)button;
-
-- (void)showAtPoint:(CGPoint)point;
-- (void)fadeIn;
-- (void)hide;
 
 @end
 

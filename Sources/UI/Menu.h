@@ -85,18 +85,17 @@
     NSMutableArray *history;
 
     CGPoint location;
+    NSTimer *timer;
 
     BOOL tapMode;
     BOOL visible;
-    BOOL activated;
     BOOL showsEmptyButtons;
 
     id delegate;
 }
 
 @property(nonatomic) BOOL tapMode;
-@property(nonatomic, readonly, getter=isVisible) BOOL visible;
-@property(nonatomic, getter=isActivated) BOOL activated;
+@property(nonatomic) BOOL visible;
 @property(nonatomic) BOOL showsEmptyButtons;
 @property(nonatomic, assign) id delegate;
 
@@ -106,13 +105,16 @@
 - (void)loadMenu:(Menu *)menu;
 - (void)pushMenu:(Menu *)menu;
 - (void)popMenu;
-
 - (MenuButton *)buttonAtIndex:(int)index;
 - (void)selectButton:(MenuButton *)button;
 - (void)deselectButton:(MenuButton *)button;
-
-- (void)showAtPoint:(CGPoint)point;
+- (void)handleTrackingAt:(CGPoint)point;
+- (NSString *)handleTrackingEnd;
+- (void)stopTimer;
+- (void)showAtPoint:(CGPoint)p;
+- (void)showAtPoint:(CGPoint)p delay:(float)delay;
 - (void)fadeIn;
+- (void)fadeInAtPoint:(CGPoint)p;
 - (void)hide;
 - (void)hideSlow:(BOOL)slow;
 

@@ -9,7 +9,6 @@
 #import "Keyboard.h"
 #import "Menu.h"
 #import "MobileTerminal.h"
-#import "PieView.h"
 #import "PTYTextView.h"
 #import "Settings.h"
 #import "SubProcess.h"
@@ -45,22 +44,11 @@ extern void UIGraphicsEndImageContext();
     [keyboardView setInputDelegate:application];
     [keyboardView setAnimationDelegate:self];
 
-    // ------------------------------------------------------- gesture indicator
-
-    pieView = [PieView sharedInstance];
-    [pieView hide];
-
     // ----------------------------------------------------------- gesture frame
 
     gestureView = [[GestureView alloc] initWithFrame:CGRectMake(0, 0, 240.0f, 250.0f)
-        delegate:self];
+        delegate:application];
     [gestureView setBackgroundColor:[UIColor clearColor]];
-
-    // -------------------------------------------------------------- popup menu
-
-    menuView = [MenuView sharedInstance];
-    [menuView setCenter:CGPointMake(160.0f, 142.0f)];
-    [menuView setActivated:YES];
 
     // --------------------------------------------------------------- main view
  
@@ -68,15 +56,13 @@ extern void UIGraphicsEndImageContext();
         initWithFrame:[[UIScreen mainScreen] bounds]];
     [mainView setAutoresizingMask:WidthSizable|HeightSizable];
 
-    // NOTE: the order of the views is important, as they overlap
     [mainView addSubview:keyboardView];
-    [mainView addSubview:pieView];
     [mainView addSubview:gestureView];
-    [mainView addSubview:menuView];
+    [mainView addSubview:[MenuView sharedInstance]];
     [self setView:mainView];
 
     // Shows momentarily and hides so the user knows its there
-    [menuView hideSlow:YES];
+    [[MenuView sharedInstance] hideSlow:YES];
 
     // Enable the keyboard
     [keyboardView setEnabled:YES];
@@ -102,12 +88,17 @@ extern void UIGraphicsEndImageContext();
 {
     // NOTE: sometimes when resuming, the views are out-of-order
     [mainView bringSubviewToFront:gestureView];
-    [mainView bringSubviewToFront:menuView];
+    [mainView bringSubviewToFront:[MenuView sharedInstance]];
 
     [keyboardView setEnabled:YES];
 }
 
 #pragma mark Other
+
+- (void)toggleKeyboard
+{
+    [keyboardView setVisible:![keyboardView isVisible] animated:YES];
+}
 
 - (void)updateColors
 {
@@ -209,22 +200,6 @@ extern void UIGraphicsEndImageContext();
     [newTerm.tiledView willSlideIn];
 }
 
-- (void)activeViewDidChange:(NSString *)animationID finished:(NSNumber *)finished
-    context:(void *)context
-{
-    [gestureView setUserInteractionEnabled:YES];
-    [backBuffer_ removeFromSuperview];
-    [backBuffer_ release];
-    backBuffer_ = nil;
-}
-
-#pragma mark Keyboard display methods
-
-- (void)toggleKeyboard
-{
-    [keyboardView setVisible:![keyboardView isVisible] animated:YES];
-}
-
 - (void)keyboardDidAppear:(NSString *)animationID finished:(NSNumber *)finished
     context:(void *)context
 {
@@ -237,28 +212,13 @@ extern void UIGraphicsEndImageContext();
     [self updateFrames:NO];
 }
 
-#pragma mark Pie display methods
-
-- (void)showPie:(CGPoint)point
+- (void)activeViewDidChange:(NSString *)animationID finished:(NSNumber *)finished
+    context:(void *)context
 {
-    [pieView showAtPoint:point];
-}
-
-- (void)hidePie
-{
-    [pieView hide];
-}
-
-#pragma mark Menu display methods
-
-- (void)showMenu:(CGPoint)point
-{
-    [menuView showAtPoint:point];
-}
-
-- (void)hideMenu
-{
-    [menuView hide];
+    [gestureView setUserInteractionEnabled:YES];
+    [backBuffer_ removeFromSuperview];
+    [backBuffer_ release];
+    backBuffer_ = nil;
 }
 
 #pragma mark Orientation-handling methods
