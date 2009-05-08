@@ -289,6 +289,11 @@
     return [window convertPoint:point toView:self.activeView];
 }
 
+- (CGPoint)viewPointForTouch:(UITouch *)touch
+{
+    return [touch locationInView:self.activeView];
+}
+
 #pragma mark MenuView delegate methods
 
 - (void)hideMenu

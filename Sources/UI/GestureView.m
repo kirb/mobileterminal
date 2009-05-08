@@ -86,7 +86,7 @@
 
 # pragma mark UIView delegate methods
 
-- (void)view:(UIView *)view handleTapWithCount:(int)count event:(GSEventRef)event fingerCount:(int)fingers
+- (void)handleTapWithCount:(int)count fingerCount:(int)fingers
 {
     if (fingers == 1) {
         if (count == 2) {
@@ -147,12 +147,11 @@
 
 #pragma mark UIResponder touch input methods
 
-- (void)mouseDown:(GSEventRef)event
+- (void)touchDown
 {
-    mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+    //mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+    mouseDownPos = gestureStart;
     [delegate showMenu:mouseDownPos];
-
-    [super mouseDown:event];
 }
 
 static int zoneForVector(CGPoint vector)
@@ -161,7 +160,7 @@ static int zoneForVector(CGPoint vector)
     return ((7 - (lround(theta / M_PI_4 ) + 4) % 8) + 7) % 8;
 }
 
-- (void)mouseUp:(GSEventRef)event
+- (void)touchUp
 {
     if (gestureMode) {
         gestureMode = NO;
@@ -191,7 +190,8 @@ static int zoneForVector(CGPoint vector)
     } // end if gestureMode
 
     if (![[MenuView sharedInstance] visible]) {
-        CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+        //CGPoint end = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+        CGPoint end = gestureEnd;
         CGPoint vector = CGPointMake(end.x - mouseDownPos.x, end.y - mouseDownPos.y);
 
         float r = sqrtf(vector.x *vector.x + vector.y *vector.y);
@@ -219,7 +219,8 @@ static int zoneForVector(CGPoint vector)
                 [delegate handleInputFromMenu:characters];
             }
         } else if (r < 10.0f) {
-            mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+            //mouseDownPos = [delegate viewPointForWindowPoint:GSEventGetLocationInWindow(event).origin];
+            mouseDownPos = gestureEnd;
             if ([[MenuView sharedInstance] visible]) {
                 [[MenuView sharedInstance] hide];
             } else {
@@ -232,41 +233,60 @@ static int zoneForVector(CGPoint vector)
     else {
         [[MenuView sharedInstance] hide];
     }
-
-    [super mouseUp:event];
 }
 
 #pragma mark UIResponder gesture input methods
 
-static CGPoint gestureCenter(GSEventRef event)
+- (CGPoint) centerOfTouches:(NSSet *)touches
 {
     float cx = 0, cy = 0;
-    int i;
-    for (i = 0; i < ((GSEventStruct *)event)->numPoints; i++) {
-        cx += ((GSEventStruct *)event)->points[i].x;
-        cy += ((GSEventStruct *)event)->points[i].y;
+    int count = [touches count];
+    for (UITouch *touch in touches) {
+        CGPoint location = [delegate viewPointForTouch:touch];
+        cx += location.x;
+        cy += location.y;
     }
-    cx /= ((GSEventStruct *)event)->numPoints;
-    cy /= ((GSEventStruct *)event)->numPoints;
+    cx /= count;
+    cy /= count;
     return CGPointMake(cx,cy);
 }
 
-- (void)gestureStarted:(GSEventRef)event
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [delegate hideMenu];
     gestureMode = YES;
-    gestureStart = [delegate viewPointForWindowPoint:gestureCenter(event)];
+    gestureStart = [self centerOfTouches:touches];
+
+    [self touchDown];
+
+    fingersDown_ = MAX(fingersDown_, [[event allTouches] count]);
 }
 
-- (void)gestureChanged:(GSEventRef)event
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
 }
 
-- (void)gestureEnded:(GSEventRef)event
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if ([touches count] != [[event allTouches] count])
+        return;
+
     [delegate hideMenu];
-    gestureEnd = [delegate viewPointForWindowPoint:gestureCenter(event)];
-    gestureFingers = ((GSEventStruct *)event)->numPoints;
+    gestureEnd = [self centerOfTouches:touches];
+    gestureFingers = [touches count];
+
+    UITouch *touch = [touches anyObject];
+    if ([touch isTap])
+        [self handleTapWithCount:[touch tapCount] fingerCount:fingersDown_];
+    else
+        [self touchUp];
+
+    fingersDown_ = 0;
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    fingersDown_ = 0;
 }
 
 #pragma mark MenuView delegate methods

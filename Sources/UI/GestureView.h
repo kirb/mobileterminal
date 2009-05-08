@@ -62,6 +62,8 @@ typedef struct {
     BOOL menuTapped;
 
     NSTimer *toggleKeyboardTimer;
+
+    int fingersDown_;
 }
 
 - (id)initWithFrame:(CGRect)rect delegate:(id)inputDelegate;

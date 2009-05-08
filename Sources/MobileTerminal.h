@@ -91,6 +91,7 @@
 
 // Invoked by GestureView
 - (CGPoint)viewPointForWindowPoint:(CGPoint)point;
+- (CGPoint)viewPointForTouch:(UITouch *)touch;
 
 // Invoked by MenuView
 - (void)hideMenu;
