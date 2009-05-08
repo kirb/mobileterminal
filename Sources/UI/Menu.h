@@ -5,6 +5,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <UIKit/UIThreePartButton.h>
+#import <UIKit/UITouch.h>
 #import <UIKit/UIView.h>
 
 #import "Constants.h"
@@ -102,6 +103,9 @@
 
 + (MenuView *)sharedInstance;
 
+- (void)handleTrackingAt:(CGPoint)point;
+- (NSString *)handleTrackingEnd;
+
 - (void)loadMenu;
 - (void)loadMenu:(Menu *)menu;
 - (void)pushMenu:(Menu *)menu;
@@ -115,6 +119,8 @@
 - (void)fadeIn;
 - (void)hide;
 - (void)hideSlow:(BOOL)slow;
+
+- (void)buttonPressed:(id)button;
 
 @end
 

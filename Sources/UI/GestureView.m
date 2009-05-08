@@ -131,10 +131,11 @@ static CGPoint getCenterPoint(NSSet *touches, UIView *view)
         // Is a double-tap, cancel show/hide menu request
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
     } else if (tc == 1) {
-        // Schedule display of pie view
+        // Schedule display of menu view
         touchPos  = [touch locationInView:self];
-        [self performSelector:@selector(togglePieView)
-            withObject:nil afterDelay:TAP_DELAY];
+        if (![menuView isVisible])
+            [self performSelector:@selector(toggleMenuView)
+                withObject:nil afterDelay:0.1f];
     }
 }
 
@@ -144,6 +145,10 @@ static CGPoint getCenterPoint(NSSet *touches, UIView *view)
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
     //else
     //    [pieView handleTrackingAt:[menuView convertPoint:point fromView:self]];
+
+    if ([menuView isVisible] && fingersDown_ == 1)
+        [menuView handleTrackingAt:[[touches anyObject] locationInView:menuView]];
+
 }
 
 static int zoneForVector(CGPoint vector)
@@ -168,6 +173,7 @@ static int zoneForVector(CGPoint vector)
         if ([touch isTap] && ![pieView isVisible] && fingersDown_ == 1) {
             switch ([touch tapCount]) {
                 case 1: // single tap
+                    [menuView setDelegate:self];
                     [self performSelector:@selector(toggleMenuView)
                         withObject:nil
                         afterDelay:MENU_DELAY];
@@ -180,41 +186,45 @@ static int zoneForVector(CGPoint vector)
                     break;
             }
         } else { // a swipe
-            CGPoint touchFinalPoint = getCenterPoint(touches, self);
-            CGPoint vector = CGPointMake(touchFinalPoint.x - touchInitialPoint_.x,
-                    touchFinalPoint.y - touchInitialPoint_.y);
-            float r = sqrtf(vector.x * vector.x + vector.y * vector.y);
-
-            if ([pieView isVisible])
-                [pieView hide];
-
-            // NOTE: Once multiple fingers touch the screen in a given sequence,
-            //       the gesture becomes "two-finger", even if one of the fingers
-            //       is removed before the other.
-            //       This is done as it is difficult to remove both fingers from
-            //       the screen at exactly the same time.
-            NSDictionary *swipeGestures = [[Settings sharedInstance] swipeGestures];
-            int zone = zoneForVector(vector);
             NSString *command = nil;
-            switch (fingersDown_) {
-                case 1:
-                    // one-finger swipe
-                    // NOTE: swipes less than 10 pixels get ignored
-                    if ( r > 150.0f) { // long swipe
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone + 8]];
-                        if (![command length])
-                            // Long not defined for this zone, fallback to short
+            if ([menuView isVisible]) {
+                command = [menuView handleTrackingEnd];
+            } else {
+                CGPoint touchFinalPoint = getCenterPoint(touches, self);
+                CGPoint vector = CGPointMake(touchFinalPoint.x - touchInitialPoint_.x,
+                        touchFinalPoint.y - touchInitialPoint_.y);
+                float r = sqrtf(vector.x * vector.x + vector.y * vector.y);
+
+                if ([pieView isVisible])
+                    [pieView hide];
+
+                // NOTE: Once multiple fingers touch the screen in a given sequence,
+                //       the gesture becomes "two-finger", even if one of the fingers
+                //       is removed before the other.
+                //       This is done as it is difficult to remove both fingers from
+                //       the screen at exactly the same time.
+                NSDictionary *swipeGestures = [[Settings sharedInstance] swipeGestures];
+                int zone = zoneForVector(vector);
+                switch (fingersDown_) {
+                    case 1:
+                        // one-finger swipe
+                        // NOTE: swipes less than 10 pixels get ignored
+                        if ( r > 150.0f) { // long swipe
+                            command = [swipeGestures objectForKey:ZONE_KEYS[zone + 8]];
+                            if (![command length])
+                                // Long not defined for this zone, fallback to short
+                                command = [swipeGestures objectForKey:ZONE_KEYS[zone]];
+                        } else if (r > 10.0f) { // short swipe
                             command = [swipeGestures objectForKey:ZONE_KEYS[zone]];
-                    } else if (r > 10.0f) { // short swipe
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone]];
-                    }
-                    break;
-                case 2:
-                default:
-                    // two-finger swipe
-                    if (r > 10.0f)
-                        command = [swipeGestures objectForKey:ZONE_KEYS[zone + 16]];
-                    break;
+                        }
+                        break;
+                    case 2:
+                   default:
+                        // two-finger swipe
+                        if (r > 10.0f)
+                            command = [swipeGestures objectForKey:ZONE_KEYS[zone + 16]];
+                        break;
+                }
             }
 
             if (command)

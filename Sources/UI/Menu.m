@@ -359,6 +359,37 @@ static NSMutableString *convertCommandString(Menu *menu, NSString *cmd, BOOL isC
     CGContextFlush(context);
 }
 
+#pragma mark Input from other views
+
+- (void)handleTrackingAt:(CGPoint)point
+{
+    for (MenuButton *btn in [self subviews]) {
+        //if ([btn isMenuButton] &&
+        if (CGRectContainsPoint([btn frame], point)) {
+            [self buttonPressed:btn];
+            return;
+        }
+    }
+    if (activeButton && ![activeButton isMenuButton]) {
+        [activeButton setSelected:NO];
+        activeButton = nil;
+    }
+}
+
+- (NSString *)handleTrackingEnd
+{
+    [self hide];
+
+    NSMutableString *command = nil;
+    if (activeButton && ![activeButton isMenuButton]) {
+        command = [NSMutableString stringWithCapacity:32];
+        [command setString:[activeButton.item command]];
+        [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]];
+        [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]];
+    }
+    return command;
+}
+
 #pragma mark Menu-related methods
 
 - (void)clearHistory
@@ -449,19 +480,6 @@ static NSMutableString *convertCommandString(Menu *menu, NSString *cmd, BOOL isC
                 if (![delegate performSelector:@selector(shouldLoadMenuWithButton:) withObject:activeButton])
                     return;
             [self pushMenu:[activeButton.item submenu]];
-        } else {
-            if (activated) {
-                // Send command to application
-                [self hide];
-                NSMutableString *command = nil;
-                if (activeButton && ![activeButton isMenuButton]) {
-                    command = [NSMutableString stringWithCapacity:32];
-                    [command setString:[activeButton.item command]];
-                    [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"keepmenu"]];
-                    [command removeSubstring:[[MobileTerminal menu] dotStringWithCommand:@"back"]];
-                }
-                [[MobileTerminal application] handleInputFromMenu:command];
-            }
         }
     }
 }
