@@ -511,7 +511,7 @@ static NSMutableString *convertCommandString(Menu *menu, NSString *cmd, BOOL isC
         float lx = MIN(superSize.width - MENU_WIDTH,
                 MAX(0, location.x - MENU_WIDTH / 2.0f));
         float ly = MIN(superSize.height - MENU_HEIGHT,
-                MAX(0, location.y - MENU_HEIGHT / 2.0f));
+                MAX(0, location.y - 1.5f * MENU_BUTTON_HEIGHT));
 
         [self setTransform:CGAffineTransformMakeScale(1.0f, 1.0f)];
         [self setOrigin:CGPointMake(lx, ly + statusBarHeight)];
